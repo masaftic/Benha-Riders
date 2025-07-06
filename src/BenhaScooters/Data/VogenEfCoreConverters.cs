@@ -3,7 +3,9 @@ using Vogen;
 
 namespace BenhaScooters.Data;
 
-[EfCoreConverter<TodoId>]
-[EfCoreConverter<TodoTitle>]
-[EfCoreConverter<TodoPriority>]
+
+[EfCoreConverter<UserId>]
+[EfCoreConverter<Email>]
+[EfCoreConverter<UserRoleId>]
+[EfCoreConverter<PhoneNumber>]
 public partial class VogenEfCoreConverters;
