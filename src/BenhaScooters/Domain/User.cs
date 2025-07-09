@@ -8,19 +8,7 @@ public partial struct UserId;
 
 
 [ValueObject<string>]
-public partial struct Email
-{
-    private static Validation Validate(string email)
-    {
-        if (string.IsNullOrWhiteSpace(email))
-            return Validation.Invalid("Email cannot be empty.");
-
-        if (Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$") == false)
-            return Validation.Invalid("Invalid email format.");
-
-        return Validation.Ok;
-    }
-}
+public partial struct Email;
 
 
 [ValueObject<string>]
@@ -46,15 +34,23 @@ public class User
     public string Name { get; private set; } = null!;
     public Email Email { get; private set; }
     public Email EmailNormalized { get; private set; }
+    public bool EmailVerified { get; private set; } = false;
     public PhoneNumber PhoneNumber { get; private set; }
     public PhoneNumber PhoneNumberNormalized { get; private set; }
+    public bool PhoneNumberVerified { get; private set; } = false;
     public string PasswordHash { get; private set; } = null!;
+    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+    // public DriverProfileId? DriverProfileId { get; private set; }
+    // public DriverProfile? DriverProfile { get; private set; } = null!;
     private List<UserRole> _roles = new();
     public IReadOnlyCollection<UserRole> Roles => _roles.AsReadOnly();
+    
+    private List<RefreshToken> _refreshTokens = new();
+    public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
 
     private User() { }
 
-    public User(UserId id, string name, Email email, PhoneNumber phoneNumber, string passwordHash)
+    public User(string name, Email email, PhoneNumber phoneNumber, string passwordHash)
     {
         if (string.IsNullOrEmpty(name))
             throw new ArgumentException("Name cannot be empty.", nameof(name));
@@ -62,16 +58,16 @@ public class User
         if (string.IsNullOrEmpty(passwordHash))
             throw new ArgumentException("Password hash cannot be empty.", nameof(passwordHash));
 
-        Id = id;
+        Id = UserId.From(Guid.NewGuid());
         Name = name;
         Email = email;
-        EmailNormalized = Email.From(email.Value.ToLowerInvariant());
+        EmailNormalized = NormalizeEmail(email);
         PhoneNumber = phoneNumber;
         PhoneNumberNormalized = NormalizePhone(phoneNumber);
         PasswordHash = passwordHash;
     }
 
-    private static PhoneNumber NormalizePhone(PhoneNumber phone)
+    public static PhoneNumber NormalizePhone(PhoneNumber phone)
     {
         var normalizedPhone = phone.Value.Trim().Replace(" ", "").Replace("-", "");
         if (normalizedPhone.StartsWith("0"))
@@ -83,6 +79,11 @@ public class User
             normalizedPhone = "+20" + normalizedPhone;
         }
         return PhoneNumber.From(normalizedPhone);
+    }
+
+    public static Email NormalizeEmail(Email email)
+    {
+        return Email.From(email.Value.ToLowerInvariant().Trim());
     }
 
     public void AddRole(UserRole role)
@@ -102,6 +103,48 @@ public class User
     public bool HasRole(RoleName roleName)
     {
         return _roles.Any(r => r.Name == roleName);
+    }
+
+    public RefreshToken CreateRefreshToken(string token, DateTime expiresAt)
+    {
+        var refreshToken = new RefreshToken(Id, token, expiresAt);
+        _refreshTokens.Add(refreshToken);
+        return refreshToken;
+    }
+
+    public void RevokeRefreshToken(string token)
+    {
+        var refreshToken = _refreshTokens.FirstOrDefault(rt => rt.Token == token);
+        refreshToken?.Revoke();
+    }
+
+    public void RevokeAllRefreshTokens()
+    {
+        foreach (var token in _refreshTokens.Where(rt => rt.IsActive))
+        {
+            token.Revoke();
+        }
+    }
+
+    public void VerifyEmail()
+    {
+        EmailVerified = true;
+    }
+
+    public void VerifyPhoneNumber()
+    {
+        PhoneNumberVerified = true;
+    }
+
+    public void ChangePassword(string newPasswordHash)
+    {
+        if (string.IsNullOrEmpty(newPasswordHash))
+            throw new ArgumentException("Password hash cannot be empty.", nameof(newPasswordHash));
+
+        PasswordHash = newPasswordHash;
+        
+        // Revoke all refresh tokens to force re-login
+        RevokeAllRefreshTokens();
     }
 }
 

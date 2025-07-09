@@ -8,4 +8,6 @@ namespace BenhaScooters.Data;
 [EfCoreConverter<Email>]
 [EfCoreConverter<UserRoleId>]
 [EfCoreConverter<PhoneNumber>]
+
+[EfCoreConverter<RefreshTokenId>]
 public partial class VogenEfCoreConverters;

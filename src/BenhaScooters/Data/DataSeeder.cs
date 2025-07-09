@@ -10,7 +10,6 @@ public class DataSeeder(AppDbContext db)
         if (!db.Users.Any())
         {
             var user = new User(
-                UserId.From(Guid.NewGuid()),
                 "John Doe",
                 Email.From("John@gmail.com"),
                 PhoneNumber.From("01234567890"),
