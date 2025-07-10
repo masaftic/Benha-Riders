@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using BenhaScooters.Data;
 using BenhaScooters.Features.Authentication.Services;
 using FastEndpoints;
@@ -13,6 +14,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<DataSeeder>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ISmsService, DevSmsService>();
 
 builder.Services
     .AddFastEndpoints()
@@ -44,10 +46,11 @@ app.UseAuthorization();
 app.UseDefaultExceptionHandler().UseFastEndpoints(c =>
 {
     c.Endpoints.RoutePrefix = "api";
-    // c.Errors.UseProblemDetails(x =>
-    // {
-    //     x.IndicateErrorCode = true; 
-    // });
+    c.Errors.UseProblemDetails(x =>
+    {
+        x.IndicateErrorCode = true; 
+    });
+    c.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
 }).UseSwaggerGen();
 
 

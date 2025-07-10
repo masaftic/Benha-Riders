@@ -1,4 +1,6 @@
 using System.Text.RegularExpressions;
+using BenhaScooters.Domain.Driver;
+using BenhaScooters.Shared.Validation;
 using Vogen;
 
 namespace BenhaScooters.Domain;
@@ -8,7 +10,20 @@ public partial struct UserId;
 
 
 [ValueObject<string>]
-public partial struct Email;
+public partial struct Email
+{
+    public static Validation Validate(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return Validation.Invalid("Email cannot be empty.");
+
+        // Basic validation for email format
+        if (!Regex.IsMatch(email, ValidationRegex.Email))
+            return Validation.Invalid("Invalid email format.");
+
+        return Validation.Ok;
+    }
+}
 
 
 [ValueObject<string>]
@@ -20,7 +35,7 @@ public partial struct PhoneNumber
             return Validation.Invalid("Phone number cannot be empty.");
 
         // Basic validation for Egyptian phone numbers
-        if (!Regex.IsMatch(phoneNumber, @"^(\+20|0)?[1-9][0-9]{9}$"))
+        if (!Regex.IsMatch(phoneNumber, ValidationRegex.PhoneNumber))
             return Validation.Invalid("Invalid phone number format.");
 
         return Validation.Ok;
@@ -40,12 +55,11 @@ public class User
     public bool PhoneNumberVerified { get; private set; } = false;
     public string PasswordHash { get; private set; } = null!;
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-    // public DriverProfileId? DriverProfileId { get; private set; }
-    // public DriverProfile? DriverProfile { get; private set; } = null!;
-    private List<UserRole> _roles = new();
+    
+    private readonly List<UserRole> _roles = [];
     public IReadOnlyCollection<UserRole> Roles => _roles.AsReadOnly();
     
-    private List<RefreshToken> _refreshTokens = new();
+    private readonly List<RefreshToken> _refreshTokens = [];
     public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
 
     private User() { }

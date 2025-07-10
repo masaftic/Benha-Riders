@@ -1,4 +1,5 @@
 using BenhaScooters.Domain;
+using BenhaScooters.Shared.Security;
 using FastEndpoints.Security;
 using System.Security.Cryptography;
 
@@ -30,12 +31,12 @@ public class JwtService : IJwtService
         return JwtBearer.CreateToken(o =>
         {
             o.SigningKey = _signingKey;
-            o.User.Claims.Add(("email", user.Email.Value));
-            o.User.Claims.Add(("name", user.Name));
-            o.User.Claims.Add(("email_verified", user.EmailVerified.ToString()));
-            o.User.Claims.Add(("phone_verified", user.PhoneNumberVerified.ToString()));
+            o.User.Claims.Add((JwtClaims.Sub, user.Id.ToString()));
+            o.User.Claims.Add((JwtClaims.Email, user.Email.Value));
+            o.User.Claims.Add((JwtClaims.Name, user.Name));
+            o.User.Claims.Add((JwtClaims.EmailVerified, user.EmailVerified.ToString()));
+            o.User.Claims.Add((JwtClaims.PhoneVerified, user.PhoneNumberVerified.ToString()));
             o.User.Roles.AddRange(user.Roles.Select(x => x.Name.ToString()));
-            o.User["UserId"] = user.Id.ToString();
             o.ExpireAt = expiresAt;
         });
     }

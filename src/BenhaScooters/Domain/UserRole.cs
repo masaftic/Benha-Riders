@@ -27,4 +27,10 @@ public class UserRole
         UserId = userId;
         Name = name;
     }
+
+    public UserRole(RoleName name)
+    {
+        Id = UserRoleId.From(Guid.NewGuid());
+        Name = name;
+    }
 }

@@ -1,7 +1,9 @@
+using System.ComponentModel;
 using System.Data.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Features.Authentication.Services;
+using BenhaScooters.Shared.Validation;
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +12,7 @@ using Microsoft.VisualBasic;
 namespace BenhaScooters.Features.Authentication;
 
 
-public record RegisterRequest(string Name, string Email, string PhoneNumber, string Password, string Role);
+public record RegisterRequest(string Name, [DefaultValue("string@email.com")] string Email, string PhoneNumber, string Password, string Role);
 
 public record RegisterResponse(string Message, UserId UserId, bool RequiresPhoneVerification);
 
@@ -19,8 +21,13 @@ public class RegisterRequestValidator : Validator<RegisterRequest>
     public RegisterRequestValidator()
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("User name is required.");
-        RuleFor(x => x.Email).NotEmpty().EmailAddress().WithMessage("Valid email is required.");
-        RuleFor(x => x.PhoneNumber).NotEmpty().Matches(@"^(\+20|0)?[1-9][0-9]{9}$").WithMessage("Valid phone number is required.");
+
+        RuleFor(x => x.Email).NotEmpty()
+            .Matches(ValidationRegex.Email).WithMessage("Valid email is required.");
+        
+        RuleFor(x => x.PhoneNumber).NotEmpty()
+            .Matches(ValidationRegex.PhoneNumber).WithMessage("Valid phone number is required.");
+        
         RuleFor(x => x.Password).NotEmpty().MinimumLength(6).WithMessage("Password must be at least 6 characters long.");
 
         RuleFor(x => x.Role)
@@ -75,13 +82,13 @@ public class Register : Endpoint<RegisterRequest, RegisterResponse>
             _passwordHasher.Hash(req.Password));
 
         var role = Enum.Parse<RoleName>(req.Role, ignoreCase: true);
-        user.AddRole(new UserRole(user.Id, role));
+        user.AddRole(new UserRole(role));
 
         _db.Users.Add(user);
         await _db.SaveChangesAsync(ct);
 
         var response = new RegisterResponse(
-            "User registered successfully.",
+            "User registered successfully. Please verify your phone number before login.",
             user.Id,
             true);
 

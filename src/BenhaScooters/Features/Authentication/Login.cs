@@ -1,6 +1,7 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Features.Authentication.Services;
+using BenhaScooters.Shared.Validation;
 using FastEndpoints;
 using FastEndpoints.Security;
 using FluentValidation;
@@ -17,7 +18,7 @@ public class LoginRequestValidator : Validator<LoginRequest>
     {
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email is required.")
-            .EmailAddress().WithMessage("A valid email is required.");
+            .Matches(ValidationRegex.Email).WithMessage("A valid email is required.");
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password is required.");
@@ -36,7 +37,8 @@ public class UserLoginEndpoint(AppDbContext db, IPasswordHasher passwordHasher, 
         Description(x => x
             .WithSummary("User login")
             .Produces<LoginResponse>()
-            .Produces(401));
+            .Produces(401)
+            .Produces(403));
     }
 
     public override async Task HandleAsync(LoginRequest req, CancellationToken ct)
@@ -48,6 +50,12 @@ public class UserLoginEndpoint(AppDbContext db, IPasswordHasher passwordHasher, 
         if (user is null || !passwordHasher.Verify(user.PasswordHash, req.Password))
         {
             ThrowError("Invalid Email Or Password", errorCode: "InvalidCredentials", statusCode: 401);
+            return;
+        }
+
+        if (!user.PhoneNumberVerified)
+        {
+            ThrowError("Phone number must be verified before login.", errorCode: "PhoneNotVerified", statusCode: 403);
             return;
         }
 

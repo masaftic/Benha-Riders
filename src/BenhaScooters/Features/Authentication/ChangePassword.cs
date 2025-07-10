@@ -1,7 +1,9 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Features.Authentication.Services;
+using BenhaScooters.Shared.Security;
 using FastEndpoints;
+using FastEndpoints.Security;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,7 +35,7 @@ public class ChangePasswordEndpoint(AppDbContext db, IPasswordHasher passwordHas
     public override void Configure()
     {
         Post("/auth/change-password");
-        Claims("UserId");
+        Claims(JwtClaims.Sub);
         Description(x => x
             .WithSummary("Change user password")
             .Produces<ChangePasswordResponse>()
@@ -43,15 +45,9 @@ public class ChangePasswordEndpoint(AppDbContext db, IPasswordHasher passwordHas
 
     public override async Task HandleAsync(ChangePasswordRequest req, CancellationToken ct)
     {
-        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
-        
-        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userIdGuid))
-        {
-            ThrowError("Unauthorized access.", errorCode: "Unauthorized", statusCode: 401);
-            return;
-        }
+        var userIdClaim = User.ClaimValue(JwtClaims.Sub)!;
+        var userId = UserId.From(Guid.Parse(userIdClaim));
 
-        var userId = UserId.From(userIdGuid);
         var user = await db.Users
             .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
@@ -67,7 +63,6 @@ public class ChangePasswordEndpoint(AppDbContext db, IPasswordHasher passwordHas
             return;
         }
 
-        // Change password using domain method
         user.ChangePassword(passwordHasher.Hash(req.NewPassword));
 
         await db.SaveChangesAsync(ct);

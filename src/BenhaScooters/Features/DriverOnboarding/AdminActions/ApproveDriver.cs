@@ -1,0 +1,68 @@
+using BenhaScooters.Data;
+using BenhaScooters.Domain;
+using FastEndpoints;
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+
+namespace BenhaScooters.Features.DriverOnboarding.AdminActions;
+
+
+public record ApproveDriverRequest(UserId DriverUserId);
+
+public class ApproveDriverRequestValidator : Validator<ApproveDriverRequest>
+{
+    public ApproveDriverRequestValidator()
+    {
+        RuleFor(x => x.DriverUserId)
+            .NotEmpty().WithMessage("Driver user ID is required.");
+    }
+}
+
+public record ApproveDriverResponse(string Message);
+
+public class ApproveDriverEndpoint : Endpoint<ApproveDriverRequest, ApproveDriverResponse>
+{
+    private readonly AppDbContext _db;
+
+    public ApproveDriverEndpoint(AppDbContext db)
+    {
+        _db = db;
+    }
+
+    public override void Configure()
+    {
+        Post("/admin/driver/approve");
+        Roles("Admin");
+        Description(x => x
+            .WithSummary("Approve driver onboarding application")
+            .Produces<ApproveDriverResponse>()
+            .Produces(400)
+            .Produces(404));
+    }
+
+    public override async Task HandleAsync(ApproveDriverRequest req, CancellationToken ct)
+    {
+        var driverProfile = await _db.DriverProfiles
+            .FirstOrDefaultAsync(dp => dp.UserId == req.DriverUserId, ct);
+
+        if (driverProfile == null)
+        {
+            ThrowError("Driver profile not found.", 
+                errorCode: "DriverProfileNotFound", statusCode: 404);
+            return;
+        }
+
+        try
+        {
+            driverProfile.CompleteOnboarding();
+            await _db.SaveChangesAsync(ct);
+
+            var response = new ApproveDriverResponse("Driver application approved successfully.");
+            await SendOkAsync(response, ct);
+        }
+        catch (InvalidOperationException ex)
+        {
+            ThrowError(ex.Message, errorCode: "ValidationError", statusCode: 400);
+        }
+    }
+}

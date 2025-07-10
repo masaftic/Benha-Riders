@@ -1,4 +1,5 @@
 using BenhaScooters.Domain;
+using BenhaScooters.Domain.Driver;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Data;
@@ -8,6 +9,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<User> Users => Set<User>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<SmsVerificationCode> SmsVerificationCodes => Set<SmsVerificationCode>();
+    public DbSet<DriverProfile> DriverProfiles => Set<DriverProfile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
