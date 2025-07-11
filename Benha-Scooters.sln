@@ -1,10 +1,14 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenhaScooters", "src\BenhaScooters\BenhaScooters.csproj", "{BF6C503C-B833-3F63-3614-5697D1F31815}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B58A25DB-ED90-4228-A784-0A0B1CB345A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenhaScooters.IntegrationTests", "tests\BenhaScooters.IntegrationTests\BenhaScooters.IntegrationTests.csproj", "{A9FAE215-D51B-43F0-BF80-B815D57314B1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,12 +20,17 @@ Global
 		{BF6C503C-B833-3F63-3614-5697D1F31815}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF6C503C-B833-3F63-3614-5697D1F31815}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF6C503C-B833-3F63-3614-5697D1F31815}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9FAE215-D51B-43F0-BF80-B815D57314B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9FAE215-D51B-43F0-BF80-B815D57314B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9FAE215-D51B-43F0-BF80-B815D57314B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9FAE215-D51B-43F0-BF80-B815D57314B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BF6C503C-B833-3F63-3614-5697D1F31815} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{A9FAE215-D51B-43F0-BF80-B815D57314B1} = {B58A25DB-ED90-4228-A784-0A0B1CB345A3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FD11575D-D1D8-482B-BF2C-78E60C19CADA}

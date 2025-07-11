@@ -8,11 +8,11 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
 {
     public async Task SeedAsync()
     {
-        if (!db.Users.Any(u => u.Name == "John Doe"))
+        if (!db.Users.Any(u => u.Name == "Admin"))
         {
             var user = new User(
-                "John Doe",
-                Email.From("John@gmail.com"),
+                "Admin",
+                Email.From("admin@gmail.com"),
                 PhoneNumber.From("01234567890"),
                 passwordHasher.Hash("password"));
 

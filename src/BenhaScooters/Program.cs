@@ -32,10 +32,14 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync();
-    var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
-    await dataSeeder.SeedAsync();
+    if (app.Environment.EnvironmentName != "Testing")
+    {
+        // Apply migrations and seed data only in non-testing environments
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Database.MigrateAsync();
+        var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+        await dataSeeder.SeedAsync();
+    }
 }
 
 app.UseHttpsRedirection();
@@ -55,3 +59,6 @@ app.UseDefaultExceptionHandler().UseFastEndpoints(c =>
 
 
 app.Run();
+
+// Make the implicit Program class public for integration tests
+public partial class Program { }

@@ -12,7 +12,7 @@ using Microsoft.VisualBasic;
 namespace BenhaScooters.Features.Authentication;
 
 
-public record RegisterRequest(string Name, [DefaultValue("string@email.com")] string Email, string PhoneNumber, string Password, string Role);
+public record RegisterRequest(string Name, string Email, string PhoneNumber, string Password, string Role);
 
 public record RegisterResponse(string Message, UserId UserId, bool RequiresPhoneVerification);
 

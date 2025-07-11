@@ -4,25 +4,27 @@ using BenhaScooters.Shared.Security;
 using FastEndpoints;
 using FastEndpoints.Security;
 using Microsoft.EntityFrameworkCore;
+using Riok.Mapperly.Abstractions;
 
 namespace BenhaScooters.Features.Authentication;
 
 public record MeResponse(
     UserId Id,
     string Name,
-    string Email,
+    Email Email,
     bool EmailVerified,
-    string PhoneNumber,
+    PhoneNumber PhoneNumber,
     bool PhoneNumberVerified,
     DateTime CreatedAt,
-    IEnumerable<string> Roles);
+    IEnumerable<RoleName> Roles);
+
 
 public class MeEndpoint(AppDbContext db) : EndpointWithoutRequest<MeResponse>
 {
     public override void Configure()
     {
         Get("/auth/me");
-        Claims("UserId");
+        Claims(JwtClaims.Sub);
         Description(x => x
             .WithSummary("Get current user information")
             .Produces<MeResponse>()
@@ -46,13 +48,14 @@ public class MeEndpoint(AppDbContext db) : EndpointWithoutRequest<MeResponse>
         var response = new MeResponse(
             user.Id,
             user.Name,
-            user.Email.Value,
+            user.Email,
             user.EmailVerified,
-            user.PhoneNumber.Value,
+            user.PhoneNumber,
             user.PhoneNumberVerified,
             user.CreatedAt,
-            user.Roles.Select(r => r.Name.ToString()));
+            user.Roles.Select(r => r.Name));
 
         await SendAsync(response, cancellation: ct);
     }
 }
+
