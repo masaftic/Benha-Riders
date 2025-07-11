@@ -2,7 +2,7 @@ using Vogen;
 
 namespace BenhaScooters.Domain;
 
-[ValueObject<Guid>]
+[ValueObject<int>]
 public partial struct UserRoleId;
 
 
@@ -21,16 +21,8 @@ public class UserRole
     public UserId UserId { get; private set; }
     public RoleName Name { get; private set; }
 
-    public UserRole(UserId userId, RoleName name)
-    {
-        Id = UserRoleId.From(Guid.NewGuid());
-        UserId = userId;
-        Name = name;
-    }
-
     public UserRole(RoleName name)
     {
-        Id = UserRoleId.From(Guid.NewGuid());
         Name = name;
     }
 }

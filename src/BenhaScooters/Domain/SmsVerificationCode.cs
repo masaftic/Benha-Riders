@@ -2,7 +2,7 @@ using Vogen;
 
 namespace BenhaScooters.Domain;
 
-[ValueObject<Guid>]
+[ValueObject<int>]
 public partial struct SmsVerificationCodeId;
 
 public class SmsVerificationCode
@@ -23,7 +23,6 @@ public class SmsVerificationCode
         if (string.IsNullOrEmpty(code))
             throw new ArgumentException("Code cannot be empty.", nameof(code));
 
-        Id = SmsVerificationCodeId.From(Guid.NewGuid());
         UserId = userId;
         PhoneNumber = phoneNumber;
         Code = code;

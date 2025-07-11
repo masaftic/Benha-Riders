@@ -40,16 +40,15 @@ public class GetOnboardingStatusEndpoint : EndpointWithoutRequest<GetOnboardingS
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var userId = User.ClaimValue(JwtClaims.Sub)!;
-        var userIdTyped = UserId.From(Guid.Parse(userId));
+        var userId = this.GetCurrentUserId();
 
         var driverProfile = await _db.DriverProfiles
-            .FirstOrDefaultAsync(dp => dp.UserId == userIdTyped, ct);
+            .FirstOrDefaultAsync(dp => dp.UserId == userId, ct);
 
         if (driverProfile == null)
         {
             // Create new driver profile if it doesn't exist
-            driverProfile = new DriverProfile(userIdTyped);
+            driverProfile = new DriverProfile(userId);
             _db.DriverProfiles.Add(driverProfile);
             await _db.SaveChangesAsync(ct);
         }

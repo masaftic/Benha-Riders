@@ -16,7 +16,7 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                 PhoneNumber.From("01234567890"),
                 passwordHasher.Hash("password"));
 
-            user.AddRole(new UserRole(user.Id, RoleName.Admin));
+            user.AddRole(new UserRole(RoleName.Admin));
 
             user.VerifyPhoneNumber();
 

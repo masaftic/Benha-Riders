@@ -1,6 +1,8 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
+using BenhaScooters.Shared.Security;
 using FastEndpoints;
+using FastEndpoints.Security;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,15 +34,8 @@ public class LogoutEndpoint(AppDbContext db) : Endpoint<LogoutRequest, LogoutRes
 
     public override async Task HandleAsync(LogoutRequest req, CancellationToken ct)
     {
-        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
-        
-        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userIdGuid))
-        {
-            ThrowError("Unauthorized access.", errorCode: "Unauthorized", statusCode: 401);
-            return;
-        }
+        var userId = this.GetCurrentUserId();
 
-        var userId = UserId.From(userIdGuid);
         var user = await db.Users
             .Include(u => u.RefreshTokens)
             .FirstOrDefaultAsync(u => u.Id == userId, ct);

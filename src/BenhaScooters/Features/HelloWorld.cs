@@ -1,24 +1,32 @@
+using BenhaScooters.Domain;
+using BenhaScooters.Shared.Security;
 using FastEndpoints;
 
 namespace BenhaScooters.Features;
 
-public class HelloWorld : EndpointWithoutRequest<object>
+public record HelloRequest(string Message);
+
+public record HelloResponse(string Message);
+
+public class HelloWorld : Endpoint<HelloRequest, HelloResponse>
 {
     public override void Configure()
     {
-        Get("/hello");
-        AllowAnonymous();
+        Put("/hello");
+        Claims(JwtClaims.Sub);
+        // AllowAnonymous();
         Summary(s =>
         {
             s.Summary = "Hello World Endpoint";
             s.Description = "A simple endpoint that returns a hello world message.";
         });
     }
-    
 
-    public override async Task HandleAsync(CancellationToken ct)
+
+    public override async Task<HelloResponse> ExecuteAsync(HelloRequest req, CancellationToken ct)
     {
-        await SendAsync(new { Message = "Hello, World!" }, cancellation: ct);
-        return;
+        var userId = this.GetCurrentUserId();
+
+        return new HelloResponse($"Hello, {userId}, {req.Message}!");
     }
 }

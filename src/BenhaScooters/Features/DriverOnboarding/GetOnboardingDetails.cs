@@ -64,11 +64,10 @@ public class GetOnboardingDetailsEndpoint : EndpointWithoutRequest<GetOnboarding
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var userId = User.ClaimValue(JwtClaims.Sub)!;
-        var userIdTyped = UserId.From(Guid.Parse(userId));
+        var userId = this.GetCurrentUserId();
 
         var driverProfile = await _db.DriverProfiles
-            .FirstOrDefaultAsync(dp => dp.UserId == userIdTyped, ct);
+            .FirstOrDefaultAsync(dp => dp.UserId == userId, ct);
 
         if (driverProfile == null)
         {

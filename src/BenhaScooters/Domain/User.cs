@@ -5,7 +5,7 @@ using Vogen;
 
 namespace BenhaScooters.Domain;
 
-[ValueObject<Guid>]
+[ValueObject<int>]
 public partial struct UserId;
 
 
@@ -72,7 +72,6 @@ public class User
         if (string.IsNullOrEmpty(passwordHash))
             throw new ArgumentException("Password hash cannot be empty.", nameof(passwordHash));
 
-        Id = UserId.From(Guid.NewGuid());
         Name = name;
         Email = email;
         EmailNormalized = NormalizeEmail(email);

@@ -2,7 +2,7 @@ using Vogen;
 
 namespace BenhaScooters.Domain;
 
-[ValueObject<Guid>]
+[ValueObject<int>]
 public partial struct RefreshTokenId;
 
 public class RefreshToken
@@ -19,7 +19,6 @@ public class RefreshToken
 
     public RefreshToken(UserId userId, string token, DateTime expiresAt)
     {
-        Id = RefreshTokenId.From(Guid.NewGuid());
         UserId = userId;
         Token = token;
         ExpiresAt = expiresAt;

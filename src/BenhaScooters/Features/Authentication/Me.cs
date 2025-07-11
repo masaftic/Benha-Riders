@@ -1,6 +1,8 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
+using BenhaScooters.Shared.Security;
 using FastEndpoints;
+using FastEndpoints.Security;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Features.Authentication;
@@ -29,15 +31,8 @@ public class MeEndpoint(AppDbContext db) : EndpointWithoutRequest<MeResponse>
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
-        
-        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var userIdGuid))
-        {
-            ThrowError("Unauthorized access.", errorCode: "Unauthorized", statusCode: 401);
-            return;
-        }
+        var userId = this.GetCurrentUserId();
 
-        var userId = UserId.From(userIdGuid);
         var user = await db.Users
             .Include(u => u.Roles)
             .FirstOrDefaultAsync(u => u.Id == userId, ct);

@@ -5,7 +5,7 @@ using Vogen;
 
 namespace BenhaScooters.Domain.Driver;
 
-[ValueObject<Guid>]
+[ValueObject<int>]
 public partial struct DriverProfileId;
 
 
@@ -34,7 +34,6 @@ public class DriverProfile
 
     public DriverProfile(UserId userId)
     {
-        Id = DriverProfileId.From(Guid.NewGuid());
         UserId = userId;
         OnboardingStatus = OnboardingStatus.NotStarted;
         CurrentStep = OnboardingStep.PersonalInfo;

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BenhaScooters.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250710140557_Drivers_Profile")]
-    partial class Drivers_Profile
+    [Migration("20250711075241_Ints_For_IDs")]
+    partial class Ints_For_IDs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,8 +27,11 @@ namespace BenhaScooters.Data.Migrations
 
             modelBuilder.Entity("BenhaScooters.Domain.Driver.DriverProfile", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
@@ -54,8 +57,8 @@ namespace BenhaScooters.Data.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -73,8 +76,11 @@ namespace BenhaScooters.Data.Migrations
 
             modelBuilder.Entity("BenhaScooters.Domain.RefreshToken", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -95,8 +101,8 @@ namespace BenhaScooters.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -112,8 +118,11 @@ namespace BenhaScooters.Data.Migrations
 
             modelBuilder.Entity("BenhaScooters.Domain.SmsVerificationCode", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -136,8 +145,8 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<DateTime?>("UsedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -150,8 +159,11 @@ namespace BenhaScooters.Data.Migrations
 
             modelBuilder.Entity("BenhaScooters.Domain.User", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -203,16 +215,19 @@ namespace BenhaScooters.Data.Migrations
 
             modelBuilder.Entity("BenhaScooters.Domain.UserRole", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -225,8 +240,8 @@ namespace BenhaScooters.Data.Migrations
                 {
                     b.OwnsOne("BenhaScooters.Domain.Driver.ValueObjects.DriverDocuments", "Documents", b1 =>
                         {
-                            b1.Property<Guid>("DriverProfileId")
-                                .HasColumnType("uuid");
+                            b1.Property<int>("DriverProfileId")
+                                .HasColumnType("integer");
 
                             b1.Property<string>("LicenseImageUrl")
                                 .IsRequired()
@@ -253,8 +268,8 @@ namespace BenhaScooters.Data.Migrations
 
                     b.OwnsOne("BenhaScooters.Domain.Driver.ValueObjects.DriverRating", "Rating", b1 =>
                         {
-                            b1.Property<Guid>("DriverProfileId")
-                                .HasColumnType("uuid");
+                            b1.Property<int>("DriverProfileId")
+                                .HasColumnType("integer");
 
                             b1.Property<decimal>("Rating")
                                 .HasPrecision(3, 2)
@@ -273,8 +288,8 @@ namespace BenhaScooters.Data.Migrations
 
                     b.OwnsOne("BenhaScooters.Domain.Driver.ValueObjects.PersonalInfo", "PersonalInfo", b1 =>
                         {
-                            b1.Property<Guid>("DriverProfileId")
-                                .HasColumnType("uuid");
+                            b1.Property<int>("DriverProfileId")
+                                .HasColumnType("integer");
 
                             b1.Property<string>("Address")
                                 .IsRequired()
@@ -320,8 +335,8 @@ namespace BenhaScooters.Data.Migrations
 
                     b.OwnsOne("BenhaScooters.Domain.Driver.ValueObjects.VehicleInfo", "VehicleInfo", b1 =>
                         {
-                            b1.Property<Guid>("DriverProfileId")
-                                .HasColumnType("uuid");
+                            b1.Property<int>("DriverProfileId")
+                                .HasColumnType("integer");
 
                             b1.Property<string>("Brand")
                                 .IsRequired()

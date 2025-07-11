@@ -11,7 +11,12 @@ public class DriverProfileConfiguration : IEntityTypeConfiguration<DriverProfile
     public void Configure(EntityTypeBuilder<DriverProfile> builder)
     {
         builder.HasKey(x => x.Id);
-        
+        builder.Property(x => x.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.Property(x => x.UserId)
+            .IsRequired();
+            
         // Configure PersonalInfo as owned entity
         builder.OwnsOne(x => x.PersonalInfo, personalInfo =>
         {

@@ -9,6 +9,8 @@ public class SmsVerificationCodeConfiguration : IEntityTypeConfiguration<SmsVeri
     public void Configure(EntityTypeBuilder<SmsVerificationCode> builder)
     {
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id)
+            .ValueGeneratedOnAdd();
 
         builder.Property(x => x.Code)
             .IsRequired()

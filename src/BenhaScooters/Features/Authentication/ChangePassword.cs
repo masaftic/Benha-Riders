@@ -45,8 +45,7 @@ public class ChangePasswordEndpoint(AppDbContext db, IPasswordHasher passwordHas
 
     public override async Task HandleAsync(ChangePasswordRequest req, CancellationToken ct)
     {
-        var userIdClaim = User.ClaimValue(JwtClaims.Sub)!;
-        var userId = UserId.From(Guid.Parse(userIdClaim));
+        var userId = this.GetCurrentUserId();
 
         var user = await db.Users
             .FirstOrDefaultAsync(u => u.Id == userId, ct);
