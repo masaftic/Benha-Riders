@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using BenhaScooters.Data;
 using BenhaScooters.Features.Authentication.Services;
+using BenhaScooters.Services;
 using FastEndpoints;
 using FastEndpoints.Security;
 using FastEndpoints.Swagger;
@@ -15,6 +16,9 @@ builder.Services.AddScoped<DataSeeder>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ISmsService, DevSmsService>();
+
+// Add the token cleanup background service
+builder.Services.AddHostedService<TokenCleanupService>();
 
 builder.Services
     .AddFastEndpoints()
