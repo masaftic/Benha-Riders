@@ -12,9 +12,16 @@ public class HelloWorld : Endpoint<HelloRequest, HelloResponse>
 {
     public override void Configure()
     {
-        Put("/hello");
+        Put("hello/{Message}");
         Claims(JwtClaims.Sub);
-        // AllowAnonymous();
+        Description(x => x
+            .Accepts<HelloRequest>()
+            .WithSummary("Hello World Endpoint")
+            .Produces<HelloResponse>()
+            .Produces(400)
+            .Produces(401));
+
+        AllowAnonymous();
         Summary(s =>
         {
             s.Summary = "Hello World Endpoint";
@@ -23,11 +30,8 @@ public class HelloWorld : Endpoint<HelloRequest, HelloResponse>
     }
 
 
-    public override async Task<HelloResponse> ExecuteAsync(HelloRequest req, CancellationToken ct)
+    public override Task<HelloResponse> ExecuteAsync(HelloRequest req, CancellationToken ct)
     {
-        await Task.Delay(100, ct); // Simulate some async work
-        var userId = this.GetCurrentUserId();
-
-        return new HelloResponse($"Hello, {userId}, {req.Message}!");
+        return Task.FromResult(new HelloResponse($"Hello {req.Message}"));
     }
 }
