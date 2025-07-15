@@ -93,6 +93,6 @@ public class SendSmsVerificationEndpoint : Endpoint<SendSmsVerificationRequest, 
         // Send SMS
         await _smsService.SendVerificationCodeAsync(normalizedPhone, code);
 
-        await SendAsync(new SendSmsVerificationResponse("Verification code sent successfully."), cancellation: ct);
+        await SendAsync(new SendSmsVerificationResponse($"{code}"), cancellation: ct);
     }
 }
