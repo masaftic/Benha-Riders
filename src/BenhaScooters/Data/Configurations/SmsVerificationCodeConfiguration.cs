@@ -25,6 +25,11 @@ public class SmsVerificationCodeConfiguration : IEntityTypeConfiguration<SmsVeri
         builder.Property(x => x.IsUsed)
             .IsRequired();
         
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
         builder.HasIndex(x => new { x.UserId, x.PhoneNumber, x.CreatedAt });
         builder.HasIndex(x => x.Code);
     }

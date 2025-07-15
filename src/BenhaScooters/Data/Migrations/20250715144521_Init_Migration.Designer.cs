@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BenhaScooters.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250715120343_EstimatedFare_Name_Changes")]
-    partial class EstimatedFare_Name_Changes
+    [Migration("20250715144521_Init_Migration")]
+    partial class Init_Migration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -101,6 +101,8 @@ namespace BenhaScooters.Data.Migrations
                         .HasColumnType("interval");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CurrentTripId");
 
                     b.HasIndex("DriverId")
                         .IsUnique();
@@ -407,6 +409,9 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("TripRequestId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
@@ -416,6 +421,9 @@ namespace BenhaScooters.Data.Migrations
                     b.HasIndex("RiderId");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("TripRequestId")
+                        .IsUnique();
 
                     b.ToTable("Trips");
                 });
@@ -492,7 +500,7 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasIndex("TripId");
 
-                    b.ToTable("LocationPings");
+                    b.ToTable("TripGpsPoints");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Trips.TripRequest", b =>
@@ -801,6 +809,11 @@ namespace BenhaScooters.Data.Migrations
 
             modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverAvailability", b =>
                 {
+                    b.HasOne("BenhaScooters.Domain.Trips.Trip", null)
+                        .WithMany()
+                        .HasForeignKey("CurrentTripId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
                         .WithOne()
                         .HasForeignKey("BenhaScooters.Domain.Drivers.DriverAvailability", "DriverId")
@@ -893,6 +906,15 @@ namespace BenhaScooters.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("BenhaScooters.Domain.SmsVerificationCode", b =>
+                {
+                    b.HasOne("BenhaScooters.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("BenhaScooters.Domain.Trips.Trip", b =>
                 {
                     b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
@@ -906,6 +928,11 @@ namespace BenhaScooters.Data.Migrations
                         .HasForeignKey("RiderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("BenhaScooters.Domain.Trips.TripRequest", null)
+                        .WithOne()
+                        .HasForeignKey("BenhaScooters.Domain.Trips.Trip", "TripRequestId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.OwnsOne("BenhaScooters.Domain.Trips.ValueObjects.FareEstimate", "EstimatedFare", b1 =>
                         {

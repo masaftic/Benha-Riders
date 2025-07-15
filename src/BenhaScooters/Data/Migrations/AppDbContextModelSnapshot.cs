@@ -99,6 +99,8 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CurrentTripId");
+
                     b.HasIndex("DriverId")
                         .IsUnique();
 
@@ -495,7 +497,7 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasIndex("TripId");
 
-                    b.ToTable("LocationPings");
+                    b.ToTable("TripGpsPoints");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Trips.TripRequest", b =>
@@ -804,6 +806,11 @@ namespace BenhaScooters.Data.Migrations
 
             modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverAvailability", b =>
                 {
+                    b.HasOne("BenhaScooters.Domain.Trips.Trip", null)
+                        .WithMany()
+                        .HasForeignKey("CurrentTripId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
                         .WithOne()
                         .HasForeignKey("BenhaScooters.Domain.Drivers.DriverAvailability", "DriverId")
@@ -894,6 +901,15 @@ namespace BenhaScooters.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BenhaScooters.Domain.SmsVerificationCode", b =>
+                {
+                    b.HasOne("BenhaScooters.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Trips.Trip", b =>

@@ -25,6 +25,11 @@ public class LocationPingConfiguration : IEntityTypeConfiguration<TripGpsPoint>
             .HasForeignKey(lp => lp.DriverId)
             .OnDelete(DeleteBehavior.Cascade);
         
+        builder.HasOne(lp => lp.Trip)
+            .WithMany()
+            .HasForeignKey(lp => lp.TripId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
         builder.HasIndex(lp => lp.Timestamp);
         builder.HasIndex(lp => lp.Location).HasMethod("GIST");
     }

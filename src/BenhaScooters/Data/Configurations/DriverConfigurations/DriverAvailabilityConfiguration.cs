@@ -1,4 +1,5 @@
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Trips;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,6 +19,11 @@ public class DriverAvailabilityConfiguration : IEntityTypeConfiguration<DriverAv
             .WithOne()
             .HasForeignKey<DriverAvailability>(da => da.DriverId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.HasOne<Trip>()
+            .WithMany()
+            .HasForeignKey(da => da.CurrentTripId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(da => da.Status);
         builder.HasIndex(da => da.LastLocationUpdate);
