@@ -49,7 +49,7 @@ public class VerifySmsCodeEndpoint : Endpoint<VerifySmsCodeRequest, VerifySmsCod
         {
             s.Summary = "Verify SMS verification code";
             s.Description = "Verifies the 6-digit SMS code sent to the user's phone number. Marks the phone number as verified upon successful verification.";
-            s.ExampleRequest = new VerifySmsCodeRequest("+1234567890", "123456");
+            s.ExampleRequest = new VerifySmsCodeRequest("+201012345678", "123456");
         });
     }
 

@@ -47,7 +47,7 @@ public class SendSmsVerificationEndpoint : Endpoint<SendSmsVerificationRequest, 
         {
             s.Summary = "Send SMS verification code";
             s.Description = "Sends a 6-digit verification code to the specified phone number. Code expires after 10 minutes.";
-            s.ExampleRequest = new SendSmsVerificationRequest("+1234567890");
+            s.ExampleRequest = new SendSmsVerificationRequest("+201012345678");
         });
     }
 

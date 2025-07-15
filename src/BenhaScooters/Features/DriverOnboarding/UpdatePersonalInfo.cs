@@ -81,7 +81,7 @@ public class UpdatePersonalInfoEndpoint : Endpoint<UpdatePersonalInfoRequest, Up
         {
             s.Summary = "Update driver personal information";
             s.Description = "Updates the driver's personal information including full name, date of birth, national ID, and address during the onboarding process.";
-            s.ExampleRequest = new UpdatePersonalInfoRequest("John Doe", "12345678901234", new DateOnly(1990, 1, 1), "123 Main St", "New York", "Jane Doe", "+1234567890");
+            s.ExampleRequest = new UpdatePersonalInfoRequest("John Doe", "12345678901234", new DateOnly(1990, 1, 1), "123 Main St", "New York", "Jane Doe", "+201012345678");
         });
     }
 
@@ -94,8 +94,15 @@ public class UpdatePersonalInfoEndpoint : Endpoint<UpdatePersonalInfoRequest, Up
 
         if (driver == null)
         {
-            ThrowError("Driver  not found. Please get onboarding status first.", 
+            ThrowError("Driver not found. Please get onboarding status first.", 
                 errorCode: "DriverNotFound", statusCode: 404);
+            return;
+        }
+
+        if (await _db.Drivers.AnyAsync(x => x.PersonalInfo!.NationalId == NationalId.From(req.NationalId) && x.Id != driver.Id, cancellationToken: ct))
+        {
+            ThrowError("A driver with this national ID already exists.", 
+                errorCode: "DuplicateNationalId", statusCode: 400);
             return;
         }
 

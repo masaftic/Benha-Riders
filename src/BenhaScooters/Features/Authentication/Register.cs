@@ -64,7 +64,7 @@ public class Register : Endpoint<RegisterRequest, RegisterResponse>
         {
             s.Summary = "Register a new user";
             s.Description = "Creates a new user account with name, email, phone number and password. Email must be unique and password will be securely hashed.";
-            s.ExampleRequest = new RegisterRequest("John Doe", "john.doe@example.com", "+20124567890", "securePassword123", "Rider");
+            s.ExampleRequest = new RegisterRequest("John Doe", "john.doe@example.com", "+201012345678", "securePassword123", "Rider");
         });
     }
 
