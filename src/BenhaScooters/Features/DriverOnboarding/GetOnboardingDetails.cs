@@ -64,6 +64,7 @@ public class GetOnboardingDetailsEndpoint : EndpointWithoutRequest<GetOnboarding
         Summary(s =>
         {
             s.Summary = "Get detailed driver onboarding information";
+            s.Description = "Retrieves comprehensive onboarding details including personal information, vehicle details, documents, and current progress status.";
         });
     }
 

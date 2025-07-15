@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using BenhaScooters.Data;
 using BenhaScooters.Features.Authentication.Services;
 using BenhaScooters.Features.Trips.Services;
+using BenhaScooters.Infrastructure;
 using BenhaScooters.Services;
 using FastEndpoints;
 using FastEndpoints.Security;
@@ -12,6 +13,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.UseNetTopologySuite()));
+
+// Add infrastructure services
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<DataSeeder>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
@@ -45,6 +49,10 @@ using (var scope = app.Services.CreateScope())
         await db.Database.MigrateAsync();
         var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         await dataSeeder.SeedAsync();
+        
+        // Initialize MinIO bucket
+        var minioInitService = scope.ServiceProvider.GetRequiredService<IMinioInitializationService>();
+        await minioInitService.InitializeAsync();
     }
 }
 

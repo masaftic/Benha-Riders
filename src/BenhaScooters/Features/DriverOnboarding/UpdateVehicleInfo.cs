@@ -70,6 +70,12 @@ public class UpdateVehicleInfoEndpoint : Endpoint<UpdateVehicleInfoRequest, Upda
             .Produces<UpdateVehicleInfoResponse>()
             .Produces(400)
             .Produces(404));
+
+        Summary(s =>
+        {
+            s.Summary = "Update driver vehicle information";
+            s.Description = "Updates the driver's vehicle information including make, model, year, license plate, and color during the onboarding process.";
+        });
     }
 
     public override async Task HandleAsync(UpdateVehicleInfoRequest req, CancellationToken ct)

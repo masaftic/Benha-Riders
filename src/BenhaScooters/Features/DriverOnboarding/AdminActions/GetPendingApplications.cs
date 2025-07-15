@@ -31,7 +31,7 @@ public record DocumentsDto(
     string ImageUrl);
 
 public record PendingDriverApplicationDto(
-    UserId DriverUserId,
+    UserId UserId,
     PersonalInfoDto? PersonalInfo,
     VehicleInfoDto? VehicleInfo,
     DocumentsDto? Documents,
@@ -69,7 +69,7 @@ public class GetPendingApplicationsEndpoint : EndpointWithoutRequest<GetPendingA
         // TODO: do projection
 
         var response = pendingApplications.Select(dp => new PendingDriverApplicationDto(
-            DriverUserId: dp.UserId,
+            UserId: dp.UserId,
             PersonalInfo: dp.PersonalInfo is null ? null : new PersonalInfoDto(
                 FullName: dp.PersonalInfo.FullName,
                 NationalId: dp.PersonalInfo.NationalId,

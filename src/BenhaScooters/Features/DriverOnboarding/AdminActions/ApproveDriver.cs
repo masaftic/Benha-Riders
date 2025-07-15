@@ -7,13 +7,13 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Features.DriverOnboarding.AdminActions;
 
 
-public record ApproveDriverRequest(UserId DriverUserId);
+public record ApproveDriverRequest(UserId UserId);
 
 public class ApproveDriverRequestValidator : Validator<ApproveDriverRequest>
 {
     public ApproveDriverRequestValidator()
     {
-        RuleFor(x => x.DriverUserId)
+        RuleFor(x => x.UserId)
             .NotEmpty().WithMessage("Driver user ID is required.");
     }
 }
@@ -43,11 +43,11 @@ public class ApproveDriverEndpoint : Endpoint<ApproveDriverRequest, ApproveDrive
     public override async Task HandleAsync(ApproveDriverRequest req, CancellationToken ct)
     {
         var driver = await _db.Drivers
-            .FirstOrDefaultAsync(dp => dp.UserId == req.DriverUserId, ct);
+            .FirstOrDefaultAsync(dp => dp.UserId == req.UserId, ct);
 
         if (driver == null)
         {
-            ThrowError("Driver  not found.", 
+            ThrowError("Driver not found.", 
                 errorCode: "DriverNotFound", statusCode: 404);
             return;
         }

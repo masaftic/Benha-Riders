@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers.Enums;
@@ -25,7 +26,11 @@ public class OnboardedProcessor<TRequest> : IPreProcessor<TRequest>
 
         if (isOnboardingComplete != true) {
             context.HttpContext.Response.StatusCode = 403; // Forbidden
-            await context.HttpContext.Response.WriteAsync("Onboarding is not complete.", cancellationToken: ct);
+            context.HttpContext.Response.ContentType = "application/problem+json";
+            await context.HttpContext.Response.WriteAsync(
+                JsonSerializer.Serialize(new { message = "Onboarding is not complete." }),
+                cancellationToken: ct
+            );
         }
     }
 }
