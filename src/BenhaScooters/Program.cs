@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using BenhaScooters.Data;
 using BenhaScooters.Infrastructure;
 using BenhaScooters.Infrastructure.Authentication;
@@ -9,6 +10,7 @@ using BenhaScooters.Services;
 using FastEndpoints;
 using FastEndpoints.Security;
 using FastEndpoints.Swagger;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,28 @@ builder.WebHost.ConfigureKestrel(o =>
 {
     o.ListenAnyIP(5000);
 });
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.OnRejected = (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.Headers.RetryAfter = TimeSpan.FromSeconds(10).TotalSeconds.ToString();
+        return ValueTask.CompletedTask;
+    };
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 40,
+            Window = TimeSpan.FromMinutes(1),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0
+        });
+    });
+});
+
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.UseNetTopologySuite()));
@@ -53,6 +77,8 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+app.UseRateLimiter();
+
 using (var scope = app.Services.CreateScope())
 {
     if (app.Environment.EnvironmentName != "Testing")
@@ -62,7 +88,7 @@ using (var scope = app.Services.CreateScope())
         await db.Database.MigrateAsync();
         var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         await dataSeeder.SeedAsync();
-        
+
         // Initialize MinIO bucket
         var minioInitService = scope.ServiceProvider.GetRequiredService<IMinioInitializationService>();
         await minioInitService.InitializeAsync();
@@ -79,7 +105,7 @@ app.UseDefaultExceptionHandler().UseFastEndpoints(c =>
     c.Endpoints.RoutePrefix = "api";
     c.Errors.UseProblemDetails(x =>
     {
-        x.IndicateErrorCode = true; 
+        x.IndicateErrorCode = true;
     });
     c.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
 }).UseSwaggerGen();
