@@ -41,6 +41,13 @@ public class UpdateLocationEndpoint(AppDbContext db) : Endpoint<UpdateLocationRe
             .WithSummary("Update current driver location")
             .Produces(200)
             .Produces(401));
+
+        Summary(s =>
+        {
+            s.Summary = "Update current driver location";
+            s.Description = "Updates the driver's current GPS location, heading, and speed. Used for real-time tracking and trip monitoring.";
+            s.ExampleRequest = new UpdateLocationRequest(40.7128, -74.0060, 45.5, 25.0);
+        });
     }
 
     public override async Task HandleAsync(UpdateLocationRequest request, CancellationToken ct)

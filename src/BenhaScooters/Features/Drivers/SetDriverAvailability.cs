@@ -42,6 +42,13 @@ public class SetDriverAvailabilityEndpoint(AppDbContext db) : Endpoint<SetDriver
             .Produces(400)
             .Produces(401)
             .Produces(404));
+
+        Summary(s =>
+        {
+            s.Summary = "Set driver availability status";
+            s.Description = "Updates the driver's availability status (Online, Offline, Busy). Drivers must be online to receive trip requests.";
+            s.ExampleRequest = new SetDriverAvailabilityRequest(DriverStatus.Online);
+        });
     }
 
     public override async Task HandleAsync(SetDriverAvailabilityRequest req, CancellationToken ct)

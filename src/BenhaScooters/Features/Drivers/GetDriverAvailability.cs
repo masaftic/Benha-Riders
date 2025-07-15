@@ -32,6 +32,12 @@ public class GetDriverAvailabilityEndpoint(AppDbContext db) : EndpointWithoutReq
             .Produces<GetDriverAvailabilityResponse>()
             .Produces(401)
             .Produces(404));
+
+        Summary(s =>
+        {
+            s.Summary = "Get current driver availability status";
+            s.Description = "Retrieves the driver's current availability status, location information, session duration, and current trip details if applicable.";
+        });
     }
 
     public override async Task HandleAsync(CancellationToken ct)
