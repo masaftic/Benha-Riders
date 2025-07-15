@@ -3,6 +3,7 @@ using Amazon.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using BenhaScooters.Infrastructure.S3;
 
 namespace BenhaScooters.Infrastructure;
 
@@ -11,7 +12,10 @@ public static class InfrastructureServiceExtensions
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // Configure S3 options
-        services.Configure<S3Options>(configuration.GetSection(S3Options.SectionName));
+        services.AddOptions<S3Options>()
+            .Bind(configuration.GetSection(S3Options.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
         
         // Register S3 client
         services.AddScoped<IAmazonS3>(sp =>

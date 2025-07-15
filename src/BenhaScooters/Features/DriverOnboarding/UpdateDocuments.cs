@@ -1,10 +1,9 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers.Enums;
-using BenhaScooters.Infrastructure;
+using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Shared.Security;
 using FastEndpoints;
-using FastEndpoints.Security;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 

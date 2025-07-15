@@ -1,6 +1,6 @@
 using BenhaScooters.Domain;
 
-namespace BenhaScooters.Features.Authentication.Services;
+namespace BenhaScooters.Infrastructure.Authentication.Services;
 
 public interface ISmsService
 {

@@ -1,6 +1,6 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
-using BenhaScooters.Features.Authentication.Services;
+using BenhaScooters.Infrastructure.Authentication.Services;
 using FastEndpoints;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;

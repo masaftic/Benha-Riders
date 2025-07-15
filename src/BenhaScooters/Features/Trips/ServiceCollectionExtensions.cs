@@ -1,4 +1,5 @@
-using BenhaScooters.Features.Trips.Services;
+
+using BenhaScooters.Infrastructure.Trips.Services;
 
 namespace BenhaScooters.Features.Trips;
 

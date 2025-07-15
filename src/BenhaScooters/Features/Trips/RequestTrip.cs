@@ -2,7 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Features.Trips.Events;
-using BenhaScooters.Features.Trips.Services;
+using BenhaScooters.Infrastructure.Trips.Services;
 using BenhaScooters.Shared.Security;
 using FastEndpoints;
 using FluentValidation;

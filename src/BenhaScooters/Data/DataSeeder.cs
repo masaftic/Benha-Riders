@@ -4,7 +4,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Riders;
-using BenhaScooters.Features.Authentication.Services;
+using BenhaScooters.Infrastructure.Authentication.Services;
 
 namespace BenhaScooters.Data;
 

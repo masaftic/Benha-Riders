@@ -1,8 +1,10 @@
 using System.Text.Json.Serialization;
 using BenhaScooters.Data;
-using BenhaScooters.Features.Authentication.Services;
-using BenhaScooters.Features.Trips.Services;
 using BenhaScooters.Infrastructure;
+using BenhaScooters.Infrastructure.Authentication;
+using BenhaScooters.Infrastructure.Authentication.Services;
+using BenhaScooters.Infrastructure.S3;
+using BenhaScooters.Infrastructure.Trips.Services;
 using BenhaScooters.Services;
 using FastEndpoints;
 using FastEndpoints.Security;
@@ -31,8 +33,14 @@ builder.Services
     .SwaggerDocument();
 
 builder.Services
+    .AddOptions<JwtOptions>()
+    .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services
     .AddAuthenticationJwtBearer(s =>
-        s.SigningKey = builder.Configuration["Jwt:SigningKey"]
+        s.SigningKey = builder.Configuration[JwtOptions.SectionName + ":SigningKey"]
         ?? throw new InvalidOperationException("JWT Signing Key is not configured."))
     .AddAuthentication();
 

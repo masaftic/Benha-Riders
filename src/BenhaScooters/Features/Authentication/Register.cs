@@ -4,7 +4,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Riders;
-using BenhaScooters.Features.Authentication.Services;
+using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Shared.Validation;
 using FastEndpoints;
 using FluentValidation;

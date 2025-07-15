@@ -1,9 +1,10 @@
 using BenhaScooters.Domain;
 using BenhaScooters.Shared.Security;
 using FastEndpoints.Security;
+using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 
-namespace BenhaScooters.Features.Authentication.Services;
+namespace BenhaScooters.Infrastructure.Authentication.Services;
 
 public interface IJwtService
 {
@@ -15,13 +16,13 @@ public interface IJwtService
 
 public class JwtService : IJwtService
 {
-    private readonly IConfiguration _configuration;
+    private readonly IOptions<JwtOptions> _jwtOptions;
     private readonly string _signingKey;
 
-    public JwtService(IConfiguration configuration)
+    public JwtService(IOptions<JwtOptions> jwtOptions)
     {
-        _configuration = configuration;
-        _signingKey = _configuration["Jwt:SigningKey"] ?? "The secret used to sign tokens. The secret used to sign tokens.";
+        _jwtOptions = jwtOptions;
+        _signingKey = _jwtOptions.Value.SigningKey;
     }
 
     public string GenerateAccessToken(User user)
@@ -51,13 +52,13 @@ public class JwtService : IJwtService
 
     public DateTime GetAccessTokenExpiryTime()
     {
-        var accessTokenLifetime = _configuration.GetValue<int>("Jwt:AccessTokenLifetimeMinutes", 15);
+        var accessTokenLifetime = _jwtOptions.Value.AccessTokenLifetimeMinutes;
         return DateTime.UtcNow.AddMinutes(accessTokenLifetime);
     }
 
     public DateTime GetRefreshTokenExpiryTime()
     {
-        var refreshTokenLifetime = _configuration.GetValue<int>("Jwt:RefreshTokenLifetimeDays", 7);
+        var refreshTokenLifetime = _jwtOptions.Value.RefreshTokenLifetimeDays;
         return DateTime.UtcNow.AddDays(refreshTokenLifetime);
     }
 }

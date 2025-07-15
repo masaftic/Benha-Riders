@@ -1,7 +1,7 @@
 using BenhaScooters.Domain.Trips.ValueObjects;
 using NetTopologySuite.Geometries;
 
-namespace BenhaScooters.Features.Trips.Services;
+namespace BenhaScooters.Infrastructure.Trips.Services;
 
 public interface IFareEstimator
 {

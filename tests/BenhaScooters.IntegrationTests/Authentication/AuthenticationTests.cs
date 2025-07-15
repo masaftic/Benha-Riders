@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using BenhaScooters.Features.Authentication;
 using BenhaScooters.Domain;
 using Microsoft.Extensions.DependencyInjection;
-using BenhaScooters.Features.Authentication.Services;
 
 namespace BenhaScooters.IntegrationTests.Authentication;
 
