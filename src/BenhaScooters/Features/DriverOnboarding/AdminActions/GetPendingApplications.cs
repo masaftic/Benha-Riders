@@ -2,6 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
+using BenhaScooters.Infrastructure.S3;
 using FastEndpoints;
 using FastEndpoints.Security;
 using Microsoft.EntityFrameworkCore;
@@ -42,10 +43,12 @@ public record GetPendingApplicationsResponse(List<PendingDriverApplicationDto> A
 public class GetPendingApplicationsEndpoint : EndpointWithoutRequest<GetPendingApplicationsResponse>
 {
     private readonly AppDbContext _db;
+    private readonly IS3Service _s3;
 
-    public GetPendingApplicationsEndpoint(AppDbContext db)
+    public GetPendingApplicationsEndpoint(AppDbContext db, IS3Service s3)
     {
         _db = db;
+        _s3 = s3;
     }
 
     public override void Configure()
@@ -91,6 +94,21 @@ public class GetPendingApplicationsEndpoint : EndpointWithoutRequest<GetPendingA
                 ImageUrl: dp.Documents.ImageUrl),
             CreatedAt: dp.CreatedAt))
             .ToList();
+
+        for (int i = 0; i < response.Count; i++)
+        {
+            var app = response[i];
+            if (app.Documents is not null)
+            {
+                var docs = app.Documents;
+                var updatedDocs = new DocumentsDto(
+                    LicenseImageUrl: await _s3.GetPreSignedUrlAsync(docs.LicenseImageUrl, TimeSpan.FromMinutes(15)),
+                    VehicleRegistrationImageUrl: await _s3.GetPreSignedUrlAsync(docs.VehicleRegistrationImageUrl, TimeSpan.FromMinutes(15)),
+                    ImageUrl: await _s3.GetPreSignedUrlAsync(docs.ImageUrl, TimeSpan.FromMinutes(15))
+                );
+                response[i] = app with { Documents = updatedDocs };
+            }
+        }
 
         await SendOkAsync(new GetPendingApplicationsResponse(response), ct);
     }

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Shared.Security;
 using FastEndpoints;
 using FastEndpoints.Security;
@@ -45,10 +46,12 @@ public record DocumentsDto(
 public class GetOnboardingDetailsEndpoint : EndpointWithoutRequest<GetOnboardingDetailsResponse>
 {
     private readonly AppDbContext _db;
+    private readonly IS3Service _s3;
 
-    public GetOnboardingDetailsEndpoint(AppDbContext db)
+    public GetOnboardingDetailsEndpoint(AppDbContext db, IS3Service s3)
     {
         _db = db;
+        _s3 = s3;
     }
 
     public override void Configure()
@@ -100,9 +103,9 @@ public class GetOnboardingDetailsEndpoint : EndpointWithoutRequest<GetOnboarding
             driver.VehicleInfo.Year) : null;
 
         var documents = driver.Documents != null ? new DocumentsDto(
-            driver.Documents.LicenseImageUrl,
-            driver.Documents.VehicleRegistrationImageUrl,
-            driver.Documents.ImageUrl) : null;
+            await _s3.GetPreSignedUrlAsync(driver.Documents.LicenseImageUrl, TimeSpan.FromMinutes(10), ct),
+            await _s3.GetPreSignedUrlAsync(driver.Documents.VehicleRegistrationImageUrl, TimeSpan.FromMinutes(10), ct),
+            await _s3.GetPreSignedUrlAsync(driver.Documents.ImageUrl, TimeSpan.FromMinutes(10), ct)) : null;
 
         var response = new GetOnboardingDetailsResponse(
             driver.OnboardingStatus,

@@ -85,7 +85,9 @@ public class S3Service : IS3Service
             BucketName = _s3Options.BucketName,
             Key = key,
             Expires = DateTime.UtcNow.Add(expiry),
-            Verb = Amazon.S3.HttpVerb.GET
+            Verb = Amazon.S3.HttpVerb.GET,
+            // use http
+            Protocol = Amazon.S3.Protocol.HTTP
         };
 
         return await Task.FromResult(_s3Client.GetPreSignedURL(request));
