@@ -44,6 +44,13 @@ public class VerifySmsCodeEndpoint : Endpoint<VerifySmsCodeRequest, VerifySmsCod
             .Produces<VerifySmsCodeResponse>()
             .Produces(400)
             .Produces(404));
+
+        Summary(s =>
+        {
+            s.Summary = "Verify SMS verification code";
+            s.Description = "Verifies the 6-digit SMS code sent to the user's phone number. Marks the phone number as verified upon successful verification.";
+            s.ExampleRequest = new VerifySmsCodeRequest("+1234567890", "123456");
+        });
     }
 
     public override async Task HandleAsync(VerifySmsCodeRequest req, CancellationToken ct)

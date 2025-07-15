@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using BenhaScooters.Domain.Driver;
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Shared.Validation;
 using Vogen;
 

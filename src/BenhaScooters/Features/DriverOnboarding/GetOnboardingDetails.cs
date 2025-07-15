@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
-using BenhaScooters.Domain.Driver.Enums;
+using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Shared.Security;
 using FastEndpoints;
 using FastEndpoints.Security;
@@ -23,7 +23,7 @@ public record GetOnboardingDetailsResponse(
 public record PersonalInfoDto(
     string? FullName,
     string? NationalId,
-    DateTime? DateOfBirth,
+    DateOnly? DateOfBirth,
     string? Address,
     string? City,
     string? EmergencyContactName,
@@ -40,7 +40,7 @@ public record VehicleInfoDto(
 public record DocumentsDto(
     string? LicenseImageUrl,
     string? VehicleRegistrationImageUrl,
-    string? ProfileImageUrl);
+    string? ImageUrl);
 
 public class GetOnboardingDetailsEndpoint : EndpointWithoutRequest<GetOnboardingDetailsResponse>
 {
@@ -60,51 +60,56 @@ public class GetOnboardingDetailsEndpoint : EndpointWithoutRequest<GetOnboarding
             .WithSummary("Get detailed driver onboarding information")
             .Produces<GetOnboardingDetailsResponse>()
             .Produces(404));
+
+        Summary(s =>
+        {
+            s.Summary = "Get detailed driver onboarding information";
+        });
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = this.GetCurrentUserId();
 
-        var driverProfile = await _db.DriverProfiles
+        var driver = await _db.Drivers
             .FirstOrDefaultAsync(dp => dp.UserId == userId, ct);
 
-        if (driverProfile == null)
+        if (driver == null)
         {
-            ThrowError("Driver profile not found. Please get onboarding status first.", 
-                errorCode: "DriverProfileNotFound", statusCode: 404);
+            ThrowError("Driver  not found. Please get onboarding status first.", 
+                errorCode: "DriverNotFound", statusCode: 404);
             return;
         }
 
-        var personalInfo = driverProfile.PersonalInfo != null ? new PersonalInfoDto(
-            driverProfile.PersonalInfo.FullName,
-            driverProfile.PersonalInfo.NationalId.Value,
-            driverProfile.PersonalInfo.DateOfBirth,
-            driverProfile.PersonalInfo.Address,
-            driverProfile.PersonalInfo.City,
-            driverProfile.PersonalInfo.EmergencyContactName,
-            driverProfile.PersonalInfo.EmergencyContactPhone.Value) : null;
+        var personalInfo = driver.PersonalInfo != null ? new PersonalInfoDto(
+            driver.PersonalInfo.FullName,
+            driver.PersonalInfo.NationalId.Value,
+            driver.PersonalInfo.DateOfBirth,
+            driver.PersonalInfo.Address,
+            driver.PersonalInfo.City,
+            driver.PersonalInfo.EmergencyContactName,
+            driver.PersonalInfo.EmergencyContactPhone.Value) : null;
 
-        var vehicleInfo = driverProfile.VehicleInfo != null ? new VehicleInfoDto(
-            driverProfile.VehicleInfo.VehicleType,
-            driverProfile.VehicleInfo.Brand,
-            driverProfile.VehicleInfo.Model,
-            driverProfile.VehicleInfo.Color,
-            driverProfile.VehicleInfo.LicensePlate.Value,
-            driverProfile.VehicleInfo.Year) : null;
+        var vehicleInfo = driver.VehicleInfo != null ? new VehicleInfoDto(
+            driver.VehicleInfo.VehicleType,
+            driver.VehicleInfo.Brand,
+            driver.VehicleInfo.Model,
+            driver.VehicleInfo.Color,
+            driver.VehicleInfo.LicensePlate.Value,
+            driver.VehicleInfo.Year) : null;
 
-        var documents = driverProfile.Documents != null ? new DocumentsDto(
-            driverProfile.Documents.LicenseImageUrl,
-            driverProfile.Documents.VehicleRegistrationImageUrl,
-            driverProfile.Documents.ProfileImageUrl) : null;
+        var documents = driver.Documents != null ? new DocumentsDto(
+            driver.Documents.LicenseImageUrl,
+            driver.Documents.VehicleRegistrationImageUrl,
+            driver.Documents.ImageUrl) : null;
 
         var response = new GetOnboardingDetailsResponse(
-            driverProfile.OnboardingStatus,
-            driverProfile.CurrentStep,
-            driverProfile.OnboardingProgress,
-            driverProfile.RejectionReason,
-            driverProfile.CreatedAt,
-            driverProfile.CompletedAt,
+            driver.OnboardingStatus,
+            driver.CurrentStep,
+            driver.OnboardingProgress,
+            driver.RejectionReason,
+            driver.CreatedAt,
+            driver.CompletedAt,
             personalInfo,
             vehicleInfo,
             documents);

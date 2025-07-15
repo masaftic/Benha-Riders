@@ -1,7 +1,7 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
-using BenhaScooters.Domain.Driver.Enums;
-using BenhaScooters.Domain.Driver.ValueObjects;
+using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Shared.Security;
 using BenhaScooters.Shared.Validation;
 using FastEndpoints;
@@ -14,7 +14,7 @@ namespace BenhaScooters.Features.DriverOnboarding;
 public record UpdatePersonalInfoRequest(
     string FullName,
     string NationalId,
-    DateTime DateOfBirth,
+    DateOnly DateOfBirth,
     string Address,
     string City,
     string EmergencyContactName,
@@ -34,8 +34,8 @@ public class UpdatePersonalInfoRequestValidator : Validator<UpdatePersonalInfoRe
 
         RuleFor(x => x.DateOfBirth)
             .NotEmpty().WithMessage("Date of birth is required.")
-            .LessThan(DateTime.Now.AddYears(-18)).WithMessage("Driver must be at least 18 years old.")
-            .GreaterThan(DateTime.Now.AddYears(-100)).WithMessage("Invalid date of birth.");
+            .LessThan(DateOnly.FromDateTime(DateTime.Now.AddYears(-18))).WithMessage("Driver must be at least 18 years old.")
+            .GreaterThan(DateOnly.FromDateTime(DateTime.Now.AddYears(-100))).WithMessage("Invalid date of birth.");
 
         RuleFor(x => x.Address)
             .NotEmpty().WithMessage("Address is required.")
@@ -76,25 +76,32 @@ public class UpdatePersonalInfoEndpoint : Endpoint<UpdatePersonalInfoRequest, Up
             .Produces<UpdatePersonalInfoResponse>()
             .Produces(400)
             .Produces(404));
+
+        Summary(s =>
+        {
+            s.Summary = "Update driver personal information";
+            s.Description = "Updates the driver's personal information including full name, date of birth, national ID, and address during the onboarding process.";
+            s.ExampleRequest = new UpdatePersonalInfoRequest("John Doe", "12345678901234", new DateOnly(1990, 1, 1), "123 Main St", "New York", "Jane Doe", "+1234567890");
+        });
     }
 
     public override async Task HandleAsync(UpdatePersonalInfoRequest req, CancellationToken ct)
     {
         var userId = this.GetCurrentUserId();
 
-        var driverProfile = await _db.DriverProfiles
+        var driver = await _db.Drivers
             .FirstOrDefaultAsync(dp => dp.UserId == userId, ct);
 
-        if (driverProfile == null)
+        if (driver == null)
         {
-            ThrowError("Driver profile not found. Please get onboarding status first.", 
-                errorCode: "DriverProfileNotFound", statusCode: 404);
+            ThrowError("Driver  not found. Please get onboarding status first.", 
+                errorCode: "DriverNotFound", statusCode: 404);
             return;
         }
 
         try
         {
-            driverProfile.UpdatePersonalInfo(
+            driver.UpdatePersonalInfo(
                 req.FullName,
                 NationalId.From(req.NationalId),
                 req.DateOfBirth,
@@ -107,7 +114,7 @@ public class UpdatePersonalInfoEndpoint : Endpoint<UpdatePersonalInfoRequest, Up
 
             var response = new UpdatePersonalInfoResponse(
                 "Personal information updated successfully.",
-                driverProfile.CurrentStep);
+                driver.CurrentStep);
 
             await SendOkAsync(response, ct);
         }

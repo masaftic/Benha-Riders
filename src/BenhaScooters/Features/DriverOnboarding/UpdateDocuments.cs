@@ -1,6 +1,6 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
-using BenhaScooters.Domain.Driver.Enums;
+using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Shared.Security;
 using FastEndpoints;
 using FastEndpoints.Security;
@@ -12,7 +12,7 @@ namespace BenhaScooters.Features.DriverOnboarding;
 public record UpdateDocumentsRequest(
     string LicenseImageUrl,
     string VehicleRegistrationImageUrl,
-    string ProfileImageUrl);
+    string ImageUrl);
 
 public class UpdateDocumentsRequestValidator : Validator<UpdateDocumentsRequest>
 {
@@ -28,15 +28,15 @@ public class UpdateDocumentsRequestValidator : Validator<UpdateDocumentsRequest>
             .Must(BeAValidUrl).WithMessage("Vehicle registration image must be a valid URL.")
             .MaximumLength(500).WithMessage("Vehicle registration image URL must not exceed 500 characters.");
 
-        RuleFor(x => x.ProfileImageUrl)
-            .NotEmpty().WithMessage("Profile image is required.")
-            .Must(BeAValidUrl).WithMessage("Profile image must be a valid URL.")
-            .MaximumLength(500).WithMessage("Profile image URL must not exceed 500 characters.");
+        RuleFor(x => x.ImageUrl)
+            .NotEmpty().WithMessage("image is required.")
+            .Must(BeAValidUrl).WithMessage("image must be a valid URL.")
+            .MaximumLength(500).WithMessage("image URL must not exceed 500 characters.");
     }
 
     private static bool BeAValidUrl(string url)
     {
-        return Uri.TryCreate(url, UriKind.Absolute, out var result) && 
+        return Uri.TryCreate(url, UriKind.Absolute, out var result) &&
                (result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps);
     }
 }
@@ -68,28 +68,28 @@ public class UpdateDocumentsEndpoint : Endpoint<UpdateDocumentsRequest, UpdateDo
     {
         var userId = this.GetCurrentUserId();
 
-        var driverProfile = await _db.DriverProfiles
+        var driver = await _db.Drivers
             .FirstOrDefaultAsync(dp => dp.UserId == userId, ct);
 
-        if (driverProfile == null)
+        if (driver == null)
         {
-            ThrowError("Driver profile not found.", 
-                errorCode: "DriverProfileNotFound", statusCode: 404);
+            ThrowError("Driver  not found.",
+                errorCode: "DriverNotFound", statusCode: 404);
             return;
         }
 
         try
         {
-            driverProfile.UpdateDocuments(
+            driver.UpdateDocuments(
                 req.LicenseImageUrl,
                 req.VehicleRegistrationImageUrl,
-                req.ProfileImageUrl);
+                req.ImageUrl);
 
             await _db.SaveChangesAsync(ct);
 
             var response = new UpdateDocumentsResponse(
                 "Documents updated successfully. Your application is now under review.",
-                driverProfile.CurrentStep);
+                driver.CurrentStep);
 
             await SendOkAsync(response, ct);
         }

@@ -31,6 +31,13 @@ public class RefreshTokenEndpoint(AppDbContext db, IJwtService jwtService) : End
             .Produces<RefreshTokenResponse>()
             .Produces(400)
             .Produces(401));
+
+        Summary(s =>
+        {
+            s.Summary = "Refresh access token";
+            s.Description = "Exchanges a valid refresh token for a new access token and refresh token pair. The old refresh token is invalidated.";
+            s.ExampleRequest = new RefreshTokenRequest("your-refresh-token-here");
+        });
     }
 
     public override async Task HandleAsync(RefreshTokenRequest req, CancellationToken ct)

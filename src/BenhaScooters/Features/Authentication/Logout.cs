@@ -30,6 +30,13 @@ public class LogoutEndpoint(AppDbContext db) : Endpoint<LogoutRequest, LogoutRes
             .WithSummary("Logout user")
             .Produces<LogoutResponse>()
             .Produces(401));
+
+        Summary(s =>
+        {
+            s.Summary = "Logout user";
+            s.Description = "Logs out the current user by invalidating all their refresh tokens. Requires authentication.";
+            s.ExampleRequest = new LogoutRequest("your-refresh-token-here");
+        });
     }
 
     public override async Task HandleAsync(LogoutRequest req, CancellationToken ct)

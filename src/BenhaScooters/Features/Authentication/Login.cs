@@ -39,6 +39,13 @@ public class UserLoginEndpoint(AppDbContext db, IPasswordHasher passwordHasher, 
             .Produces<LoginResponse>()
             .Produces(401)
             .Produces(403));
+
+        Summary(s =>
+        {
+            s.Summary = "User login";
+            s.Description = "Authenticates a user with email and password. Returns JWT access token and refresh token on successful authentication.";
+            s.ExampleRequest = new LoginRequest("john.doe@example.com", "securePassword123");
+        });
     }
 
     public override async Task HandleAsync(LoginRequest req, CancellationToken ct)

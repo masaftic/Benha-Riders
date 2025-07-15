@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using BenhaScooters.Data;
 using BenhaScooters.Features.Authentication.Services;
+using BenhaScooters.Features.Trips.Services;
 using BenhaScooters.Services;
 using FastEndpoints;
 using FastEndpoints.Security;
@@ -10,12 +11,13 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.UseNetTopologySuite()));
 
 builder.Services.AddScoped<DataSeeder>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ISmsService, DevSmsService>();
+builder.Services.AddScoped<IFareEstimator, FareEstimator>();
 
 // Add the token cleanup background service
 builder.Services.AddHostedService<TokenCleanupService>();

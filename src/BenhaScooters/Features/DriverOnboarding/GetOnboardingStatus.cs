@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
-using BenhaScooters.Domain.Driver;
-using BenhaScooters.Domain.Driver.Enums;
+using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Shared.Security;
 using FastEndpoints;
 using FastEndpoints.Security;
@@ -36,30 +36,36 @@ public class GetOnboardingStatusEndpoint : EndpointWithoutRequest<GetOnboardingS
             .WithSummary("Get driver onboarding status")
             .Produces<GetOnboardingStatusResponse>()
             .Produces(404));
+
+        Summary(s =>
+        {
+            s.Summary = "Get driver onboarding status";
+            s.Description = "Retrieves the current onboarding status of the driver including progress and any rejection reasons. Only accessible by the driver.";
+        });
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = this.GetCurrentUserId();
 
-        var driverProfile = await _db.DriverProfiles
+        var driver = await _db.Drivers
             .FirstOrDefaultAsync(dp => dp.UserId == userId, ct);
 
-        if (driverProfile == null)
+        if (driver == null)
         {
-            // Create new driver profile if it doesn't exist
-            driverProfile = new DriverProfile(userId);
-            _db.DriverProfiles.Add(driverProfile);
+            // Create new driver  if it doesn't exist
+            driver = new Driver(userId);
+            _db.Drivers.Add(driver);
             await _db.SaveChangesAsync(ct);
         }
 
         var response = new GetOnboardingStatusResponse(
-            driverProfile.OnboardingStatus,
-            driverProfile.CurrentStep,
-            driverProfile.OnboardingProgress,
-            driverProfile.RejectionReason,
-            driverProfile.CreatedAt,
-            driverProfile.CompletedAt);
+            driver.OnboardingStatus,
+            driver.CurrentStep,
+            driver.OnboardingProgress,
+            driver.RejectionReason,
+            driver.CreatedAt,
+            driver.CompletedAt);
 
         await SendOkAsync(response, ct);
     }

@@ -41,6 +41,13 @@ public class ChangePasswordEndpoint(AppDbContext db, IPasswordHasher passwordHas
             .Produces<ChangePasswordResponse>()
             .Produces(400)
             .Produces(401));
+
+        Summary(s =>
+        {
+            s.Summary = "Change user password";
+            s.Description = "Allows users to change their password. Requires current password for verification.";
+            s.ExampleRequest = new ChangePasswordRequest("currentPassword123", "newPassword456", "newPassword456");
+        });
     }
 
     public override async Task HandleAsync(ChangePasswordRequest req, CancellationToken ct)

@@ -46,19 +46,19 @@ public class RejectDriverEndpoint : Endpoint<RejectDriverRequest, RejectDriverRe
 
     public override async Task HandleAsync(RejectDriverRequest req, CancellationToken ct)
     {
-        var driverProfile = await _db.DriverProfiles
+        var driver = await _db.Drivers
             .FirstOrDefaultAsync(dp => dp.UserId == req.DriverUserId, ct);
 
-        if (driverProfile == null)
+        if (driver == null)
         {
-            ThrowError("Driver profile not found.", 
-                errorCode: "DriverProfileNotFound", statusCode: 404);
+            ThrowError("Driver  not found.", 
+                errorCode: "DriverNotFound", statusCode: 404);
             return;
         }
 
         try
         {
-            driverProfile.RejectOnboarding(req.Reason);
+            driver.RejectOnboarding(req.Reason);
             await _db.SaveChangesAsync(ct);
 
             var response = new RejectDriverResponse("Driver application rejected successfully.");

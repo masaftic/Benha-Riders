@@ -42,19 +42,19 @@ public class ApproveDriverEndpoint : Endpoint<ApproveDriverRequest, ApproveDrive
 
     public override async Task HandleAsync(ApproveDriverRequest req, CancellationToken ct)
     {
-        var driverProfile = await _db.DriverProfiles
+        var driver = await _db.Drivers
             .FirstOrDefaultAsync(dp => dp.UserId == req.DriverUserId, ct);
 
-        if (driverProfile == null)
+        if (driver == null)
         {
-            ThrowError("Driver profile not found.", 
-                errorCode: "DriverProfileNotFound", statusCode: 404);
+            ThrowError("Driver  not found.", 
+                errorCode: "DriverNotFound", statusCode: 404);
             return;
         }
 
         try
         {
-            driverProfile.CompleteOnboarding();
+            driver.CompleteOnboarding();
             await _db.SaveChangesAsync(ct);
 
             var response = new ApproveDriverResponse("Driver application approved successfully.");

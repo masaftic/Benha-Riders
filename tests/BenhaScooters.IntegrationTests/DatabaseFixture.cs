@@ -5,7 +5,7 @@ namespace BenhaScooters.IntegrationTests;
 public class DatabaseFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
+        .WithImage("postgis/postgis:16-3.5")
         .WithDatabase("benha_scooters_test")
         .WithUsername("test_user")
         .WithPassword("test_password")

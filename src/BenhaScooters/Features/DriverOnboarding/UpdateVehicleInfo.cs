@@ -1,8 +1,8 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
-using BenhaScooters.Domain.Driver;
-using BenhaScooters.Domain.Driver.Enums;
-using BenhaScooters.Domain.Driver.ValueObjects;
+using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Shared.Security;
 using BenhaScooters.Shared.Validation;
 using FastEndpoints;
@@ -76,19 +76,19 @@ public class UpdateVehicleInfoEndpoint : Endpoint<UpdateVehicleInfoRequest, Upda
     {
         var userId = this.GetCurrentUserId();
 
-        var driverProfile = await _db.DriverProfiles
+        var driver = await _db.Drivers
             .FirstOrDefaultAsync(dp => dp.UserId == userId, ct);
 
-        if (driverProfile == null)
+        if (driver == null)
         {
-            ThrowError("Driver profile not found.", 
-                errorCode: "DriverProfileNotFound", statusCode: 404);
+            ThrowError("Driver  not found.", 
+                errorCode: "DriverNotFound", statusCode: 404);
             return;
         }
 
         try
         {
-            driverProfile.UpdateVehicleInfo(
+            driver.UpdateVehicleInfo(
                 req.VehicleType,
                 req.VehicleBrand,
                 req.VehicleModel,
@@ -100,7 +100,7 @@ public class UpdateVehicleInfoEndpoint : Endpoint<UpdateVehicleInfoRequest, Upda
 
             var response = new UpdateVehicleInfoResponse(
                 "Vehicle information updated successfully.",
-                driverProfile.CurrentStep);
+                driver.CurrentStep);
 
             await SendOkAsync(response, ct);
         }

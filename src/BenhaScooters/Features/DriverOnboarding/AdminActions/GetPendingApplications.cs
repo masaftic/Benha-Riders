@@ -1,7 +1,7 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
-using BenhaScooters.Domain.Driver.Enums;
-using BenhaScooters.Domain.Driver.ValueObjects;
+using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Domain.Drivers.ValueObjects;
 using FastEndpoints;
 using FastEndpoints.Security;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ namespace BenhaScooters.Features.DriverOnboarding.AdminActions;
 public record PersonalInfoDto(
     string FullName,
     NationalId NationalId,
-    DateTime DateOfBirth,
+    DateOnly DateOfBirth,
     string Address,
     string City,
     string EmergencyContactName,
@@ -28,7 +28,7 @@ public record VehicleInfoDto(
 public record DocumentsDto(
     string LicenseImageUrl,
     string VehicleRegistrationImageUrl,
-    string ProfileImageUrl);
+    string ImageUrl);
 
 public record PendingDriverApplicationDto(
     UserId DriverUserId,
@@ -59,7 +59,7 @@ public class GetPendingApplicationsEndpoint : EndpointWithoutRequest<GetPendingA
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var pendingApplications = await _db.DriverProfiles
+        var pendingApplications = await _db.Drivers
             .Where(dp =>
                 dp.OnboardingStatus == OnboardingStatus.InProgress &&
                 dp.CurrentStep == OnboardingStep.Review)
@@ -88,7 +88,7 @@ public class GetPendingApplicationsEndpoint : EndpointWithoutRequest<GetPendingA
             Documents: dp.Documents is null ? null : new DocumentsDto(
                 LicenseImageUrl: dp.Documents.LicenseImageUrl,
                 VehicleRegistrationImageUrl: dp.Documents.VehicleRegistrationImageUrl,
-                ProfileImageUrl: dp.Documents.ProfileImageUrl),
+                ImageUrl: dp.Documents.ImageUrl),
             CreatedAt: dp.CreatedAt))
             .ToList();
 

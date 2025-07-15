@@ -25,6 +25,7 @@ public class HelloWorld : Endpoint<HelloRequest, HelloResponse>
 
     public override async Task<HelloResponse> ExecuteAsync(HelloRequest req, CancellationToken ct)
     {
+        await Task.Delay(100, ct); // Simulate some async work
         var userId = this.GetCurrentUserId();
 
         return new HelloResponse($"Hello, {userId}, {req.Message}!");

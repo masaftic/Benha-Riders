@@ -4,7 +4,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgis/postgis:16-3.5
     environment:
       POSTGRES_DB: benha_scooters
       POSTGRES_USER: user123

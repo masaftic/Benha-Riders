@@ -29,6 +29,12 @@ public class MeEndpoint(AppDbContext db) : EndpointWithoutRequest<MeResponse>
             .WithSummary("Get current user information")
             .Produces<MeResponse>()
             .Produces(401));
+
+        Summary(s =>
+        {
+            s.Summary = "Get current user information";
+            s.Description = "Returns the current authenticated user's profile information including name, email, phone number, verification status, and roles.";
+        });
     }
 
     public override async Task HandleAsync(CancellationToken ct)

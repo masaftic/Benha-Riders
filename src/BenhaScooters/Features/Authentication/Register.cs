@@ -2,6 +2,8 @@ using System.ComponentModel;
 using System.Data.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
+using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Riders;
 using BenhaScooters.Features.Authentication.Services;
 using BenhaScooters.Shared.Validation;
 using FastEndpoints;
@@ -57,6 +59,13 @@ public class Register : Endpoint<RegisterRequest, RegisterResponse>
             .WithSummary("Register a new user")
             .Produces<RegisterResponse>()
             .Produces(StatusCodes.Status400BadRequest));
+
+        Summary(s =>
+        {
+            s.Summary = "Register a new user";
+            s.Description = "Creates a new user account with name, email, phone number and password. Email must be unique and password will be securely hashed.";
+            s.ExampleRequest = new RegisterRequest("John Doe", "john.doe@example.com", "+20124567890", "securePassword123", "Rider");
+        });
     }
 
     public override async Task HandleAsync(RegisterRequest req, CancellationToken ct)
@@ -85,6 +94,19 @@ public class Register : Endpoint<RegisterRequest, RegisterResponse>
         user.AddRole(new UserRole(role));
 
         _db.Users.Add(user);
+
+        // Save to get the user ID
+        await _db.SaveChangesAsync(ct);
+
+        if (role == RoleName.Rider)
+        {
+            _db.Riders.Add(new Rider(user.Id, req.Name));
+        }
+        else if (role == RoleName.Driver)
+        {
+            _db.Drivers.Add(new Driver(user.Id));
+        }
+
         await _db.SaveChangesAsync(ct);
 
         var response = new RegisterResponse(
