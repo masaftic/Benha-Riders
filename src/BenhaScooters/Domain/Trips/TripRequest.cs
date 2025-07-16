@@ -20,7 +20,7 @@ public class TripRequest
     public string? DropoffAddress { get; private set; }
     public DateTime RequestedAt { get; private set; }
     public TripRequestStatus Status { get; private set; }
-    public DateTime? ExpiresAt { get; private set; }
+    public DateTime ExpiresAt { get; private set; }
 
     // Pricing
     public FareEstimate EstimatedFare { get; private set; } = null!;
@@ -38,8 +38,7 @@ public class TripRequest
     private TripRequest() { } // For EF Core
 
     public TripRequest(RiderId riderId, Point pickupLocation, Point dropoffLocation,
-        string? pickupAddress, string? dropoffAddress, FareEstimate estimatedFare,
-        double estimatedDistance, double estimatedDuration)
+        string? pickupAddress, string? dropoffAddress, FareEstimate estimatedFare)
     {
         RiderId = riderId;
         PickupLocation = pickupLocation;
@@ -100,7 +99,7 @@ public class TripRequest
     }
 
     // Calculated properties
-    public bool IsExpired => ExpiresAt.HasValue && DateTime.UtcNow > ExpiresAt.Value;
+    public bool IsExpired => DateTime.UtcNow > ExpiresAt;
     public bool IsActive => Status == TripRequestStatus.Pending;
     public bool CanBeAssigned => Status == TripRequestStatus.Pending && !IsExpired;
 }

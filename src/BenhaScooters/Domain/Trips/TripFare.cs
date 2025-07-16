@@ -11,7 +11,7 @@ public class TripFare
     public TripId TripId { get; private set; }
     public decimal BaseFare { get; private set; }
     public decimal DistanceFare { get; private set; }
-    public decimal TimeFare { get; private set; }
+    public decimal DurationFare { get; private set; }
     public decimal SurgeMultiplier { get; private set; }
     public decimal TotalFare { get; private set; }
 
@@ -22,11 +22,11 @@ public class TripFare
         TripId = tripId;
         BaseFare = baseFare;
         DistanceFare = distanceFare;
-        TimeFare = timeFare;
+        DurationFare = timeFare;
         SurgeMultiplier = surgeMultiplier;
 
         // Calculate total fare
-        TotalFare = BaseFare + DistanceFare + TimeFare;
+        TotalFare = BaseFare + DistanceFare + DurationFare;
         TotalFare *= SurgeMultiplier; // Apply surge multiplier
     }
 }

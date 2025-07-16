@@ -112,9 +112,7 @@ public class RequestTripEndpoint(AppDbContext db, IFareEstimator fareEstimator) 
             dropoffLocation,
             request.PickupAddress,
             request.DropoffAddress,
-            fareEstimate,
-            fareEstimate.Distance,
-            fareEstimate.Time);
+            fareEstimate);
 
         await db.TripRequests.AddAsync(tripRequest, ct);
         await db.SaveChangesAsync(ct);

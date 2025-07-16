@@ -22,6 +22,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     public DbSet<Trip> Trips => Set<Trip>();
     public DbSet<TripGpsPoint> TripGpsPoints => Set<TripGpsPoint>();
+    public DbSet<TripRoute> TripRoutes => Set<TripRoute>();
+    public DbSet<TripFare> TripFares => Set<TripFare>();
     public DbSet<TripRequest> TripRequests => Set<TripRequest>();
 
     public DbSet<DriverMatchAttempt> DriverMatchAttempts => Set<DriverMatchAttempt>();

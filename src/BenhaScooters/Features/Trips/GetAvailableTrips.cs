@@ -49,7 +49,7 @@ public class GetAvailableTripsEndpoint(AppDbContext db) : EndpointWithoutRequest
     public override async Task HandleAsync(CancellationToken ct)
     {
         var userId = this.GetCurrentUserId();
-        
+
         // Get driver profile and check availability
         var driverId = await db.Drivers
             .Where(d => d.UserId == userId)
@@ -74,8 +74,8 @@ public class GetAvailableTripsEndpoint(AppDbContext db) : EndpointWithoutRequest
 
         // Get available trip requests (pending status, not expired)
         var availableTrips = await db.TripRequests
-            .Where(tr => tr.Status == TripRequestStatus.Pending && 
-                        (tr.ExpiresAt == null || tr.ExpiresAt > DateTime.UtcNow))
+            .AsNoTracking()
+            .Where(tr => tr.Status == TripRequestStatus.Pending && tr.ExpiresAt > DateTime.UtcNow)
             .OrderBy(tr => tr.RequestedAt)
             .Select(tr => new
             {
@@ -88,7 +88,7 @@ public class GetAvailableTripsEndpoint(AppDbContext db) : EndpointWithoutRequest
                 EstimatedDistance = tr.EstimatedFare.Distance, // Assuming this is available
                 EstimatedDuration = tr.EstimatedFare.Time, // Assuming this is available
                 RequestedAt = tr.RequestedAt,
-                ExpiresAt = tr.ExpiresAt ?? DateTime.UtcNow.AddMinutes(10) // Default to 10 minutes if null
+                ExpiresAt = tr.ExpiresAt
             })
             .ToListAsync(ct);
 
