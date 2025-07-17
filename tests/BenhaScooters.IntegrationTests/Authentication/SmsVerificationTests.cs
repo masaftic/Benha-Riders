@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
-using BenhaScooters.Features.Authentication;
 using BenhaScooters.Domain;
+using BenhaScooters.Presentation.Endpoints.Authentication;
 
 namespace BenhaScooters.IntegrationTests.Authentication;
 
@@ -74,7 +74,7 @@ public class SmsVerificationTests : AuthenticationTestBase
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         
-        var verifyResponse = await DeserializeResponse<VerifySmsCodeResponse>(response);
+        var verifyResponse = await DeserializeResponse<VerifySmsCodeEndpoint.VerifySmsCodeResponseDto>(response);
         Assert.NotNull(verifyResponse);
         Assert.Equal("Phone number verified successfully.", verifyResponse.Message);
         Assert.True(verifyResponse.IsVerified);

@@ -1,26 +1,24 @@
-using System.ComponentModel;
-using System.Data.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
+using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Shared.Validation;
-using FastEndpoints;
+using ErrorOr;
 using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 
-namespace BenhaScooters.Features.Authentication;
+namespace BenhaScooters.Application.Features.Authentication.Commands;
 
 
-public record RegisterRequest(string Name, string Email, string PhoneNumber, string Password, string Role);
+public record RegisterCommand(string Name, string Email, string PhoneNumber, string Password, string Role) : IRequest<ErrorOr<RegisterResponse>>;
 
-public record RegisterResponse(string Message, UserId UserId, bool RequiresPhoneVerification);
 
-public class RegisterRequestValidator : Validator<RegisterRequest>
+public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
 {
-    public RegisterRequestValidator()
+    public RegisterCommandValidator()
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("User name is required.");
 
@@ -40,48 +38,33 @@ public class RegisterRequestValidator : Validator<RegisterRequest>
     }
 }
 
-public class Register : Endpoint<RegisterRequest, RegisterResponse>
+
+public record RegisterResponse(string Message, UserId UserId, bool RequiresPhoneVerification);
+
+
+public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<RegisterResponse>>
 {
     private readonly IPasswordHasher _passwordHasher;
     private readonly AppDbContext _db;
 
-    public Register(IPasswordHasher passwordHasher, AppDbContext db)
+    public RegisterCommandHandler(IPasswordHasher passwordHasher, AppDbContext db)
     {
         _passwordHasher = passwordHasher;
         _db = db;
     }
 
-    public override void Configure()
+    public async Task<ErrorOr<RegisterResponse>> Handle(RegisterCommand req, CancellationToken ct)
     {
-        Post("/auth/register");
-        AllowAnonymous();
-        Description(x => x
-            .WithSummary("Register a new user")
-            .Produces<RegisterResponse>()
-            .Produces(StatusCodes.Status400BadRequest));
-
-        Summary(s =>
-        {
-            s.Summary = "Register a new user";
-            s.Description = "Creates a new user account with name, email, phone number and password. Email must be unique and password will be securely hashed.";
-            s.ExampleRequest = new RegisterRequest("John Doe", "john.doe@example.com", "+201012345678", "securePassword123", "Rider");
-        });
-    }
-
-    public override async Task HandleAsync(RegisterRequest req, CancellationToken ct)
-    {
-        var normalizedEmail = Domain.User.NormalizeEmail(Email.From(req.Email));
+        var normalizedEmail = User.NormalizeEmail(Email.From(req.Email));
         if (await _db.Users.AnyAsync(x => x.EmailNormalized == normalizedEmail, ct))
         {
-            ThrowError(req => req.Email, "Email already registered.", errorCode: "EmailAlreadyRegistered", statusCode: 400);
-            return;
+            return UserErrors.EmailAlreadyExists;
         }
 
-        var normalizedPhone = Domain.User.NormalizePhone(PhoneNumber.From(req.PhoneNumber));
+        var normalizedPhone = User.NormalizePhone(PhoneNumber.From(req.PhoneNumber));
         if (await _db.Users.AnyAsync(x => x.PhoneNumberNormalized == normalizedPhone, ct))
         {
-            ThrowError(p => p.PhoneNumber, "Phone number already registered.", errorCode: "PhoneNumberAlreadyRegistered", statusCode: 400);
-            return;
+            return UserErrors.PhoneAlreadyExists;
         }
 
         var user = new User(
@@ -96,6 +79,7 @@ public class Register : Endpoint<RegisterRequest, RegisterResponse>
         _db.Users.Add(user);
 
         // Save to get the user ID
+        // TODO: maybe a transaction here
         await _db.SaveChangesAsync(ct);
 
         if (role == RoleName.Rider)
@@ -109,11 +93,6 @@ public class Register : Endpoint<RegisterRequest, RegisterResponse>
 
         await _db.SaveChangesAsync(ct);
 
-        var response = new RegisterResponse(
-            "User registered successfully. Please verify your phone number before login.",
-            user.Id,
-            true);
-
-        await SendAsync(response, cancellation: ct);
+        return new RegisterResponse("User registered successfully. Please verify your phone number before login.", user.Id, true);
     }
 }

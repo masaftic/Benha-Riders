@@ -6,8 +6,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using BenhaScooters.Data;
 using System.Net.Http.Json;
 using System.Text.Json;
-using BenhaScooters.Features.Authentication;
 using Testcontainers.PostgreSql;
+using BenhaScooters.Presentation.Endpoints.Authentication;
 
 namespace BenhaScooters.IntegrationTests;
 
@@ -101,17 +101,17 @@ public class IntegrationTestBase : IClassFixture<DatabaseFixture>, IAsyncLifetim
     /// <summary>
     /// Registers a user and returns the registration response
     /// </summary>
-    protected async Task<RegisterResponse> RegisterUserAsync(RegisterRequest request)
+    protected async Task<RegisterEndpoint.RegisterResponseDto> RegisterUserAsync(RegisterEndpoint.RegisterRequestDto request)
     {
         var response = await Client.PostAsJsonAsync("/api/auth/register", request, JsonOptions);
         response.EnsureSuccessStatusCode();
-        return await DeserializeResponse<RegisterResponse>(response) ?? throw new InvalidOperationException("Failed to deserialize register response");
+        return await DeserializeResponse<RegisterEndpoint.RegisterResponseDto>(response) ?? throw new InvalidOperationException("Failed to deserialize register response");
     }
 
     /// <summary>
     /// Registers a user and verifies their phone number, returning the user
     /// </summary>
-    protected async Task<RegisterResponse> RegisterAndVerifyUserAsync(RegisterRequest request)
+    protected async Task<RegisterEndpoint.RegisterResponseDto> RegisterAndVerifyUserAsync(RegisterEndpoint.RegisterRequestDto request)
     {
         var registerResponse = await RegisterUserAsync(request);
         
@@ -129,17 +129,17 @@ public class IntegrationTestBase : IClassFixture<DatabaseFixture>, IAsyncLifetim
     /// <summary>
     /// Logs in a user and returns the login response
     /// </summary>
-    protected async Task<LoginResponse> LoginUserAsync(LoginRequest request)
+    protected async Task<LoginEndpoint.LoginResponseDto> LoginUserAsync(LoginEndpoint.LoginRequestDto request)
     {
         var response = await Client.PostAsJsonAsync("/api/auth/login", request, JsonOptions);
         response.EnsureSuccessStatusCode();
-        return await DeserializeResponse<LoginResponse>(response) ?? throw new InvalidOperationException("Failed to deserialize login response");
+        return await DeserializeResponse<LoginEndpoint.LoginResponseDto>(response) ?? throw new InvalidOperationException("Failed to deserialize login response");
     }
 
     /// <summary>
     /// Registers, verifies, and logs in a user, then sets the authorization header
     /// </summary>
-    protected async Task<(RegisterResponse registerResponse, LoginResponse loginResponse)> RegisterVerifyAndLoginUserAsync(RegisterRequest registerRequest)
+    protected async Task<(RegisterEndpoint.RegisterResponseDto registerResponse, LoginEndpoint.LoginResponseDto loginResponse)> RegisterVerifyAndLoginUserAsync(RegisterEndpoint.RegisterRequestDto registerRequest)
     {
         var registerResponse = await RegisterAndVerifyUserAsync(registerRequest);
         

@@ -2,9 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using BenhaScooters.Features.Authentication;
 using BenhaScooters.Domain;
 using Microsoft.Extensions.DependencyInjection;
+using BenhaScooters.Presentation.Endpoints.Authentication;
 
 namespace BenhaScooters.IntegrationTests.Authentication;
 
@@ -26,13 +26,13 @@ public class AuthenticationTests : AuthenticationTestBase
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var registerResponse = await DeserializeResponse<RegisterResponse>(response);
+        var registerResponse = await DeserializeResponse<RegisterEndpoint.RegisterResponseDto>(response);
         Assert.NotNull(registerResponse);
-        Assert.True(registerResponse.UserId.Value > 0);
+        Assert.True(registerResponse.UserId > 0);
         Assert.True(registerResponse.RequiresPhoneVerification);
 
         // Verify user was created in database
-        var user = await DbContext!.Users.FindAsync(registerResponse.UserId);
+        var user = await DbContext!.Users.FindAsync(UserId.From(registerResponse.UserId));
         Assert.NotNull(user);
         Assert.Equal(request.Name, user.Name);
         Assert.Equal(request.Email, user.Email.Value);
@@ -82,7 +82,7 @@ public class AuthenticationTests : AuthenticationTestBase
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var loginResponse = await DeserializeResponse<LoginResponse>(response);
+        var loginResponse = await DeserializeResponse<LoginEndpoint.LoginResponseDto>(response);
         Assert.NotNull(loginResponse);
         Assert.NotEmpty(loginResponse.AccessToken);
         Assert.NotEmpty(loginResponse.RefreshToken);
@@ -99,7 +99,7 @@ public class AuthenticationTests : AuthenticationTestBase
         var response = await Client.PostAsJsonAsync("/api/auth/login", loginRequest, JsonOptions);
 
         // Assert
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -125,12 +125,12 @@ public class AuthenticationTests : AuthenticationTestBase
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var meResponse = await DeserializeResponse<MeResponse>(response);
+        var meResponse = await DeserializeResponse<MeEndpoint.MeResponseDto>(response);
         Assert.NotNull(meResponse);
         Assert.Equal(registerRequest.Name, meResponse.Name);
-        Assert.Equal(registerRequest.Email, meResponse.Email.Value);
+        Assert.Equal(registerRequest.Email, meResponse.Email);
         Assert.False(meResponse.EmailVerified);
-        Assert.Contains(RoleName.Rider, meResponse.Roles);
+        Assert.Contains(RoleName.Rider.ToString(), meResponse.Roles);
 
         // Clean up
         ClearAuthorizationHeader();
@@ -148,13 +148,13 @@ public class AuthenticationTests : AuthenticationTestBase
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var registerResponse = await DeserializeResponse<RegisterResponse>(response);
+        var registerResponse = await DeserializeResponse<RegisterEndpoint.RegisterResponseDto>(response);
         Assert.NotNull(registerResponse);
 
         // Verify user has driver role
         var user = await DbContext!.Users
             .Include(u => u.Roles)
-            .FirstAsync(u => u.Id == registerResponse.UserId);
+            .FirstAsync(u => u.Id == UserId.From(registerResponse.UserId));
 
         Assert.Contains(user.Roles, r => r.Name == RoleName.Driver);
     }

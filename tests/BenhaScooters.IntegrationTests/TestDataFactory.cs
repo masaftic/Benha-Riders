@@ -1,4 +1,5 @@
-using BenhaScooters.Features.Authentication;
+
+using BenhaScooters.Presentation.Endpoints.Authentication;
 
 namespace BenhaScooters.IntegrationTests;
 
@@ -7,7 +8,7 @@ public static class TestDataFactory
     private static int _userCounter = 0;
     private static readonly object _lock = new();
 
-    public static RegisterRequest CreateRegisterRequest(
+    public static RegisterEndpoint.RegisterRequestDto CreateRegisterRequest(
         string? name = null,
         string? email = null,
         string? phoneNumber = null,
@@ -17,7 +18,7 @@ public static class TestDataFactory
         lock (_lock)
         {
             _userCounter++;
-            return new RegisterRequest(
+            return new RegisterEndpoint.RegisterRequestDto(
                 Name: name ?? $"Test User {_userCounter}",
                 Email: email ?? $"testuser{_userCounter}@example.com",
                 PhoneNumber: phoneNumber ?? $"+20123456{_userCounter:D4}",
@@ -27,24 +28,24 @@ public static class TestDataFactory
         }
     }
 
-    public static LoginRequest CreateLoginRequest(string email, string password = "password123")
+    public static LoginEndpoint.LoginRequestDto CreateLoginRequest(string email, string password = "password123")
     {
-        return new LoginRequest(Email: email, Password: password);
+        return new LoginEndpoint.LoginRequestDto(Email: email, Password: password);
     }
 
-    public static SendSmsVerificationRequest CreateSmsVerificationRequest(string phoneNumber)
+    public static SendSmsVerificationEndpoint.SendSmsVerificationRequestDto CreateSmsVerificationRequest(string phoneNumber)
     {
-        return new SendSmsVerificationRequest(phoneNumber);
+        return new SendSmsVerificationEndpoint.SendSmsVerificationRequestDto(phoneNumber);
     }
 
-    public static VerifySmsCodeRequest CreateVerifySmsCodeRequest(string phoneNumber, string code)
+    public static VerifySmsCodeEndpoint.VerifySmsCodeRequestDto CreateVerifySmsCodeRequest(string phoneNumber, string code)
     {
-        return new VerifySmsCodeRequest(phoneNumber, code);
+        return new VerifySmsCodeEndpoint.VerifySmsCodeRequestDto(phoneNumber, code);
     }
 
     public static class Rider
     {
-        public static RegisterRequest CreateRegisterRequest(
+        public static RegisterEndpoint.RegisterRequestDto CreateRegisterRequest(
             string? name = null,
             string? email = null,
             string? phoneNumber = null,
@@ -56,7 +57,7 @@ public static class TestDataFactory
 
     public static class Driver
     {
-        public static RegisterRequest CreateRegisterRequest(
+        public static RegisterEndpoint.RegisterRequestDto CreateRegisterRequest(
             string? name = null,
             string? email = null,
             string? phoneNumber = null,

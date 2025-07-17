@@ -1,17 +1,25 @@
+using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using BenhaScooters.Application;
 using BenhaScooters.Data;
 using BenhaScooters.Infrastructure;
 using BenhaScooters.Infrastructure.Authentication;
 using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Infrastructure.Trips.Services;
+using BenhaScooters.Presentation;
 using BenhaScooters.Services;
+using BenhaScooters.Shared;
+using ErrorOr;
 using FastEndpoints;
 using FastEndpoints.Security;
 using FastEndpoints.Swagger;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +50,9 @@ builder.Services.AddRateLimiter(options =>
 });
 
 
+builder.Services.AddEndpoints();
+
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.UseNetTopologySuite()));
 
@@ -57,9 +68,62 @@ builder.Services.AddScoped<IFareEstimator, FareEstimator>();
 // Add the token cleanup background service
 builder.Services.AddHostedService<TokenCleanupService>();
 
-builder.Services
-    .AddFastEndpoints()
-    .SwaggerDocument();
+// builder.Services
+//     .AddFastEndpoints()
+//     .SwaggerDocument();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() { Title = "BenhaScooters API", Version = "v1" });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\""
+    });
+    // Apply the scheme globally to all endpoints marked as requiring auth
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>() // No scopes required
+        }
+    });
+
+});
+
+builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails(c =>
+{
+    c.CustomizeProblemDetails = ctx =>
+    {
+        ctx.ProblemDetails.Instance = $"{ctx.HttpContext.Request.Method} {ctx.HttpContext.Request.Path}";
+        // trace id
+        ctx.ProblemDetails.Extensions["traceId"] = ctx.HttpContext.TraceIdentifier;
+
+        if (ctx.HttpContext.Items.TryGetValue("ErrorCodes", out var errorCodes))
+        {
+            ctx.ProblemDetails.Extensions["errorCodes"] = errorCodes;
+        }
+    };
+});
+
+builder.Services.AddApplication();
+
+
+var jwtOptions = new JwtOptions();
+builder.Configuration.Bind(JwtOptions.SectionName, jwtOptions);
 
 builder.Services
     .AddOptions<JwtOptions>()
@@ -68,10 +132,18 @@ builder.Services
     .ValidateOnStart();
 
 builder.Services
-    .AddAuthenticationJwtBearer(s =>
-        s.SigningKey = builder.Configuration[JwtOptions.SectionName + ":SigningKey"]
-        ?? throw new InvalidOperationException("JWT Signing Key is not configured."))
-    .AddAuthentication();
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new()
+        {
+            ValidateAudience = false,
+            ValidateIssuer = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey))
+        };
+    });
 
 builder.Services.AddAuthorization();
 
@@ -100,15 +172,30 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseDefaultExceptionHandler().UseFastEndpoints(c =>
-{
-    c.Endpoints.RoutePrefix = "api";
-    c.Errors.UseProblemDetails(x =>
-    {
-        x.IndicateErrorCode = true;
-    });
-    c.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
-}).UseSwaggerGen();
+app.MapEndpoints();
+
+// app.UseDefaultExceptionHandler().UseFastEndpoints(c =>
+// {
+//     c.Endpoints.RoutePrefix = "api";
+//     c.Errors.UseProblemDetails();
+//     // c.Endpoints.Configurator = ep =>
+//     // {
+//     //     if (ep.ResDtoType.IsAssignableTo(typeof(IErrorOr)))
+//     //     {
+//     //         ep.DontAutoSendResponse();
+//     //         ep.PostProcessor<ErrorOrResponseSender>(Order.After);
+//     //         ep.Description(
+//     //             b => b.ClearDefaultProduces()
+//     //                 .Produces(200, ep.ResDtoType.GetGenericArguments()[0])
+//     //                 .ProducesProblemDetails());
+//     //     }
+//     // };
+//     c.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
+// });
+
+app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 
 app.Run();

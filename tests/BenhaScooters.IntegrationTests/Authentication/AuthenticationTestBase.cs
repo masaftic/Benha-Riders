@@ -1,4 +1,5 @@
-using BenhaScooters.Features.Authentication;
+using BenhaScooters.Domain;
+using BenhaScooters.Presentation.Endpoints.Authentication;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Json;
 
@@ -16,23 +17,23 @@ public abstract class AuthenticationTestBase : FeatureTestBase
     /// <summary>
     /// Registers a user and returns the registration response
     /// </summary>
-    protected async Task<RegisterResponse> RegisterUserAsync(RegisterRequest request)
+    protected async Task<RegisterEndpoint.RegisterResponseDto> RegisterUserAsync(RegisterEndpoint.RegisterRequestDto request)
     {
         var response = await Client.PostAsJsonAsync("/api/auth/register", request, JsonOptions);
         response.EnsureSuccessStatusCode();
-        return await DeserializeResponse<RegisterResponse>(response) ?? 
+        return await DeserializeResponse<RegisterEndpoint.RegisterResponseDto>(response) ?? 
                throw new InvalidOperationException("Failed to deserialize register response");
     }
 
     /// <summary>
     /// Registers a user and verifies their phone number, returning the user
     /// </summary>
-    protected async Task<RegisterResponse> RegisterAndVerifyUserAsync(RegisterRequest request)
+    protected async Task<RegisterEndpoint.RegisterResponseDto> RegisterAndVerifyUserAsync(RegisterEndpoint.RegisterRequestDto request)
     {
         var registerResponse = await RegisterUserAsync(request);
         
         // Skip SMS verification by directly updating the database
-        var user = await DbContext!.Users.FindAsync(registerResponse.UserId);
+        var user = await DbContext!.Users.FindAsync(UserId.From(registerResponse.UserId));
         if (user != null)
         {
             user.VerifyPhoneNumber();
@@ -45,18 +46,18 @@ public abstract class AuthenticationTestBase : FeatureTestBase
     /// <summary>
     /// Logs in a user and returns the login response
     /// </summary>
-    protected async Task<LoginResponse> LoginUserAsync(LoginRequest request)
+    protected async Task<LoginEndpoint.LoginResponseDto> LoginUserAsync(LoginEndpoint.LoginRequestDto request)
     {
         var response = await Client.PostAsJsonAsync("/api/auth/login", request, JsonOptions);
         response.EnsureSuccessStatusCode();
-        return await DeserializeResponse<LoginResponse>(response) ?? 
+        return await DeserializeResponse<LoginEndpoint.LoginResponseDto>(response) ?? 
                throw new InvalidOperationException("Failed to deserialize login response");
     }
 
     /// <summary>
     /// Registers, verifies, and logs in a user, then sets the authorization header
     /// </summary>
-    protected async Task<(RegisterResponse registerResponse, LoginResponse loginResponse)> RegisterVerifyAndLoginUserAsync(RegisterRequest registerRequest)
+    protected async Task<(RegisterEndpoint.RegisterResponseDto registerResponse, LoginEndpoint.LoginResponseDto loginResponse)> RegisterVerifyAndLoginUserAsync(RegisterEndpoint.RegisterRequestDto registerRequest)
     {
         var registerResponse = await RegisterAndVerifyUserAsync(registerRequest);
         
@@ -89,11 +90,11 @@ public abstract class AuthenticationTestBase : FeatureTestBase
     /// <summary>
     /// Gets the current user info using the /me endpoint
     /// </summary>
-    protected async Task<MeResponse?> GetCurrentUserAsync()
+    protected async Task<MeEndpoint.MeResponseDto?> GetCurrentUserAsync()
     {
         var response = await Client.GetAsync("/api/auth/me");
         response.EnsureSuccessStatusCode();
-        return await DeserializeResponse<MeResponse>(response);
+        return await DeserializeResponse<MeEndpoint.MeResponseDto>(response);
     }
 
     /// <summary>
@@ -115,12 +116,12 @@ public abstract class AuthenticationTestBase : FeatureTestBase
     /// <summary>
     /// Creates and returns a sample rider registration request using the test data factory
     /// </summary>
-    protected RegisterRequest CreateRiderRequest() => TestDataFactory.Rider.CreateRegisterRequest();
+    protected RegisterEndpoint.RegisterRequestDto CreateRiderRequest() => TestDataFactory.Rider.CreateRegisterRequest();
 
     /// <summary>
     /// Creates and returns a sample driver registration request using the test data factory
     /// </summary>
-    protected RegisterRequest CreateDriverRequest() => TestDataFactory.Driver.CreateRegisterRequest();
+    protected RegisterEndpoint.RegisterRequestDto CreateDriverRequest() => TestDataFactory.Driver.CreateRegisterRequest();
 
     /// <summary>
     /// Refreshes an entity from the database to see changes made by API endpoints
