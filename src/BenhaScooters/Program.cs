@@ -104,6 +104,17 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddOpenApi();
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
 builder.Services.AddProblemDetails(c =>
 {
     c.CustomizeProblemDetails = ctx =>
@@ -173,25 +184,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapEndpoints();
-
-// app.UseDefaultExceptionHandler().UseFastEndpoints(c =>
-// {
-//     c.Endpoints.RoutePrefix = "api";
-//     c.Errors.UseProblemDetails();
-//     // c.Endpoints.Configurator = ep =>
-//     // {
-//     //     if (ep.ResDtoType.IsAssignableTo(typeof(IErrorOr)))
-//     //     {
-//     //         ep.DontAutoSendResponse();
-//     //         ep.PostProcessor<ErrorOrResponseSender>(Order.After);
-//     //         ep.Description(
-//     //             b => b.ClearDefaultProduces()
-//     //                 .Produces(200, ep.ResDtoType.GetGenericArguments()[0])
-//     //                 .ProducesProblemDetails());
-//     //     }
-//     // };
-//     c.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
-// });
 
 app.MapOpenApi();
 app.UseSwagger();

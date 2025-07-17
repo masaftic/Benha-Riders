@@ -1,6 +1,8 @@
 using System.Text.RegularExpressions;
+using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
+using ErrorOr;
 using Vogen;
 
 namespace BenhaScooters.Domain.Drivers;
@@ -43,11 +45,11 @@ public class Driver
         IsActive = false;
     }
 
-    public void UpdatePersonalInfo(string fullName, NationalId nationalId, DateOnly dateOfBirth, 
+    public ErrorOr<Success> UpdatePersonalInfo(string fullName, NationalId nationalId, DateOnly dateOfBirth, 
         string address, string city, string emergencyContactName, PhoneNumber emergencyContactPhone)
     {
         if (OnboardingStatus == OnboardingStatus.Completed)
-            throw new InvalidOperationException("Cannot update personal info after onboarding is completed.");
+            return DriverErrors.OnboardingAlreadyCompleted;
 
         PersonalInfo = new PersonalInfo(fullName, nationalId, dateOfBirth, address, city, emergencyContactName, emergencyContactPhone);
 
@@ -56,57 +58,67 @@ public class Driver
 
         if (CurrentStep == OnboardingStep.PersonalInfo)
             CurrentStep = OnboardingStep.VehicleInfo;
+
+        return Result.Success;
     }
 
-    public void UpdateVehicleInfo(VehicleType vehicleType, string vehicleBrand, string vehicleModel, 
+    public ErrorOr<Success> UpdateVehicleInfo(VehicleType vehicleType, string vehicleBrand, string vehicleModel, 
         string vehicleColor, LicensePlate licensePlate, int vehicleYear)
     {
         if (OnboardingStatus == OnboardingStatus.Completed)
-            throw new InvalidOperationException("Cannot update vehicle info after onboarding is completed.");
+            return DriverErrors.OnboardingAlreadyCompleted;
 
         if (CurrentStep < OnboardingStep.VehicleInfo)
-            throw new InvalidOperationException("Complete personal information first.");
+            return DriverErrors.PersonalInfoRequired;
 
         VehicleInfo = new VehicleInfo(vehicleType, vehicleBrand, vehicleModel, vehicleColor, licensePlate, vehicleYear);
 
         if (CurrentStep == OnboardingStep.VehicleInfo)
             CurrentStep = OnboardingStep.Documents;
+
+        return Result.Success;
     }
 
-    public void UpdateDocuments(string licenseImageUrl, string vehicleRegistrationImageUrl, string ImageUrl)
+    public ErrorOr<Success> UpdateDocuments(string licenseImageUrl, string vehicleRegistrationImageUrl, string ImageUrl)
     {
         if (OnboardingStatus == OnboardingStatus.Completed)
-            throw new InvalidOperationException("Cannot update documents after onboarding is completed.");
+            return DriverErrors.OnboardingAlreadyCompleted;
 
         if (CurrentStep < OnboardingStep.Documents)
-            throw new InvalidOperationException("Complete previous steps first.");
+            return DriverErrors.PreviousStepsRequired;
 
         Documents = new DriverDocuments(licenseImageUrl, vehicleRegistrationImageUrl, ImageUrl);
 
         if (CurrentStep == OnboardingStep.Documents)
             CurrentStep = OnboardingStep.Review;
+
+        return Result.Success;
     }
 
-    public void CompleteOnboarding()
+    public ErrorOr<Success> CompleteOnboarding()
     {
         if (CurrentStep != OnboardingStep.Review)
-            throw new InvalidOperationException("All onboarding steps must be completed first.");
+            return DriverErrors.OnboardingIncomplete;
 
         OnboardingStatus = OnboardingStatus.Completed;
         CurrentStep = OnboardingStep.Completed;
         CompletedAt = DateTime.UtcNow;
         IsActive = true;
         RejectionReason = null;
+
+        return Result.Success;
     }
 
-    public void RejectOnboarding(string reason)
+    public ErrorOr<Success> RejectOnboarding(string reason)
     {
         if (string.IsNullOrWhiteSpace(reason))
-            throw new ArgumentException("Rejection reason is required.", nameof(reason));
+            return DriverErrors.RejectionReasonRequired;
 
         OnboardingStatus = OnboardingStatus.Rejected;
         RejectionReason = reason;
         IsActive = false;
+
+        return Result.Success;
     }
 
     public void AddRating(decimal newRating)

@@ -1,8 +1,12 @@
 using BenhaScooters.Domain;
 using BenhaScooters.Shared.Security;
-using FastEndpoints.Security;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 
 namespace BenhaScooters.Infrastructure.Authentication.Services;
 
@@ -29,17 +33,31 @@ public class JwtService : IJwtService
     {
         var expiresAt = GetAccessTokenExpiryTime();
 
-        return JwtBearer.CreateToken(o =>
+        // create the token
+        List<Claim> claims = [
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(JwtClaims.Sub, user.Id.ToString()),
+            new Claim(JwtClaims.Name, user.Name),
+            new Claim(JwtClaims.Email, user.Email.Value),
+            new Claim(JwtClaims.PhoneNumber, user.PhoneNumber.Value),
+            new Claim(JwtClaims.EmailVerified, user.EmailVerified.ToString()),
+            new Claim(JwtClaims.PhoneVerified, user.PhoneNumberVerified.ToString()),
+            new Claim(JwtClaims.Roles, JsonSerializer.Serialize(user.Roles.Select(r => r.Name.ToString()).ToArray()), JsonClaimValueTypes.JsonArray),
+        ];
+
+
+        var tokenDescriptor = new SecurityTokenDescriptor
         {
-            o.SigningKey = _signingKey;
-            o.User.Claims.Add((JwtClaims.Sub, user.Id.ToString()));
-            o.User.Claims.Add((JwtClaims.Email, user.Email.Value));
-            o.User.Claims.Add((JwtClaims.Name, user.Name));
-            o.User.Claims.Add((JwtClaims.EmailVerified, user.EmailVerified.ToString()));
-            o.User.Claims.Add((JwtClaims.PhoneVerified, user.PhoneNumberVerified.ToString()));
-            o.User.Roles.AddRange(user.Roles.Select(x => x.Name.ToString()));
-            o.ExpireAt = expiresAt;
-        });
+            Subject = new ClaimsIdentity(claims),
+            Expires = expiresAt,
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_signingKey)),
+                SecurityAlgorithms.HmacSha256)
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
     }
 
     public string GenerateRefreshToken()
