@@ -160,6 +160,18 @@ builder.Services.AddAuthorization(opt =>
         policy.RequireRole("Driver");
         policy.RequireClaim(JwtClaims.OnboardingStatus, "Completed");
     });
+    
+    opt.AddPolicy("RiderPolicy", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Rider");
+    });
+    
+    opt.AddPolicy("DriverPolicy", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Driver");
+    });
 });
 
 
