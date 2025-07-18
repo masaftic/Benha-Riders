@@ -23,6 +23,10 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t $REGISTRY/$IMAGE_NAME:latest -f src/BenhaScooters/Dockerfile .
+
+      - name: Tag image for Docker Hub
+        run: |
+          docker tag $IMAGE_NAME:latest docker.io/${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:latest
       
       - name: Push Docker image
         run: |
