@@ -17,8 +17,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Log in to Docker
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: Docker Login with token
+        run: docker login docker.io -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
+
+      - name: Verify Docker login
+        run: docker info | grep Username
 
       - name: Build Docker image
         run: |
