@@ -24,7 +24,7 @@ public class TripRequestConfiguration : IEntityTypeConfiguration<TripRequest>
             .HasMaxLength(500);
             
         builder.Property(tr => tr.Status)
-            .HasConversion<int>();
+            .HasConversion<string>();
             
         builder.Property(tr => tr.CancellationReason)
             .HasMaxLength(500);

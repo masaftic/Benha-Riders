@@ -1,5 +1,7 @@
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Common;
+using ErrorOr;
 using Vogen;
 
 namespace BenhaScooters.Domain.Drivers;
@@ -9,10 +11,10 @@ public partial struct DriverAvailabilityId;
 
 public enum DriverStatus
 {
-    Offline = 1,
-    Online = 2,
-    OnTrip = 3,
-    Busy = 4
+    Offline,
+    Online,
+    OnTrip,
+    Busy
 }
 
 public class DriverAvailability
@@ -42,23 +44,24 @@ public class DriverAvailability
         TotalOnlineTime = TimeSpan.Zero;
     }
 
-    public void GoOnline()
+    public ErrorOr<Success> GoOnline()
     {
         if (Status == DriverStatus.Online)
-            return;
+            return Result.Success;
 
         Status = DriverStatus.Online;
         LastStatusChange = DateTime.UtcNow;
         OnlineSessionStart = DateTime.UtcNow;
+        return Result.Success;
     }
 
-    public void GoOffline()
+    public ErrorOr<Success> GoOffline()
     {
         if (Status == DriverStatus.Offline)
-            return;
+            return Result.Success;
 
         if (Status == DriverStatus.OnTrip)
-            throw new InvalidOperationException("Cannot go offline while on a trip");
+            return DriverErrors.Availability.InvalidStatus;
 
         // Add this session's time to total
         if (OnlineSessionStart.HasValue)
@@ -69,34 +72,38 @@ public class DriverAvailability
 
         Status = DriverStatus.Offline;
         LastStatusChange = DateTime.UtcNow;
+        return Result.Success;
     }
 
-    public void StartTrip(TripId tripId)
+    public ErrorOr<Success> StartTrip(TripId tripId)
     {
         if (Status != DriverStatus.Online)
-            throw new InvalidOperationException($"Cannot start trip when status is {Status}");
+            return DriverErrors.Availability.InvalidStatus;
 
         Status = DriverStatus.OnTrip;
         CurrentTripId = tripId;
         LastStatusChange = DateTime.UtcNow;
+        return Result.Success;
     }
 
-    public void CompleteTrip()
+    public ErrorOr<Success> CompleteTrip()
     {
         if (Status != DriverStatus.OnTrip)
-            throw new InvalidOperationException("Driver is not currently on a trip");
+            return DriverErrors.Availability.InvalidStatus;
 
         Status = DriverStatus.Online;
         CurrentTripId = null;
         LastStatusChange = DateTime.UtcNow;
+        return Result.Success;
     }
 
-    public void SetBusy()
+    public ErrorOr<Success> SetBusy()
     {
         if (Status == DriverStatus.Offline)
-            throw new InvalidOperationException("Cannot set busy status when offline");
+            return DriverErrors.Availability.InvalidStatus;
 
         Status = DriverStatus.Busy;
         LastStatusChange = DateTime.UtcNow;
+        return Result.Success;
     }
 }

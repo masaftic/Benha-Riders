@@ -9,14 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Drivers.Commands;
 
-public record SetDriverAvailabilityCommand(DriverId DriverId, DriverStatus Status) : IRequest<ErrorOr<SetDriverAvailabilityResponse>>;
+public record SetDriverAvailabilityCommand(DriverId DriverId, string DriverStatus) : IRequest<ErrorOr<SetDriverAvailabilityResponse>>;
 
 public class SetDriverAvailabilityCommandValidator : AbstractValidator<SetDriverAvailabilityCommand>
 {
     public SetDriverAvailabilityCommandValidator()
     {
-        RuleFor(x => x.Status)
-            .IsInEnum()
+        RuleFor(x => x.DriverStatus)
+            .Must(value => Enum.TryParse<DriverStatus>(value, ignoreCase: true, out _))
             .WithMessage("Invalid driver status");
     }
 }
@@ -49,22 +49,24 @@ public class SetDriverAvailabilityCommandHandler : IRequestHandler<SetDriverAvai
 
         // Update driver availability based on requested status
         string message;
+
+        ErrorOr<Success> result;
         try
         {
-            switch (request.Status)
+            switch (Enum.Parse<DriverStatus>(request.DriverStatus, ignoreCase: true))
             {
                 case DriverStatus.Online:
-                    availability.GoOnline();
+                    result = availability.GoOnline();
                     message = "Driver is now online and available";
                     break;
 
                 case DriverStatus.Offline:
-                    availability.GoOffline();
+                    result = availability.GoOffline();
                     message = "Driver is now offline";
                     break;
 
                 case DriverStatus.Busy:
-                    availability.SetBusy();
+                    result = availability.SetBusy();
                     message = "Driver is busy and not accepting requests";
                     break;
 
@@ -74,6 +76,8 @@ public class SetDriverAvailabilityCommandHandler : IRequestHandler<SetDriverAvai
                 default:
                     return Error.Validation("INVALID_STATUS", "Invalid status transition");
             }
+
+            if (result.IsError) return result.Errors;
 
             await _db.SaveChangesAsync(cancellationToken);
 

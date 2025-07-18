@@ -71,17 +71,29 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
         trip.TripRoute.AddPoint(finalGpsPoint);
 
         // Complete the trip
-        trip.CompleteTrip();
+        var completeTripResult = trip.CompleteTrip();
+        if (completeTripResult.IsError)
+        {
+            return completeTripResult.Errors;
+        }
         
         // Update driver availability back to available
         var driverAvailability = await db.DriverAvailabilities
             .FirstAsync(da => da.DriverId == request.DriverId, cancellationToken);
 
-        driverAvailability.CompleteTrip();
+        var completeTripAvailabilityResult = driverAvailability.CompleteTrip();
+        if (completeTripAvailabilityResult.IsError)
+        {
+            return completeTripAvailabilityResult.Errors;
+        }
 
         // Calculate actual trip fare using the service
         var tripFare = await tripFareService.CalculateActualFareAsync(trip, cancellationToken);
-        trip.SetTripFare(tripFare);
+        var setFareResult = trip.SetTripFare(tripFare);
+        if (setFareResult.IsError)
+        {
+            return setFareResult.Errors;
+        }
 
         await db.SaveChangesAsync(cancellationToken);
 

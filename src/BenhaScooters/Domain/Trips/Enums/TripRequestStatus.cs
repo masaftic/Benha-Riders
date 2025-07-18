@@ -5,20 +5,20 @@ public enum TripRequestStatus
     /// <summary>
     /// Request is waiting for driver assignment
     /// </summary>
-    Pending = 1,
+    Pending,
     
     /// <summary>
     /// Request has been accepted by a driver and is now in progress
     /// </summary>
-    Matched = 2,
+    Matched,
     
     /// <summary>
     /// Request was cancelled by rider or system
     /// </summary>
-    Cancelled = 3,
+    Cancelled,
     
     /// <summary>
     /// Request expired without being accepted
     /// </summary>
-    Expired = 4
+    Expired
 }

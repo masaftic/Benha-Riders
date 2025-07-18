@@ -84,4 +84,12 @@ public static class DriverErrors
         {
             {"Detail", "Maximum file size allowed is 10MB."}
         });
+
+    // Driver availability errors
+    public static class Availability
+    {
+        public static readonly Error InvalidStatus = Error.Conflict(
+            "DRIVER_INVALID_STATUS",
+            "Cannot perform this operation with current driver status");
+    }
 }

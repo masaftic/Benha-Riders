@@ -3,6 +3,8 @@ using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Domain.Trips.ValueObjects;
+using BenhaScooters.Domain.Common;
+using ErrorOr;
 using Vogen;
 
 namespace BenhaScooters.Domain.Trips;
@@ -51,23 +53,24 @@ public class TripRequest
         Status = TripRequestStatus.Pending;
     }
 
-    public void AcceptByDriver(DriverId driverId)
+    public ErrorOr<Success> AcceptByDriver(DriverId driverId)
     {
         if (Status != TripRequestStatus.Pending)
-            throw new InvalidOperationException($"Cannot assign driver when status is {Status}");
+            return TripErrors.TripRequest.NotPending;
 
         if (IsExpired)
-            throw new InvalidOperationException("Cannot assign driver to expired request");
+            return TripErrors.TripRequest.Expired;
 
         AssignedDriverId = driverId;
         AssignedAt = DateTime.UtcNow;
         Status = TripRequestStatus.Matched;
+        return Result.Success;
     }
 
-    public void Reject(string? reason = null)
+    public ErrorOr<Success> Reject(string? reason = null)
     {
         if (Status != TripRequestStatus.Pending)
-            throw new InvalidOperationException($"Cannot reject request when status is {Status}");
+            return TripErrors.TripRequest.NotPending;
 
         Status = TripRequestStatus.Pending;
         AssignedDriverId = null;
@@ -76,17 +79,22 @@ public class TripRequest
 
         if (AttemptCount >= 3) // After 3 rejections, cancel the request
         {
-            Cancel("Too many driver rejections");
+            var cancelResult = Cancel("Too many driver rejections");
+            if (cancelResult.IsError)
+                return cancelResult.FirstError;
         }
+
+        return Result.Success;
     }
 
-    public void Cancel(string reason)
+    public ErrorOr<Success> Cancel(string reason)
     {
         if (Status != TripRequestStatus.Pending)
-            throw new InvalidOperationException($"Cannot cancel request when status is {Status}");
+            return TripErrors.TripRequest.NotPending;
 
         Status = TripRequestStatus.Cancelled;
         CancellationReason = reason;
+        return Result.Success;
     }
 
     public void Expire()

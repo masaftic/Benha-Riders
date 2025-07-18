@@ -24,7 +24,7 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
             .HasMaxLength(500);
             
         builder.Property(t => t.Status)
-            .HasConversion<int>();
+            .HasConversion<string>();
             
         builder.OwnsOne(t => t.EstimatedFare);
 

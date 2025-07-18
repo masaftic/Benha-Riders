@@ -12,7 +12,7 @@ public class DriverMatchAttemptConfiguration : IEntityTypeConfiguration<DriverMa
         builder.Property(dma => dma.Id).ValueGeneratedOnAdd();
 
         builder.Property(dma => dma.Status)
-            .HasConversion<int>();
+            .HasConversion<string>();
             
         builder.Property(dma => dma.RejectionReason)
             .HasMaxLength(500);

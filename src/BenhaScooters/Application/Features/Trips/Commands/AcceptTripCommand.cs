@@ -68,7 +68,11 @@ public class AcceptTripCommandHandler(AppDbContext db) : IRequestHandler<AcceptT
         }
 
         // Accept the trip and create Trip entity in one transaction
-        tripRequest.AcceptByDriver(request.DriverId);
+        var acceptResult = tripRequest.AcceptByDriver(request.DriverId);
+        if (acceptResult.IsError)
+        {
+            return acceptResult.Errors;
+        }
         
         var trip = new Trip(
             tripRequest.Id,
@@ -84,7 +88,13 @@ public class AcceptTripCommandHandler(AppDbContext db) : IRequestHandler<AcceptT
         await db.SaveChangesAsync(cancellationToken);
 
         // Update driver availability to OnTrip
-        driverAvailability.StartTrip(trip.Id);
+        var startTripResult = driverAvailability.StartTrip(trip.Id);
+        if (startTripResult.IsError)
+        {
+            // TODO: Rollback
+            return startTripResult.Errors;
+        }
+
         await db.SaveChangesAsync(cancellationToken);
 
         return new AcceptTripResult(

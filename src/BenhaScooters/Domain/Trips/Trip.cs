@@ -3,6 +3,8 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Trips.ValueObjects;
 using BenhaScooters.Domain.Trips.Enums;
+using BenhaScooters.Domain.Common;
+using ErrorOr;
 using Vogen;
 
 namespace BenhaScooters.Domain.Trips;
@@ -60,19 +62,20 @@ public class Trip
         CreatedAt = DateTime.UtcNow;
     }
 
-    public void DriverArrived()
+    public ErrorOr<Success> DriverArrived()
     {
         if (Status != TripStatus.Assigned)
-            throw new InvalidOperationException($"Cannot mark driver as arrived when trip status is {Status}");
+            return TripErrors.Trip.InvalidStatus;
 
         Status = TripStatus.DriverArrived;
         DriverArrivedAt = DateTime.UtcNow;
+        return Result.Success;
     }
 
-    public void StartTrip()
+    public ErrorOr<Success> StartTrip()
     {
         if (Status != TripStatus.DriverArrived)
-            throw new InvalidOperationException($"Cannot start trip when status is {Status}");
+            return TripErrors.Trip.InvalidStatus;
 
         Status = TripStatus.InProgress;
         StartedAt = DateTime.UtcNow;
@@ -81,22 +84,35 @@ public class Trip
         {
             TripRoute = new TripRoute(Id);
         }
+
+        return Result.Success;
     }
 
-    public void CompleteTrip()
+    public ErrorOr<Success> CompleteTrip()
     {
         if (Status != TripStatus.InProgress)
-            throw new InvalidOperationException($"Cannot complete trip when status is {Status}");
+            return TripErrors.Trip.InvalidStatus;
 
         Status = TripStatus.Completed;
         CompletedAt = DateTime.UtcNow;
 
         TripRoute!.ConstructPath();
+        return Result.Success;
     }
 
-    public void SetTripFare(TripFare tripFare)
+    public ErrorOr<Success> SetTripFare(TripFare tripFare)
     {
-        TripFare = tripFare ?? throw new ArgumentNullException(nameof(tripFare), "Trip fare cannot be null");
+        if (tripFare == null)
+            throw new ArgumentNullException(nameof(tripFare), "Trip fare cannot be null");
+
+        if (Status != TripStatus.Completed)
+            return TripErrors.Trip.InvalidStatus;
+
+        if (TripFare != null)
+            return TripErrors.Trip.FareAlreadySet;
+
+        TripFare = tripFare;
+        return Result.Success;
     }
 
 

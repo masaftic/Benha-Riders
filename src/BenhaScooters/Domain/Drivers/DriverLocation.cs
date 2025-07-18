@@ -34,8 +34,6 @@ public class DriverLocation
         Location = newLocation;
         Heading = newHeading;
         Speed = newSpeed;
-        Timestamp = DateTime.UtcNow; // Update timestamp to current time
+        Timestamp = DateTime.UtcNow;
     }
-
-    
 }

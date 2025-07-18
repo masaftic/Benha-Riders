@@ -46,7 +46,12 @@ public class DriverArrivedCommandHandler(AppDbContext db) : IRequestHandler<Driv
         }
 
         // Mark driver as arrived
-        trip.DriverArrived();
+        var result = trip.DriverArrived();
+        if (result.IsError)
+        {
+            return result.Errors;
+        }
+
         await db.SaveChangesAsync(cancellationToken);
 
         return new DriverArrivedResult(

@@ -60,6 +60,14 @@ public static class TripErrors
         public static readonly Error InvalidGpsCoordinates = Error.Validation(
             "TRIP_INVALID_GPS_COORDINATES",
             "Invalid GPS coordinates provided");
+
+        public static readonly Error InvalidStatus = Error.Conflict(
+            "TRIP_INVALID_STATUS",
+            "Cannot perform this operation with current trip status");
+
+        public static readonly Error FareAlreadySet = Error.Conflict(
+            "TRIP_FARE_ALREADY_SET",
+            "Trip fare has already been set");
     }
 
     public static class Driver

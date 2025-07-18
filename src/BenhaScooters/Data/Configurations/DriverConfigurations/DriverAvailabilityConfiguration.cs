@@ -13,7 +13,7 @@ public class DriverAvailabilityConfiguration : IEntityTypeConfiguration<DriverAv
         builder.Property(da => da.Id).ValueGeneratedOnAdd();
         
         builder.Property(da => da.Status)
-            .HasConversion<int>();
+            .HasConversion<string>();
 
         builder.HasOne(da => da.Driver)
             .WithOne()

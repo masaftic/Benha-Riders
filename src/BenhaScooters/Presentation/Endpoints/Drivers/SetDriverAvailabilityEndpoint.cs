@@ -58,8 +58,7 @@ public partial class SetDriverAvailabilityEndpointMapper
 {
     public SetDriverAvailabilityCommand MapToCommand(SetDriverAvailabilityEndpoint.SetDriverAvailabilityRequestDto request, DriverId driverId)
     {
-        var status = Enum.Parse<DriverStatus>(request.Status, ignoreCase: true);
-        return new SetDriverAvailabilityCommand(driverId, status);
+        return new SetDriverAvailabilityCommand(driverId, request.Status);
     }
 
     public partial SetDriverAvailabilityEndpoint.SetDriverAvailabilityResponseDto MapToResponse(SetDriverAvailabilityResponse response);

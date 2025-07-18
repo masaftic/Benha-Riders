@@ -46,7 +46,12 @@ public class StartTripCommandHandler(AppDbContext db) : IRequestHandler<StartTri
         }
 
         // Start the trip
-        trip.StartTrip();
+        var result = trip.StartTrip();
+        if (result.IsError)
+        {
+            return result.Errors;
+        }
+
         await db.SaveChangesAsync(cancellationToken);
 
         return new StartTripResult(
