@@ -1,6 +1,7 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Infrastructure.S3;
 using ErrorOr;
@@ -11,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
 public record UpdateDocumentsCommand(
-    UserId UserId,
+    DriverId DriverId,
     IFormFile LicenseImage,
     IFormFile VehicleRegistrationImage,
     IFormFile DriverImage) : IRequest<ErrorOr<UpdateDocumentsResponse>>;
@@ -65,7 +66,7 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
     public async Task<ErrorOr<UpdateDocumentsResponse>> Handle(UpdateDocumentsCommand request, CancellationToken cancellationToken)
     {
         var driver = await _db.Drivers
-            .FirstOrDefaultAsync(dp => dp.UserId == request.UserId, cancellationToken);
+            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
 
         if (driver == null)
         {
@@ -77,17 +78,17 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
             // Upload files to S3 and get their keys
             var licenseImageKey = await _s3Service.UploadFileAsync(
                 request.LicenseImage, 
-                $"driver-documents/{request.UserId}/license", 
+                $"driver-documents/{request.DriverId}/license", 
                 cancellationToken);
 
             var vehicleRegistrationImageKey = await _s3Service.UploadFileAsync(
                 request.VehicleRegistrationImage, 
-                $"driver-documents/{request.UserId}/vehicle-registration", 
+                $"driver-documents/{request.DriverId}/vehicle-registration", 
                 cancellationToken);
 
             var driverImageKey = await _s3Service.UploadFileAsync(
                 request.DriverImage, 
-                $"driver-documents/{request.UserId}/photo", 
+                $"driver-documents/{request.DriverId}/photo", 
                 cancellationToken);
 
             // Update driver with S3 keys instead of URLs

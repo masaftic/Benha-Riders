@@ -8,5 +8,8 @@ public static class JwtClaims
     public const string PhoneNumber = "phone_number";
     public const string EmailVerified = "email_verified";
     public const string PhoneVerified = "phone_verified";
+    public const string DriverId = "driver_id";
+    public const string OnboardingStatus = "onboarding_status";
+    public const string RiderId = "rider_id";
     public const string Roles = "roles";
 }

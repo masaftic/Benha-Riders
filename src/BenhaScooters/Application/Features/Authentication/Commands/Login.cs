@@ -56,8 +56,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
             return UserErrors.PhoneNotVerified;
         }
 
+        var driver = await _db.Drivers
+            .FirstOrDefaultAsync(d => d.UserId == user.Id, cancellationToken);
+        
+        var rider = await _db.Riders
+            .FirstOrDefaultAsync(r => r.UserId == user.Id, cancellationToken);
+
         var expiresAt = _jwtService.GetAccessTokenExpiryTime();
-        var accessToken = _jwtService.GenerateAccessToken(user);
+        var accessToken = _jwtService.GenerateAccessToken(user, driver, rider);
         var refreshToken = _jwtService.GenerateRefreshToken();
 
         // Create and store refresh token

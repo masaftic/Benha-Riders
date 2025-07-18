@@ -21,7 +21,6 @@ public class DriverAvailability
     public DriverId DriverId { get; private set; }
     public DriverStatus Status { get; private set; }
     public DateTime LastStatusChange { get; private set; }
-    public DateTime LastLocationUpdate { get; private set; }
     
     // Trip context
     public TripId? CurrentTripId { get; private set; }
@@ -40,7 +39,6 @@ public class DriverAvailability
         DriverId = driverId;
         Status = DriverStatus.Offline;
         LastStatusChange = DateTime.UtcNow;
-        LastLocationUpdate = DateTime.UtcNow;
         TotalOnlineTime = TimeSpan.Zero;
     }
 
@@ -101,16 +99,4 @@ public class DriverAvailability
         Status = DriverStatus.Busy;
         LastStatusChange = DateTime.UtcNow;
     }
-
-    public void UpdateLocationTimestamp()
-    {
-        LastLocationUpdate = DateTime.UtcNow;
-    }
-
-    // Calculated properties
-
-    public bool IsAvailableForRequests => Status == DriverStatus.Online;
-    public bool IsActive => Status != DriverStatus.Offline;
-    public TimeSpan TimeSinceLastLocation => DateTime.UtcNow - LastLocationUpdate;
-    public bool IsLocationStale => TimeSinceLastLocation > TimeSpan.FromMinutes(5);
 }

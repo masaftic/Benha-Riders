@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -10,13 +11,8 @@ using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Infrastructure.Trips.Services;
 using BenhaScooters.Presentation;
 using BenhaScooters.Services;
-using BenhaScooters.Shared;
-using ErrorOr;
-using FastEndpoints;
-using FastEndpoints.Security;
-using FastEndpoints.Swagger;
+using BenhaScooters.Shared.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -156,7 +152,16 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(opt =>
+{
+    opt.AddPolicy("OnboardedDriver", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole("Driver");
+        policy.RequireClaim(JwtClaims.OnboardingStatus, "Completed");
+    });
+});
+
 
 var app = builder.Build();
 

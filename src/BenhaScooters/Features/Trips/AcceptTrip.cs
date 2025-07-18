@@ -1,4 +1,5 @@
 using BenhaScooters.Data;
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
@@ -69,7 +70,7 @@ public class AcceptTripEndpoint(AppDbContext db) : Endpoint<AcceptTripRequest, A
         var driverAvailability = await db.DriverAvailabilities
             .FirstOrDefaultAsync(x => x.DriverId == driverId, ct);
 
-        if (driverAvailability == null || !driverAvailability.IsAvailableForRequests)
+        if (driverAvailability == null || driverAvailability.Status != DriverStatus.Online)
         {
             ThrowError("Driver is not available for trips", 400);
         }

@@ -1,0 +1,90 @@
+using BenhaScooters.Data;
+using BenhaScooters.Domain;
+using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Drivers;
+using ErrorOr;
+using FluentValidation;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace BenhaScooters.Application.Features.Drivers.Commands;
+
+public record SetDriverAvailabilityCommand(DriverId DriverId, DriverStatus Status) : IRequest<ErrorOr<SetDriverAvailabilityResponse>>;
+
+public class SetDriverAvailabilityCommandValidator : AbstractValidator<SetDriverAvailabilityCommand>
+{
+    public SetDriverAvailabilityCommandValidator()
+    {
+        RuleFor(x => x.Status)
+            .IsInEnum()
+            .WithMessage("Invalid driver status");
+    }
+}
+
+public record SetDriverAvailabilityResponse(
+    DriverStatus Status,
+    DateTime LastStatusChange,
+    string Message);
+
+public class SetDriverAvailabilityCommandHandler : IRequestHandler<SetDriverAvailabilityCommand, ErrorOr<SetDriverAvailabilityResponse>>
+{
+    private readonly AppDbContext _db;
+
+    public SetDriverAvailabilityCommandHandler(AppDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<ErrorOr<SetDriverAvailabilityResponse>> Handle(SetDriverAvailabilityCommand request, CancellationToken cancellationToken)
+    {
+        // Get or create driver availability
+        var availability = await _db.DriverAvailabilities
+            .FirstOrDefaultAsync(da => da.DriverId == request.DriverId, cancellationToken);
+
+        if (availability == null)
+        {
+            availability = new DriverAvailability(request.DriverId);
+            await _db.DriverAvailabilities.AddAsync(availability, cancellationToken);
+        }
+
+        // Update driver availability based on requested status
+        string message;
+        try
+        {
+            switch (request.Status)
+            {
+                case DriverStatus.Online:
+                    availability.GoOnline();
+                    message = "Driver is now online and available";
+                    break;
+
+                case DriverStatus.Offline:
+                    availability.GoOffline();
+                    message = "Driver is now offline";
+                    break;
+
+                case DriverStatus.Busy:
+                    availability.SetBusy();
+                    message = "Driver is busy and not accepting requests";
+                    break;
+
+                case DriverStatus.OnTrip:
+                    return Error.Validation("INVALID_STATUS_TRANSITION", "Cannot manually set status to OnTrip. This status is set automatically when a trip starts.");
+
+                default:
+                    return Error.Validation("INVALID_STATUS", "Invalid status transition");
+            }
+
+            await _db.SaveChangesAsync(cancellationToken);
+
+            return new SetDriverAvailabilityResponse(
+                availability.Status,
+                availability.LastStatusChange,
+                message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Error.Validation("INVALID_OPERATION", ex.Message);
+        }
+    }
+}

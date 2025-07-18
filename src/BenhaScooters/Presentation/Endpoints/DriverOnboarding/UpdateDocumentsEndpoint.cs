@@ -41,10 +41,10 @@ public class UpdateDocumentsEndpoint : IEndpoint
 
     public async Task<IResult> UpdateDocuments([FromServices] ISender sender, [FromForm] UpdateDocumentsRequestDto request, HttpContext ctx)
     {
-        var userId = ctx.GetCurrentUserId();
+        var driverId = ctx.GetDriverId();
 
         var command = new UpdateDocumentsCommand(
-            userId,
+            driverId,
             request.LicenseImage,
             request.VehicleRegistrationImage,
             request.DriverImage);

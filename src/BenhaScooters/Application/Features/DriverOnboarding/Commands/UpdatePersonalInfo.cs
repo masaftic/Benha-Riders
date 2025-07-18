@@ -1,6 +1,7 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Shared.Validation;
@@ -12,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
 public record UpdatePersonalInfoCommand(
-    UserId UserId,
+    DriverId DriverId,
     string FullName,
     string NationalId,
     DateOnly DateOfBirth,
@@ -70,7 +71,7 @@ public class UpdatePersonalInfoCommandHandler : IRequestHandler<UpdatePersonalIn
     public async Task<ErrorOr<UpdatePersonalInfoResponse>> Handle(UpdatePersonalInfoCommand request, CancellationToken cancellationToken)
     {
         var driver = await _db.Drivers
-            .FirstOrDefaultAsync(dp => dp.UserId == request.UserId, cancellationToken);
+            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
 
         if (driver == null)
         {

@@ -1,5 +1,6 @@
 using BenhaScooters.Application.Features.DriverOnboarding.Commands;
 using BenhaScooters.Domain;
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
@@ -42,9 +43,9 @@ public class UpdatePersonalInfoEndpoint : IEndpoint
 
     public async Task<IResult> UpdatePersonalInfo([FromServices] ISender sender, [FromBody] UpdatePersonalInfoRequestDto personalInfoRequest, HttpContext ctx)
     {
-        var userId = ctx.GetCurrentUserId();
+        var driverId = ctx.GetDriverId();
         var mapper = new UpdatePersonalInfoEndpointMapper();
-        var command = mapper.MapToCommand(personalInfoRequest, userId);
+        var command = mapper.MapToCommand(personalInfoRequest, driverId);
         var result = await sender.Send(command);
 
         if (result.IsError)
@@ -60,10 +61,10 @@ public class UpdatePersonalInfoEndpoint : IEndpoint
 [Mapper]
 public partial class UpdatePersonalInfoEndpointMapper
 {
-    public UpdatePersonalInfoCommand MapToCommand(UpdatePersonalInfoEndpoint.UpdatePersonalInfoRequestDto request, UserId userId)
+    public UpdatePersonalInfoCommand MapToCommand(UpdatePersonalInfoEndpoint.UpdatePersonalInfoRequestDto request, DriverId driverId)
     {
         return new UpdatePersonalInfoCommand(
-            userId,
+            driverId,
             request.FullName,
             request.NationalId,
             request.DateOfBirth,

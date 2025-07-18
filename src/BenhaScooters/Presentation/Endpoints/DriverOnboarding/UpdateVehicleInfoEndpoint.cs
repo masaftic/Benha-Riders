@@ -1,5 +1,6 @@
 using BenhaScooters.Application.Features.DriverOnboarding.Commands;
 using BenhaScooters.Domain;
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
@@ -41,9 +42,9 @@ public class UpdateVehicleInfoEndpoint : IEndpoint
 
     public async Task<IResult> UpdateVehicleInfo([FromServices] ISender sender, [FromBody] UpdateVehicleInfoRequestDto vehicleInfoRequest, HttpContext ctx)
     {
-        var userId = ctx.GetCurrentUserId();
+        var driverId = ctx.GetDriverId();
         var mapper = new UpdateVehicleInfoEndpointMapper();
-        var command = mapper.MapToCommand(vehicleInfoRequest, userId);
+        var command = mapper.MapToCommand(vehicleInfoRequest, driverId);
         var result = await sender.Send(command);
 
         if (result.IsError)
@@ -59,10 +60,10 @@ public class UpdateVehicleInfoEndpoint : IEndpoint
 [Mapper]
 public partial class UpdateVehicleInfoEndpointMapper
 {
-    public UpdateVehicleInfoCommand MapToCommand(UpdateVehicleInfoEndpoint.UpdateVehicleInfoRequestDto request, UserId userId)
+    public UpdateVehicleInfoCommand MapToCommand(UpdateVehicleInfoEndpoint.UpdateVehicleInfoRequestDto request, DriverId driverId)
     {
         return new UpdateVehicleInfoCommand(
-            userId,
+            driverId,
             request.VehicleType,
             request.VehicleBrand,
             request.VehicleModel,

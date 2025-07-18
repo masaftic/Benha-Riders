@@ -53,11 +53,17 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, E
             return UserErrors.UserNotFound;
         }
 
+        var driver = await _db.Drivers
+            .FirstOrDefaultAsync(d => d.UserId == user.Id, cancellationToken);
+
+        var rider = await _db.Riders
+            .FirstOrDefaultAsync(r => r.UserId == user.Id, cancellationToken);
+
         // Revoke the old refresh token
         refreshToken.Revoke();
 
         // Generate new tokens
-        var accessToken = _jwtService.GenerateAccessToken(user);
+        var accessToken = _jwtService.GenerateAccessToken(user, driver, rider);
         var newRefreshToken = _jwtService.GenerateRefreshToken();
         var expiresAt = _jwtService.GetAccessTokenExpiryTime();
 

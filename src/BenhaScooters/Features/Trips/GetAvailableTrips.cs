@@ -1,6 +1,6 @@
 using BenhaScooters.Data;
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips.Enums;
-using BenhaScooters.Features.Drivers.Common;
 using BenhaScooters.Shared.Security;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +31,6 @@ public class GetAvailableTripsEndpoint(AppDbContext db) : EndpointWithoutRequest
         Get("/trips/available");
         Claims(JwtClaims.Sub);
         Roles("Driver");
-        PreProcessor<OnboardedProcessor<EmptyRequest>>();
         Description(x => x
             .WithSummary("Get available trip requests for drivers")
             .WithTags("Trips")
@@ -65,7 +64,7 @@ public class GetAvailableTripsEndpoint(AppDbContext db) : EndpointWithoutRequest
         var driverAvailability = await db.DriverAvailabilities
             .FirstOrDefaultAsync(da => da.DriverId == driverId, ct);
 
-        if (driverAvailability == null || !driverAvailability.IsAvailableForRequests)
+        if (driverAvailability == null || driverAvailability.Status != DriverStatus.Online)
         {
             // Return empty list if driver is not available
             await SendAsync(new GetAvailableTripsResponse([]), cancellation: ct);
@@ -107,6 +106,7 @@ public class GetAvailableTripsEndpoint(AppDbContext db) : EndpointWithoutRequest
             tr.RequestedAt,
             tr.ExpiresAt
         )).ToList();
+
 
         await SendAsync(new GetAvailableTripsResponse(availableTripsDto), cancellation: ct);
     }

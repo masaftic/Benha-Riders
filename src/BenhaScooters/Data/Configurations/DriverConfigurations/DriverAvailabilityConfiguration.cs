@@ -26,6 +26,5 @@ public class DriverAvailabilityConfiguration : IEntityTypeConfiguration<DriverAv
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(da => da.Status);
-        builder.HasIndex(da => da.LastLocationUpdate);
     }
 }
