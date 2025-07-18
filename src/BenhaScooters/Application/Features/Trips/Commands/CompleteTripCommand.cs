@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
@@ -46,13 +47,14 @@ public class CompleteTripCommandValidator : AbstractValidator<CompleteTripComman
     }
 }
 
-public class CompleteTripCommandHandler(AppDbContext db) : IRequestHandler<CompleteTripCommand, ErrorOr<CompleteTripResult>>
+public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFareService) : IRequestHandler<CompleteTripCommand, ErrorOr<CompleteTripResult>>
 {
     public async Task<ErrorOr<CompleteTripResult>> Handle(CompleteTripCommand request, CancellationToken cancellationToken)
     {
         // Find the trip
         var trip = await db.Trips
             .Include(t => t.TripRoute)
+            .ThenInclude(tr => tr!.TripGpsPoints)
             .FirstOrDefaultAsync(t => t.Id == request.TripId && t.DriverId == request.DriverId, cancellationToken);
 
         if (trip == null)
@@ -65,31 +67,21 @@ public class CompleteTripCommandHandler(AppDbContext db) : IRequestHandler<Compl
         var finalLocation = geometryFactory.CreatePoint(new Coordinate(request.FinalLongitude, request.FinalLatitude));
 
         // Add final GPS point
-        var finalGpsPoint = new TripGpsPoint(trip.Id, request.DriverId, finalLocation, 0, 0, DateTime.UtcNow);
-        db.TripGpsPoints.Add(finalGpsPoint);
-
-        // Update the trip route with final location if route exists
-        if (trip.TripRoute != null)
-        {
-            var existingCoordinates = trip.TripRoute.Path.Coordinates.ToList();
-            existingCoordinates.Add(finalLocation.Coordinate);
-            
-            var finalLineString = geometryFactory.CreateLineString(existingCoordinates.ToArray());
-            var duration = trip.StartedAt.HasValue 
-                ? DateTime.UtcNow - trip.StartedAt.Value 
-                : TimeSpan.Zero;
-                
-            trip.TripRoute.SetPath(finalLineString, duration);
-        }
+        var finalGpsPoint = new TripGpsPoint(trip.TripRoute!.Id, request.DriverId, finalLocation, 0, 0, DateTime.UtcNow);
+        trip.TripRoute.AddPoint(finalGpsPoint);
 
         // Complete the trip
-        trip.CompleteTrip(finalLocation);
+        trip.CompleteTrip();
         
         // Update driver availability back to available
         var driverAvailability = await db.DriverAvailabilities
             .FirstAsync(da => da.DriverId == request.DriverId, cancellationToken);
 
         driverAvailability.CompleteTrip();
+
+        // Calculate actual trip fare using the service
+        var tripFare = await tripFareService.CalculateActualFareAsync(trip, cancellationToken);
+        trip.SetTripFare(tripFare);
 
         await db.SaveChangesAsync(cancellationToken);
 

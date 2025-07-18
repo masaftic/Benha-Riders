@@ -1,3 +1,4 @@
+using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using Vogen;
 
@@ -13,8 +14,8 @@ public class TripRoute
     public TripRouteId Id { get; private set; }
     public TripId TripId { get; private set; }
     public LineString Path { get; private set; } = null!; // Represents the route as a line string
-    public DateTime CreatedAt { get; private set; }
-    public TimeSpan Duration { get; private set; }
+    private readonly List<TripGpsPoint> tripGpsPoints = [];
+    public IReadOnlyList<TripGpsPoint> TripGpsPoints => tripGpsPoints.AsReadOnly();
 
     // Navigation properties
     public Trip Trip { get; private set; } = null!;
@@ -24,12 +25,19 @@ public class TripRoute
     public TripRoute(TripId tripId)
     {
         TripId = tripId;
-        CreatedAt = DateTime.UtcNow;
+
+        var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+        Path = geometryFactory.CreateLineString(Array.Empty<Coordinate>());
     }
 
-    public void SetPath(LineString path, TimeSpan duration)
+    public void AddPoint(TripGpsPoint tripGpsPoint)
     {
-        Path = path ?? throw new ArgumentNullException(nameof(path), "Path cannot be null");
-        Duration = duration;
+        tripGpsPoints.Add(tripGpsPoint);
+    }
+
+    public void ConstructPath()
+    {
+        var coordinates = tripGpsPoints.Select(gp => gp.Location.Coordinate).ToArray();
+        Path = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326).CreateLineString(coordinates);
     }
 }

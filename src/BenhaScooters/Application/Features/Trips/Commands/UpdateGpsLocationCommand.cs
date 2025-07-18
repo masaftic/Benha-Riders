@@ -60,12 +60,6 @@ public class UpdateGpsLocationCommandHandler(AppDbContext db) : IRequestHandler<
 {
     public async Task<ErrorOr<UpdateGpsLocationResult>> Handle(UpdateGpsLocationCommand request, CancellationToken cancellationToken)
     {
-        // Validate coordinates
-        if (!IsValidCoordinate(request.Latitude, request.Longitude))
-        {
-            return TripErrors.Trip.InvalidGpsCoordinates;
-        }
-
         // Find the trip and verify it's in progress
         var trip = await db.Trips
             .Include(t => t.TripRoute)
@@ -86,7 +80,7 @@ public class UpdateGpsLocationCommandHandler(AppDbContext db) : IRequestHandler<
         var location = geometryFactory.CreatePoint(new Coordinate(request.Longitude, request.Latitude));
         
         var gpsPoint = new TripGpsPoint(
-            trip.Id,
+            trip.TripRoute!.Id,
             request.DriverId,
             location,
             request.Heading,
@@ -94,64 +88,18 @@ public class UpdateGpsLocationCommandHandler(AppDbContext db) : IRequestHandler<
             DateTime.UtcNow
         );
 
-        db.TripGpsPoints.Add(gpsPoint);
-
-        // Update or create trip route
-        UpdateTripRoute(trip, location);
+        trip.TripRoute.AddPoint(gpsPoint);
 
         await db.SaveChangesAsync(cancellationToken);
 
         // Get total GPS points count for this trip
         var totalGpsPoints = await db.TripGpsPoints
-            .CountAsync(gp => gp.TripId == trip.Id, cancellationToken);
+            .CountAsync(gp => gp.TripRouteId == trip.TripRoute.Id, cancellationToken);
 
         return new UpdateGpsLocationResult(
             trip.Id,
             "GPS location updated successfully",
             gpsPoint.Timestamp,
             totalGpsPoints);
-    }
-
-    private void UpdateTripRoute(Trip trip, Point newLocation)
-    {
-        var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
-
-        if (trip.TripRoute == null)
-        {
-            // Create new trip route with the first point
-            var initialRoute = new TripRoute(trip.Id);
-            
-            // Create a line with just the pickup location and current location
-            var coordinates = new[]
-            {
-                trip.PickupLocation.Coordinate,
-                newLocation.Coordinate
-            };
-            
-            var lineString = geometryFactory.CreateLineString(coordinates);
-            var duration = trip.StartedAt.HasValue 
-                ? DateTime.UtcNow - trip.StartedAt.Value 
-                : TimeSpan.Zero;
-                
-            initialRoute.SetPath(lineString, duration);
-            db.TripRoutes.Add(initialRoute);
-        }
-        else
-        {
-            var existingCoordinates = trip.TripRoute.Path.Coordinates.ToList();
-            existingCoordinates.Add(newLocation.Coordinate);
-
-            var updatedLineString = geometryFactory.CreateLineString(existingCoordinates.ToArray());
-            var duration = trip.StartedAt.HasValue 
-                ? DateTime.UtcNow - trip.StartedAt.Value 
-                : TimeSpan.Zero;
-                
-            trip.TripRoute.SetPath(updatedLineString, duration);
-        }
-    }
-
-    private static bool IsValidCoordinate(double latitude, double longitude)
-    {
-        return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
     }
 }

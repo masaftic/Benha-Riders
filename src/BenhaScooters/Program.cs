@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using BenhaScooters.Application;
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Infrastructure;
 using BenhaScooters.Infrastructure.Authentication;
@@ -64,9 +65,6 @@ builder.Services.AddScoped<IFareEstimator, FareEstimator>();
 // Add the token cleanup background service
 builder.Services.AddHostedService<TokenCleanupService>();
 
-// builder.Services
-//     .AddFastEndpoints()
-//     .SwaggerDocument();
 
 builder.Services.AddSwaggerGen(options =>
 {

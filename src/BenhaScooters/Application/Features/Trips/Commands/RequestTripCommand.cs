@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Riders;
@@ -65,8 +66,7 @@ public class RequestTripCommandValidator : AbstractValidator<RequestTripCommand>
 
 public class RequestTripCommandHandler(
     AppDbContext db,
-    IFareEstimator fareEstimator,
-    IPublisher publisher) : IRequestHandler<RequestTripCommand, ErrorOr<RequestTripResult>>
+    IFareEstimator fareEstimator) : IRequestHandler<RequestTripCommand, ErrorOr<RequestTripResult>>
 {
     public async Task<ErrorOr<RequestTripResult>> Handle(RequestTripCommand request, CancellationToken cancellationToken)
     {
@@ -99,9 +99,6 @@ public class RequestTripCommandHandler(
 
         await db.TripRequests.AddAsync(tripRequest, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
-
-        // Publish event
-        // await publisher.Publish(new TripRequested(tripRequest.Id, request.RiderId), cancellationToken);
 
         return new RequestTripResult(
             tripRequest.Id,

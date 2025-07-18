@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BenhaScooters.Data.Configurations.TripConfigurations;
 
-public class LocationPingConfiguration : IEntityTypeConfiguration<TripGpsPoint>
+public class TripGpsPointConfiguration : IEntityTypeConfiguration<TripGpsPoint>
 {
     public void Configure(EntityTypeBuilder<TripGpsPoint> builder)
     {
@@ -23,11 +23,6 @@ public class LocationPingConfiguration : IEntityTypeConfiguration<TripGpsPoint>
         builder.HasOne(lp => lp.Driver)
             .WithMany()
             .HasForeignKey(lp => lp.DriverId)
-            .OnDelete(DeleteBehavior.Cascade);
-        
-        builder.HasOne(lp => lp.Trip)
-            .WithMany()
-            .HasForeignKey(lp => lp.TripId)
             .OnDelete(DeleteBehavior.Cascade);
         
         builder.HasIndex(lp => lp.Timestamp);

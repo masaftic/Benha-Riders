@@ -4,16 +4,32 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using BenhaScooters.Infrastructure.S3;
+using BenhaScooters.Infrastructure.Trips.Services;
+using BenhaScooters.Application.Services;
 
 namespace BenhaScooters.Infrastructure;
 
-public static class InfrastructureServiceExtensions
+public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // Configure S3 options
         services.AddOptions<S3Options>()
             .Bind(configuration.GetSection(S3Options.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        
+        // Configure FareEstimation options
+        services.AddOptions<FareEstimationOptions>()
+            .Bind(configuration.GetSection(FareEstimationOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddScoped<IFareEstimator, FareEstimator>();
+        services.AddScoped<ITripFareService, TripFareService>();
+
+        services.AddOptions<TripFareConfiguration>()
+            .Bind(configuration.GetSection(TripFareConfiguration.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
         

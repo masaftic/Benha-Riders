@@ -28,5 +28,10 @@ public class TripRouteConfiguration : IEntityTypeConfiguration<TripRoute>
             .WithOne(t => t.TripRoute)
             .HasForeignKey<TripRoute>(tr => tr.TripId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.HasMany(tr => tr.TripGpsPoints)
+            .WithOne(gp => gp.TripRoute)
+            .HasForeignKey(gp => gp.TripRouteId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

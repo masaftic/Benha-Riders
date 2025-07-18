@@ -16,13 +16,13 @@ public class Trip
     public DriverId DriverId { get; private set; }
     public RiderId RiderId { get; private set; }
     public TripRequestId? TripRequestId { get; private set; }
-    
+
     // Trip Details
     public Point PickupLocation { get; private set; } = null!;
     public Point DropoffLocation { get; private set; } = null!;
     public string? PickupAddress { get; private set; }
     public string? DropoffAddress { get; private set; }
-    
+
     // Trip Status & Timing
     public TripStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -33,10 +33,10 @@ public class Trip
     public FareEstimate EstimatedFare { get; private set; } = null!;
 
     // public TripRating? Rating { get; private set; }
-    public TripRoute TripRoute { get; private set; } = null!; // Represents the route taken during the trip
-    public TripFare TripFare { get; private set; } = null!; // Represents fare details for the trip
+    public TripRoute? TripRoute { get; private set; } // Represents the route taken during the trip
+    public TripFare? TripFare { get; private set; } // Represents fare details for the trip
 
-    
+
     // Navigation Properties
     public Driver Driver { get; private set; } = null!;
     public Rider Rider { get; private set; } = null!;
@@ -76,16 +76,29 @@ public class Trip
 
         Status = TripStatus.InProgress;
         StartedAt = DateTime.UtcNow;
+
+        if (TripRoute == null)
+        {
+            TripRoute = new TripRoute(Id);
+        }
     }
 
-    public void CompleteTrip(Point finalLocation)
+    public void CompleteTrip()
     {
         if (Status != TripStatus.InProgress)
             throw new InvalidOperationException($"Cannot complete trip when status is {Status}");
 
         Status = TripStatus.Completed;
         CompletedAt = DateTime.UtcNow;
+
+        TripRoute!.ConstructPath();
     }
+
+    public void SetTripFare(TripFare tripFare)
+    {
+        TripFare = tripFare ?? throw new ArgumentNullException(nameof(tripFare), "Trip fare cannot be null");
+    }
+
 
     // public void AddRating(decimal driverRating, decimal riderRating, string? driverComment, string? riderComment)
     // {
@@ -99,8 +112,8 @@ public class Trip
     // }
 
     // Calculated properties
-    public TimeSpan? TotalDuration => CompletedAt.HasValue && CreatedAt != default 
-        ? CompletedAt.Value - CreatedAt 
+    public TimeSpan? TotalDuration => CompletedAt.HasValue && CreatedAt != default
+        ? CompletedAt.Value - CreatedAt
         : null;
 
     public bool IsActive => Status == TripStatus.InProgress;

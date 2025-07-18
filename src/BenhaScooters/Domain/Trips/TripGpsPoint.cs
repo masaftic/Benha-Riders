@@ -16,16 +16,16 @@ public class TripGpsPoint
     public double Heading { get; private set; } // Direction in degrees (0-360)
     public double Speed { get; private set; } // Speed in km/h
     public DateTime Timestamp { get; private set; }
-    public TripId TripId { get; private set; }
+    public TripRouteId TripRouteId { get; private set; }
+    public TripRoute TripRoute { get; private set; } = null!; // Reference to the trip route
 
 
     // Navigational properties
     public Driver Driver { get; private set; } = null!;
-    public Trip Trip { get; private set; } = null!;
 
     private TripGpsPoint() { } // For EF Core
 
-    public TripGpsPoint(TripId tripId, DriverId driverId, Point location, double heading, double speed, DateTime timestamp)
+    public TripGpsPoint(TripRouteId tripRouteId, DriverId driverId, Point location, double heading, double speed, DateTime timestamp)
     {
         if (heading < 0 || heading > 360)
             throw new ArgumentException("Heading must be between 0 and 360 degrees", nameof(heading));
@@ -33,7 +33,7 @@ public class TripGpsPoint
         if (speed < 0)
             throw new ArgumentException("Speed cannot be negative", nameof(speed));
 
-        TripId = tripId;
+        TripRouteId = tripRouteId;
         DriverId = driverId;
         Location = location;
         Heading = heading;
