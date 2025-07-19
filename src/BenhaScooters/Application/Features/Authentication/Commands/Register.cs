@@ -1,8 +1,10 @@
+using BenhaScooters.Application.Features.Authentication.Commands.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Riders;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Shared.Validation;
 using ErrorOr;
@@ -13,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.Authentication.Commands;
 
 
-public record RegisterCommand(string Name, string Email, string PhoneNumber, string Password, string Role) : IRequest<ErrorOr<RegisterResponse>>;
+public record RegisterCommand(string Name, string Email, string PhoneNumber, string Password) : IRequest<ErrorOr<OnboardingStatusToken>>;
 
 
 public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
@@ -29,31 +31,24 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
             .Matches(ValidationRegex.PhoneNumber).WithMessage("Valid phone number is required.");
         
         RuleFor(x => x.Password).NotEmpty().MinimumLength(6).WithMessage("Password must be at least 6 characters long.");
-
-        RuleFor(x => x.Role)
-            .NotEmpty().WithMessage("Role is required.")
-            .Must(role => role.Equals("rider", StringComparison.CurrentCultureIgnoreCase)
-                       || role.Equals("driver", StringComparison.CurrentCultureIgnoreCase))
-            .WithMessage("Role must be either 'Rider' or 'Driver'.");
     }
 }
 
 
-public record RegisterResponse(string Message, UserId UserId, bool RequiresPhoneVerification);
-
-
-public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<RegisterResponse>>
+public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<OnboardingStatusToken>>
 {
     private readonly IPasswordHasher _passwordHasher;
     private readonly AppDbContext _db;
+    private readonly IJwtService _jwtService;
 
-    public RegisterCommandHandler(IPasswordHasher passwordHasher, AppDbContext db)
+    public RegisterCommandHandler(IPasswordHasher passwordHasher, AppDbContext db, IJwtService jwtService)
     {
         _passwordHasher = passwordHasher;
         _db = db;
+        _jwtService = jwtService;
     }
 
-    public async Task<ErrorOr<RegisterResponse>> Handle(RegisterCommand req, CancellationToken ct)
+    public async Task<ErrorOr<OnboardingStatusToken>> Handle(RegisterCommand req, CancellationToken ct)
     {
         var normalizedEmail = User.NormalizeEmail(Email.From(req.Email));
         if (await _db.Users.AnyAsync(x => x.EmailNormalized == normalizedEmail, ct))
@@ -73,26 +68,11 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<R
             PhoneNumber.From(req.PhoneNumber),
             _passwordHasher.Hash(req.Password));
 
-        var role = Enum.Parse<RoleName>(req.Role, ignoreCase: true);
-        user.AddRole(new UserRole(role));
-
         _db.Users.Add(user);
-
-        // Save to get the user ID
-        // TODO: maybe a transaction here
         await _db.SaveChangesAsync(ct);
 
-        if (role == RoleName.Rider)
-        {
-            _db.Riders.Add(new Rider(user.Id, req.Name));
-        }
-        else if (role == RoleName.Driver)
-        {
-            _db.Drivers.Add(new Driver(user.Id));
-        }
-
-        await _db.SaveChangesAsync(ct);
-
-        return new RegisterResponse("User registered successfully. Please verify your phone number before login.", user.Id, true);
+        var nextStep = UserOnboardingStateMachine.GetNextStep(user.Status);
+        var token = _jwtService.GenerateOnboardingToken(user.Id, user.Status, nextStep);
+        return new OnboardingStatusToken(token, nextStep);
     }
 }

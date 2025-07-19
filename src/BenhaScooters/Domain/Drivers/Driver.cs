@@ -14,7 +14,7 @@ public partial struct DriverId;
 public class Driver
 {
     public DriverId Id { get; private set; }
-    public UserId UserId { get; private set; }
+    public Users.UserId UserId { get; private set; }
     
     public PersonalInfo? PersonalInfo { get; private set; }
     public VehicleInfo? VehicleInfo { get; private set; }
@@ -36,7 +36,7 @@ public class Driver
 
     private Driver() { } // For EF Core
 
-    public Driver(UserId userId)
+    public Driver(Users.UserId userId)
     {
         UserId = userId;
         OnboardingStatus = OnboardingStatus.NotStarted;
@@ -46,7 +46,7 @@ public class Driver
     }
 
     public ErrorOr<Success> UpdatePersonalInfo(string fullName, NationalId nationalId, DateOnly dateOfBirth, 
-        string address, string city, string emergencyContactName, PhoneNumber emergencyContactPhone)
+        string address, string city, string emergencyContactName, Users.PhoneNumber emergencyContactPhone)
     {
         if (OnboardingStatus == OnboardingStatus.Completed)
             return DriverErrors.OnboardingAlreadyCompleted;

@@ -1,8 +1,8 @@
-using BenhaScooters.Domain;
+using BenhaScooters.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace BenhaScooters.Data.Configurations;
+namespace BenhaScooters.Data.Configurations.UserConfigurations;
 
 public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
 {

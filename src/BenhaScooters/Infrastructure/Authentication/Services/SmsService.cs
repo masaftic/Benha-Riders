@@ -1,4 +1,4 @@
-using BenhaScooters.Domain;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Infrastructure.Authentication.Services;
 

@@ -1,6 +1,7 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Shared.Validation;
 using ErrorOr;

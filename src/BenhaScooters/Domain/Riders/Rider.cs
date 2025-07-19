@@ -1,4 +1,5 @@
 using BenhaScooters.Domain.Riders.ValueObjects;
+using BenhaScooters.Domain.Users;
 using Vogen;
 
 namespace BenhaScooters.Domain.Riders;

@@ -2,7 +2,7 @@ using BenhaScooters.Domain.Riders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace BenhaScooters.Data.Configurations;
+namespace BenhaScooters.Data.Configurations.UserConfigurations;
 
 public class RiderConfiguration : IEntityTypeConfiguration<Rider>
 {

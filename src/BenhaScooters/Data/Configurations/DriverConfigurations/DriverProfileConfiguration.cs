@@ -1,6 +1,7 @@
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.ValueObjects;
+using BenhaScooters.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

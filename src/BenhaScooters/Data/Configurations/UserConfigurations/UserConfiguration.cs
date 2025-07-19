@@ -1,8 +1,8 @@
-using BenhaScooters.Domain;
+using BenhaScooters.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace BenhaScooters.Data.Configurations;
+namespace BenhaScooters.Data.Configurations.UserConfigurations;
 
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
@@ -35,6 +35,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.PasswordHash)
             .IsRequired()
             .HasMaxLength(256);
+
+        builder.Property(x => x.Status)
+            .IsRequired()
+            .HasConversion<string>();
         
         builder.HasIndex(x => x.EmailNormalized);
         builder.HasIndex(x => x.PhoneNumberNormalized);

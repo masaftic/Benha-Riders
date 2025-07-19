@@ -6,6 +6,7 @@ using BenhaScooters.Domain.Drivers.Enums;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 

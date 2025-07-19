@@ -7,6 +7,7 @@ using BenhaScooters.Infrastructure.S3;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 

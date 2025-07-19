@@ -1,19 +1,21 @@
-using System.Drawing;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using BenhaScooters.Application;
 using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure;
 using BenhaScooters.Infrastructure.Authentication;
 using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Infrastructure.Trips.Services;
 using BenhaScooters.Presentation;
+using BenhaScooters.Presentation.Security;
 using BenhaScooters.Services;
 using BenhaScooters.Shared.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -156,21 +158,27 @@ builder.Services.AddAuthorization(opt =>
     {
         policy.RequireAuthenticatedUser();
         policy.RequireRole("Driver");
-        policy.RequireClaim(JwtClaims.OnboardingStatus, "Completed");
+        policy.RequireClaim(JwtClaims.DriverOnboardingStatus, "Completed");
     });
-    
+
     opt.AddPolicy("RiderPolicy", policy =>
     {
         policy.RequireAuthenticatedUser();
         policy.RequireRole("Rider");
+        policy.RequireClaim(JwtClaims.RiderId);
+        policy.RequireClaim(JwtClaims.Status, UserStatus.Active.ToString());
     });
-    
+
     opt.AddPolicy("DriverPolicy", policy =>
     {
         policy.RequireAuthenticatedUser();
         policy.RequireRole("Driver");
+        policy.RequireClaim(JwtClaims.DriverId);
+        policy.RequireClaim(JwtClaims.Status, UserStatus.Active.ToString());
     });
 });
+
+builder.Services.AddSingleton<IAuthorizationHandler, UserOnboardingRequirementHandler>();
 
 
 var app = builder.Build();
@@ -208,4 +216,7 @@ app.UseSwaggerUI();
 app.Run();
 
 // Make the implicit Program class public for integration tests
-public partial class Program { }
+namespace BenhaScooters
+{
+    public partial class Program { }
+}

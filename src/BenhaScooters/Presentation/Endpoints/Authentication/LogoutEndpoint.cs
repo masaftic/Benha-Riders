@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Riok.Mapperly.Abstractions;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Presentation.Endpoints.Authentication;
 

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BenhaScooters.Application.Features.Authentication.Commands;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
@@ -11,7 +12,7 @@ public class LoginEndpoint : IEndpoint
 {
     public record LoginRequestDto(string Email, string Password);
 
-    public record LoginResponseDto(string AccessToken, string RefreshToken, DateTime ExpiresAt);
+    public record LoginResponseDto(string Type, object Result);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -19,7 +20,7 @@ public class LoginEndpoint : IEndpoint
             .WithName("LoginUser")
             .WithTags("Authentication")
             .WithSummary("User login")
-            .WithDescription("Authenticates a user with email and password. Returns JWT access token and refresh token on successful authentication.")
+            .WithDescription("Authenticates a user with email and password. Returns JWT access token and refresh token on successful authentication. If onboarding is required, returns an onboarding token and next step.")
             .Produces<LoginResponseDto>()
             .ProducesValidationProblem()
             .Produces(401)
@@ -48,5 +49,25 @@ public class LoginEndpoint : IEndpoint
 public partial class LoginEndpointMapper
 {
     public partial LoginCommand MapToCommand(LoginEndpoint.LoginRequestDto request);
-    public partial LoginEndpoint.LoginResponseDto MapToResponse(LoginResponse response);
+    public LoginEndpoint.LoginResponseDto MapToResponse(LoginResponse response)
+    {
+        if (response is LoginSuccess success)
+        {
+            return new LoginEndpoint.LoginResponseDto("success", new
+            {
+                AccessToken = success.AccessToken,
+                RefreshToken = success.RefreshToken,
+                ExpiresAt = success.ExpiresAt
+            });
+        }
+        else if (response is OnboardingRequired onboarding)
+        {
+            return new LoginEndpoint.LoginResponseDto("onboarding_required", new
+            {
+                OnboardingToken = onboarding.OnboardingToken,
+                NextStep = onboarding.NextStep
+            });
+        }
+        throw new UnreachableException();
+    }
 }

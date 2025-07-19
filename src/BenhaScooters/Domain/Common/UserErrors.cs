@@ -55,4 +55,12 @@ public static class UserErrors
     public static Error InvalidRefreshToken => Error.Unauthorized(
         "INVALID_REFRESH_TOKEN", 
         "Invalid or expired refresh token.");
+
+    public static Error PhoneNumberNotVerified => Error.Forbidden(
+        "PHONE_NUMBER_NOT_VERIFIED", 
+        "Phone number must be verified before selecting a role.");
+
+    public static Error RoleAlreadyAssigned => Error.Conflict(
+        "ROLE_ALREADY_ASSIGNED", 
+        "User already has a role assigned.");
 }

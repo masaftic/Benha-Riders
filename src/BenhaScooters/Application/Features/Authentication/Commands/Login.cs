@@ -1,6 +1,7 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Shared.Validation;
 using ErrorOr;
@@ -25,7 +26,10 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
     }
 }
 
-public record LoginResponse(string AccessToken, string RefreshToken, DateTime ExpiresAt);
+public record LoginResponse;
+public record LoginSuccess(string AccessToken, string RefreshToken, DateTime ExpiresAt) : LoginResponse;
+public record OnboardingRequired(string OnboardingToken, string NextStep) : LoginResponse;
+
 
 public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginResponse>>
 {
@@ -45,21 +49,25 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
         var user = await _db.Users
             .Include(u => u.Roles)
             .FirstOrDefaultAsync(u => u.EmailNormalized == User.NormalizeEmail(Email.From(request.Email)), cancellationToken);
-        
+
         if (user is null || !_passwordHasher.Verify(user.PasswordHash, request.Password))
         {
             return UserErrors.InvalidCredentials;
         }
 
-        if (!user.PhoneNumberVerified)
+        if (user.Status != UserStatus.Active)
         {
-            return UserErrors.PhoneNotVerified;
+            var nextStep = UserOnboardingStateMachine.GetNextStep(user.Status);
+            var token = _jwtService.GenerateOnboardingToken(user.Id, user.Status, nextStep);
+            return new OnboardingRequired(token, nextStep);
         }
 
         var driver = await _db.Drivers
+            .AsNoTracking()
             .FirstOrDefaultAsync(d => d.UserId == user.Id, cancellationToken);
-        
+
         var rider = await _db.Riders
+            .AsNoTracking()
             .FirstOrDefaultAsync(r => r.UserId == user.Id, cancellationToken);
 
         var expiresAt = _jwtService.GetAccessTokenExpiryTime();
@@ -70,6 +78,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
         var refreshTokenEntity = user.CreateRefreshToken(refreshToken, _jwtService.GetRefreshTokenExpiryTime());
         await _db.SaveChangesAsync(cancellationToken);
 
-        return new LoginResponse(accessToken, refreshToken, expiresAt);
+        return new LoginSuccess(accessToken, refreshToken, expiresAt);
     }
 }

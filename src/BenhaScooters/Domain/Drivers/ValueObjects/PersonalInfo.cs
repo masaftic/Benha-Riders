@@ -29,12 +29,12 @@ public class PersonalInfo : ValueObject
     public string Address { get; private set; } = null!;
     public string City { get; private set; } = null!;
     public string EmergencyContactName { get; private set; } = null!;
-    public PhoneNumber EmergencyContactPhone { get; private set; }
+    public Users.PhoneNumber EmergencyContactPhone { get; private set; }
 
     private PersonalInfo() { } // For EF Core
 
     public PersonalInfo(string fullName, NationalId nationalId, DateOnly dateOfBirth,
-        string address, string city, string emergencyContactName, PhoneNumber emergencyContactPhone)
+        string address, string city, string emergencyContactName, Users.PhoneNumber emergencyContactPhone)
     {
         if (string.IsNullOrWhiteSpace(fullName))
             throw new ArgumentException("Full name is required.", nameof(fullName));

@@ -1,6 +1,7 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

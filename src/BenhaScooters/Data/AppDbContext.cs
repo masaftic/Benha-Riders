@@ -3,6 +3,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Data;

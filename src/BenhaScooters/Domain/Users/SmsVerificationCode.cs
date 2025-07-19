@@ -1,6 +1,6 @@
 using Vogen;
 
-namespace BenhaScooters.Domain;
+namespace BenhaScooters.Domain.Users;
 
 [ValueObject<int>]
 public partial struct SmsVerificationCodeId;

@@ -1,5 +1,8 @@
 using BenhaScooters.Application.Features.Authentication.Commands;
+using BenhaScooters.Domain;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
+using BenhaScooters.Presentation.Security;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +27,7 @@ public class SendSmsVerificationEndpoint : IEndpoint
             .ProducesValidationProblem()
             .Produces(400)
             .Produces(404)
-            .AllowAnonymous()
+            .RequireAuthorization(p => p.AddRequirements(new UserOnboardingRequirement(OnboardingSteps.VerifyPhone)))
             .WithOpenApi();
     }
 

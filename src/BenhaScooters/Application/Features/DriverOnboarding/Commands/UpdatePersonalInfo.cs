@@ -9,6 +9,7 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 

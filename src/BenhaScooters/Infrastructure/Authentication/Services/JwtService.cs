@@ -9,12 +9,14 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Infrastructure.Authentication.Services;
 
 public interface IJwtService
 {
     string GenerateAccessToken(User user, Driver? driver = null, Rider? rider = null);
+    string GenerateOnboardingToken(UserId userId, UserStatus userStatus, string nextStep);
     string GenerateRefreshToken();
     DateTime GetAccessTokenExpiryTime();
     DateTime GetRefreshTokenExpiryTime();
@@ -42,6 +44,7 @@ public class JwtService : IJwtService
             new Claim(JwtClaims.Name, user.Name),
             new Claim(JwtClaims.Email, user.Email.Value),
             new Claim(JwtClaims.PhoneNumber, user.PhoneNumber.Value),
+            new Claim(JwtClaims.Status, user.Status.ToString()),
             new Claim(JwtClaims.EmailVerified, user.EmailVerified.ToString()),
             new Claim(JwtClaims.PhoneVerified, user.PhoneNumberVerified.ToString()),
             new Claim(JwtClaims.Roles, JsonSerializer.Serialize(user.Roles.Select(r => r.Name.ToString()).ToArray()), JsonClaimValueTypes.JsonArray),
@@ -50,7 +53,7 @@ public class JwtService : IJwtService
         if (driver is not null)
         {
             claims.Add(new Claim(JwtClaims.DriverId, driver.Id.ToString()));
-            claims.Add(new Claim(JwtClaims.OnboardingStatus, driver.OnboardingStatus.ToString()));
+            claims.Add(new Claim(JwtClaims.DriverOnboardingStatus, driver.OnboardingStatus.ToString()));
         }
 
         if (rider is not null)
@@ -62,6 +65,29 @@ public class JwtService : IJwtService
         {
             Subject = new ClaimsIdentity(claims),
             Expires = expiresAt,
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_signingKey)),
+                SecurityAlgorithms.HmacSha256)
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+
+    public string GenerateOnboardingToken(UserId userId, UserStatus userStatus, string nextStep)
+    {
+        var claims = new List<Claim>
+        {
+            new(JwtClaims.Sub, userId.ToString()),
+            new(JwtClaims.Status, userStatus.ToString()), 
+            new(JwtClaims.NextStep, nextStep)
+        };
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = DateTime.UtcNow.AddMinutes(15), // Smaller window for the user onboarding token
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_signingKey)),
                 SecurityAlgorithms.HmacSha256)

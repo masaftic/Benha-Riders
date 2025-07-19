@@ -1,5 +1,6 @@
 using BenhaScooters.Application.Features.Authentication.Queries;
 using BenhaScooters.Domain;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using MediatR;

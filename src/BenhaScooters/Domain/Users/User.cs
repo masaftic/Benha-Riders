@@ -1,9 +1,9 @@
 using System.Text.RegularExpressions;
-using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Shared.Validation;
+using ErrorOr;
 using Vogen;
 
-namespace BenhaScooters.Domain;
+namespace BenhaScooters.Domain.Users;
 
 [ValueObject<int>]
 public partial struct UserId;
@@ -55,10 +55,12 @@ public class User
     public bool PhoneNumberVerified { get; private set; } = false;
     public string PasswordHash { get; private set; } = null!;
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-    
+
+    public UserStatus Status { get; private set; }
+
     private readonly List<UserRole> _roles = [];
     public IReadOnlyCollection<UserRole> Roles => _roles.AsReadOnly();
-    
+
     private readonly List<RefreshToken> _refreshTokens = [];
     public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
 
@@ -78,6 +80,7 @@ public class User
         PhoneNumber = phoneNumber;
         PhoneNumberNormalized = NormalizePhone(phoneNumber);
         PasswordHash = passwordHash;
+        Status = UserStatus.Registered;
     }
 
     public static PhoneNumber NormalizePhone(PhoneNumber phone)
@@ -147,6 +150,11 @@ public class User
     public void VerifyPhoneNumber()
     {
         PhoneNumberVerified = true;
+        var newStatusResult = UserOnboardingStateMachine.GetNewStatusAfterStep(Status, OnboardingSteps.VerifyPhone);
+        if (newStatusResult.IsError)
+            throw new InvalidOperationException($"Cannot verify phone number from status {Status}");
+        
+        Status = newStatusResult.Value;
     }
 
     public void ChangePassword(string newPasswordHash)
@@ -155,9 +163,27 @@ public class User
             throw new ArgumentException("Password hash cannot be empty.", nameof(newPasswordHash));
 
         PasswordHash = newPasswordHash;
-        
+
         // Revoke all refresh tokens to force re-login
         RevokeAllRefreshTokens();
+    }
+
+    public ErrorOr<Success> UpdateStatus(UserStatus newStatus)
+    {
+        // Use the state machine to validate status transitions
+        return newStatus switch
+        {
+            UserStatus.Active when !UserOnboardingStateMachine.CanPerformStep(Status, OnboardingSteps.SelectRole) =>
+                Error.Forbidden("USER_NOT_READY_FOR_ACTIVATION", 
+                    "User must complete phone verification before selecting a role."),
+            _ => UpdateStatusInternal(newStatus)
+        };
+    }
+
+    private ErrorOr<Success> UpdateStatusInternal(UserStatus newStatus)
+    {
+        Status = newStatus;
+        return Result.Success;
     }
 }
 
