@@ -6,10 +6,10 @@ public static class AdminErrors
 {
     public static Error DriverNotFound => Error.NotFound(
         "ADMIN_DRIVER_NOT_FOUND",
-        "Driver not found.",
+        "السائق غير موجود.",
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "The specified driver does not exist in the system."}
+            {"Detail", "السائق المحدد غير موجود في النظام."}
         });
 
     public static Error ValidationError(string message) => Error.Validation(
@@ -21,6 +21,6 @@ public static class AdminErrors
         message,
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "The requested operation cannot be performed in the current state."}
+            {"Detail", "لا يمكن تنفيذ العملية المطلوبة في الحالة الحالية."}
         });
 }

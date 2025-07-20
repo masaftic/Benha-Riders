@@ -27,11 +27,11 @@ public class GetTripStatusQueryValidator : AbstractValidator<GetTripStatusQuery>
 {
     public GetTripStatusQueryValidator()
     {
-        RuleFor(x => x.RiderId)
+        RuleFor(x => x.RiderId.Value)
             .NotEmpty()
             .WithMessage("Rider ID is required");
 
-        RuleFor(x => x.TripRequestId)
+        RuleFor(x => x.TripRequestId.Value)
             .NotEmpty()
             .WithMessage("Trip request ID is required");
     }

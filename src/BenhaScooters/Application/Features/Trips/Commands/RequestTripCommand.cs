@@ -32,7 +32,7 @@ public class RequestTripCommandValidator : AbstractValidator<RequestTripCommand>
 {
     public RequestTripCommandValidator()
     {
-        RuleFor(x => x.RiderId)
+        RuleFor(x => x.RiderId.Value)
             .NotEmpty()
             .WithMessage("Rider ID is required");
 

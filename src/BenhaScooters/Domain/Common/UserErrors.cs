@@ -6,61 +6,57 @@ public static class UserErrors
 {
     public static Error EmailAlreadyExists => Error.Conflict(
         "USER_EMAIL_ALREADY_EXISTS", 
-        "Email is already in use.");
+        "البريد الإلكتروني مستخدم بالفعل.");
 
     public static Error PhoneAlreadyExists => Error.Conflict(
         "USER_PHONE_ALREADY_EXISTS", 
-        "Phone number is already in use.");
+        "رقم الهاتف مستخدم بالفعل.");
 
     public static Error InvalidCredentials => Error.Validation(
         "INVALID_CREDENTIALS", 
-        "Invalid email or password.");
-
-    public static Error PhoneNotVerified => Error.Forbidden(
-        "PHONE_NOT_VERIFIED", 
-        "Phone number must be verified before login.");
+        "رقم الهاتف أو كلمة المرور غير صحيحة.");
 
     public static Error UserNotFound => Error.NotFound(
         "USER_NOT_FOUND", 
-        "User not found.");
+        "المستخدم غير موجود.");
 
     public static Error PhoneAlreadyVerified => Error.Validation(
         "PHONE_ALREADY_VERIFIED", 
-        "Phone number is already verified.");
+        "رقم الهاتف تم التحقق منه بالفعل.");
 
     public static Error InvalidVerificationCode => Error.Validation(
         "INVALID_VERIFICATION_CODE", 
-        "Invalid verification code.");
+        "رمز التحقق غير صحيح.");
 
     public static Error VerificationCodeExpired => Error.Validation(
         "VERIFICATION_CODE_EXPIRED", 
-        "Verification code has expired.");
+        "انتهت صلاحية رمز التحقق.");
 
     public static Error VerificationCodeAlreadyUsed => Error.Validation(
         "VERIFICATION_CODE_ALREADY_USED", 
-        "Verification code has already been used.");
+        "تم استخدام رمز التحقق بالفعل.");
 
     public static Error TooManyVerificationRequests => Error.Validation(
         "TOO_MANY_VERIFICATION_REQUESTS", 
-        "Please wait before requesting another verification code.",
+        "يرجى الانتظار قبل طلب رمز تحقق آخر.",
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "You can request a new verification code after 1 minute."}
+            {"Detail", "يمكنك طلب رمز تحقق جديد بعد دقيقة واحدة."}
         });
 
     public static Error IncorrectCurrentPassword => Error.Validation(
         "INCORRECT_CURRENT_PASSWORD", 
-        "Current password is incorrect.");
+        "كلمة المرور الحالية غير صحيحة.");
 
     public static Error InvalidRefreshToken => Error.Unauthorized(
         "INVALID_REFRESH_TOKEN", 
-        "Invalid or expired refresh token.");
+        "رمز التحديث غير صحيح أو منتهي الصلاحية.");
 
     public static Error PhoneNumberNotVerified => Error.Forbidden(
         "PHONE_NUMBER_NOT_VERIFIED", 
-        "Phone number must be verified before selecting a role.");
+        "يجب التحقق من رقم الهاتف قبل اختيار الدور.");
 
     public static Error RoleAlreadyAssigned => Error.Conflict(
         "ROLE_ALREADY_ASSIGNED", 
-        "User already has a role assigned.");
+        "المستخدم لديه دور مخصص بالفعل.");
 }

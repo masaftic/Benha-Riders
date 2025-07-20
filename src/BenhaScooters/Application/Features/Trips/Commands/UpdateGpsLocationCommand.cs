@@ -30,11 +30,11 @@ public class UpdateGpsLocationCommandValidator : AbstractValidator<UpdateGpsLoca
 {
     public UpdateGpsLocationCommandValidator()
     {
-        RuleFor(x => x.DriverId)
+        RuleFor(x => x.DriverId.Value)
             .NotEmpty()
             .WithMessage("Driver ID is required");
 
-        RuleFor(x => x.TripId)
+        RuleFor(x => x.TripId.Value)
             .NotEmpty()
             .WithMessage("Trip ID is required");
 

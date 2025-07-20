@@ -15,7 +15,7 @@ public class ApproveDriverCommandValidator : AbstractValidator<ApproveDriverComm
 {
     public ApproveDriverCommandValidator()
     {
-        RuleFor(x => x.DriverUserId)
+        RuleFor(x => x.DriverUserId.Value)
             .NotEmpty().WithMessage("Driver user ID is required.");
     }
 }

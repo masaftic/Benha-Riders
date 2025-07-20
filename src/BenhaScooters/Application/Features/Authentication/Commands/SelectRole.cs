@@ -19,7 +19,7 @@ public class SelectRoleCommandValidator : AbstractValidator<SelectRoleCommand>
 {
     public SelectRoleCommandValidator()
     {
-        RuleFor(x => x.UserId)
+        RuleFor(x => x.UserId.Value)
             .NotEmpty().WithMessage("User ID is required.");
 
         RuleFor(x => x.Role)

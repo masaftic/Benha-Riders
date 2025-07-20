@@ -24,18 +24,18 @@ public class CancelTripCommandValidator : AbstractValidator<CancelTripCommand>
 {
     public CancelTripCommandValidator()
     {
-        RuleFor(x => x.RiderId)
+        RuleFor(x => x.RiderId.Value)
             .NotEmpty()
             .WithMessage("Rider ID is required");
 
-        RuleFor(x => x.TripRequestId)
+        RuleFor(x => x.TripRequestId.Value)
             .NotEmpty()
             .WithMessage("Trip request ID is required");
 
         RuleFor(x => x.CancellationReason)
             .MaximumLength(500)
             .When(x => !string.IsNullOrEmpty(x.CancellationReason))
-            .WithMessage("Cancellation reason must not exceed 500 characters");
+            .WithMessage("سبب الإلغاء يجب ألا يتجاوز 500 حرف.");
     }
 }
 

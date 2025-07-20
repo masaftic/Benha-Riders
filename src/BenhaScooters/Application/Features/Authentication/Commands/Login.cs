@@ -18,11 +18,11 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
     public LoginCommandValidator()
     {
         RuleFor(x => x.PhoneNumber)
-            .NotEmpty().WithMessage("Phone number is required.")
-            .Matches(ValidationRegex.PhoneNumber).WithMessage("A valid phone number is required.");
+            .NotEmpty().WithMessage("رقم الهاتف مطلوب.")
+            .Matches(ValidationRegex.PhoneNumber).WithMessage("رقم هاتف صالح مطلوب.");
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required.");
+            .NotEmpty().WithMessage("كلمة المرور مطلوبة.");
     }
 }
 

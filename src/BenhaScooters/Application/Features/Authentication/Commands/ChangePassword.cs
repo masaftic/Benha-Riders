@@ -17,15 +17,15 @@ public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCo
     public ChangePasswordCommandValidator()
     {
         RuleFor(x => x.CurrentPassword)
-            .NotEmpty().WithMessage("Current password is required.");
+            .NotEmpty().WithMessage("كلمة المرور الحالية مطلوبة.");
 
         RuleFor(x => x.NewPassword)
-            .NotEmpty().WithMessage("New password is required.")
-            .MinimumLength(6).WithMessage("New password must be at least 6 characters long.");
+            .NotEmpty().WithMessage("كلمة المرور الجديدة مطلوبة.")
+            .MinimumLength(6).WithMessage("يجب أن تتكون كلمة المرور الجديدة من 6 أحرف على الأقل.");
 
         RuleFor(x => x.ConfirmPassword)
-            .NotEmpty().WithMessage("Password confirmation is required.")
-            .Equal(x => x.NewPassword).WithMessage("Password confirmation must match new password.");
+            .NotEmpty().WithMessage("تأكيد كلمة المرور مطلوب.")
+            .Equal(x => x.NewPassword).WithMessage("يجب أن يتطابق تأكيد كلمة المرور مع كلمة المرور الجديدة.");
     }
 }
 

@@ -26,27 +26,27 @@ public class UpdateVehicleInfoCommandValidator : AbstractValidator<UpdateVehicle
     public UpdateVehicleInfoCommandValidator()
     {
         RuleFor(x => x.VehicleType)
-            .IsInEnum().WithMessage("Invalid vehicle type.");
+            .IsInEnum().WithMessage("نوع المركبة مطلوب.");
 
         RuleFor(x => x.VehicleBrand)
-            .NotEmpty().WithMessage("Vehicle brand is required.")
-            .MaximumLength(50).WithMessage("Vehicle brand must not exceed 50 characters.");
+            .NotEmpty().WithMessage("ماركة المركبة مطلوبة.")
+            .MaximumLength(50).WithMessage("يجب ألا تتجاوز ماركة المركبة 50 حرفًا.");
 
         RuleFor(x => x.VehicleModel)
-            .NotEmpty().WithMessage("Vehicle model is required.")
-            .MaximumLength(50).WithMessage("Vehicle model must not exceed 50 characters.");
+            .NotEmpty().WithMessage("طراز المركبة مطلوب.")
+            .MaximumLength(50).WithMessage("يجب ألا يتجاوز طراز المركبة 50 حرفًا.");
 
         RuleFor(x => x.VehicleColor)
-            .NotEmpty().WithMessage("Vehicle color is required.")
-            .MaximumLength(30).WithMessage("Vehicle color must not exceed 30 characters.");
+            .NotEmpty().WithMessage("لون المركبة مطلوب.")
+            .MaximumLength(30).WithMessage("يجب ألا يتجاوز لون المركبة 30 حرفًا.");
 
         RuleFor(x => x.LicensePlate)
-            .NotEmpty().WithMessage("License plate is required.")
-            .Matches(ValidationRegex.LicensePlate).WithMessage("Invalid license plate format.");
+            .NotEmpty().WithMessage("رقم لوحة الترخيص مطلوب.")
+            .Matches(ValidationRegex.LicensePlate).WithMessage("تنسيق رقم لوحة الترخيص غير صالح.");
 
         RuleFor(x => x.VehicleYear)
-            .GreaterThanOrEqualTo(1980).WithMessage("Vehicle year must be 1980 or later.")
-            .LessThanOrEqualTo(DateTime.Now.Year + 1).WithMessage("Vehicle year cannot be in the future.");
+            .GreaterThanOrEqualTo(1980).WithMessage("يجب أن يكون سنة المركبة 1980 أو أحدث.")
+            .LessThanOrEqualTo(DateTime.Now.Year + 1).WithMessage("لا يمكن أن تكون سنة المركبة في المستقبل.");
     }
 }
 

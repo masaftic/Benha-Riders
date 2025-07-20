@@ -18,8 +18,8 @@ public class SendSmsVerificationCommandValidator : AbstractValidator<SendSmsVeri
     public SendSmsVerificationCommandValidator()
     {
         RuleFor(x => x.PhoneNumber)
-            .NotEmpty().WithMessage("Phone number is required.")
-            .Matches(ValidationRegex.PhoneNumber).WithMessage("Invalid phone number format.");
+            .NotEmpty().WithMessage("رقم الهاتف مطلوب.")
+            .Matches(ValidationRegex.PhoneNumber).WithMessage("تنسيق رقم الهاتف غير صحيح.");
     }
 }
 

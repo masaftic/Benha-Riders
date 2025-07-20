@@ -23,11 +23,11 @@ public class AcceptTripCommandValidator : AbstractValidator<AcceptTripCommand>
 {
     public AcceptTripCommandValidator()
     {
-        RuleFor(x => x.DriverId)
+        RuleFor(x => x.DriverId.Value)
             .NotEmpty()
             .WithMessage("Driver ID is required");
 
-        RuleFor(x => x.TripRequestId)
+        RuleFor(x => x.TripRequestId.Value)
             .NotEmpty()
             .WithMessage("Trip request ID is required");
     }

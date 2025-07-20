@@ -22,15 +22,15 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
 {
     public RegisterCommandValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage("User name is required.");
+        RuleFor(x => x.Name).NotEmpty().WithMessage("اسم المستخدم مطلوب.");
 
         RuleFor(x => x.Email).NotEmpty()
-            .Matches(ValidationRegex.Email).WithMessage("Valid email is required.");
+            .Matches(ValidationRegex.Email).WithMessage("بريد إلكتروني صحيح مطلوب.");
         
         RuleFor(x => x.PhoneNumber).NotEmpty()
-            .Matches(ValidationRegex.PhoneNumber).WithMessage("Valid phone number is required.");
+            .Matches(ValidationRegex.PhoneNumber).WithMessage("رقم هاتف صحيح مطلوب.");
         
-        RuleFor(x => x.Password).NotEmpty().MinimumLength(6).WithMessage("Password must be at least 6 characters long.");
+        RuleFor(x => x.Password).NotEmpty().MinimumLength(6).WithMessage("كلمة المرور يجب أن تكون 6 أحرف على الأقل.");
     }
 }
 

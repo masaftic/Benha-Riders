@@ -15,12 +15,12 @@ public class RejectDriverCommandValidator : AbstractValidator<RejectDriverComman
 {
     public RejectDriverCommandValidator()
     {
-        RuleFor(x => x.DriverUserId)
+        RuleFor(x => x.DriverUserId.Value)
             .NotEmpty().WithMessage("Driver user ID is required.");
 
         RuleFor(x => x.Reason)
-            .NotEmpty().WithMessage("Rejection reason is required.")
-            .MaximumLength(1000).WithMessage("Rejection reason must not exceed 1000 characters.");
+            .NotEmpty().WithMessage("سبب الرفض مطلوب.")
+            .MaximumLength(1000).WithMessage("سبب الرفض يجب ألا يتجاوز 1000 حرف.");
     }
 }
 

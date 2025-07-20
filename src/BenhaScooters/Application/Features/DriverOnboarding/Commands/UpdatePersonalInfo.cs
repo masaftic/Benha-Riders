@@ -28,33 +28,33 @@ public class UpdatePersonalInfoCommandValidator : AbstractValidator<UpdatePerson
     public UpdatePersonalInfoCommandValidator()
     {
         RuleFor(x => x.FullName)
-            .NotEmpty().WithMessage("Full name is required.")
-            .MaximumLength(100).WithMessage("Full name must not exceed 100 characters.");
+            .NotEmpty().WithMessage("الاسم الكامل مطلوب.")
+            .MaximumLength(100).WithMessage("الاسم الكامل يجب ألا يتجاوز 100 حرف.");
 
         RuleFor(x => x.NationalId)
-            .NotEmpty().WithMessage("National ID is required.")
-            .Matches(ValidationRegex.NationalId).WithMessage("National ID must be 14 digits.");
+            .NotEmpty().WithMessage("رقم الهوية الوطنية مطلوب.")
+            .Matches(ValidationRegex.NationalId).WithMessage("رقم الهوية الوطنية يجب أن يكون 14 رقم.");
 
         RuleFor(x => x.DateOfBirth)
-            .NotEmpty().WithMessage("Date of birth is required.")
-            .LessThan(DateOnly.FromDateTime(DateTime.Now.AddYears(-18))).WithMessage("Driver must be at least 18 years old.")
-            .GreaterThan(DateOnly.FromDateTime(DateTime.Now.AddYears(-100))).WithMessage("Invalid date of birth.");
+            .NotEmpty().WithMessage("تاريخ الميلاد مطلوب.")
+            .LessThan(DateOnly.FromDateTime(DateTime.Now.AddYears(-18))).WithMessage("يجب أن يكون عمر السائق 18 سنة على الأقل.")
+            .GreaterThan(DateOnly.FromDateTime(DateTime.Now.AddYears(-100))).WithMessage("تاريخ ميلاد غير صحيح.");
 
         RuleFor(x => x.Address)
-            .NotEmpty().WithMessage("Address is required.")
-            .MaximumLength(500).WithMessage("Address must not exceed 500 characters.");
+            .NotEmpty().WithMessage("العنوان مطلوب.")
+            .MaximumLength(500).WithMessage("العنوان يجب ألا يتجاوز 500 حرف.");
 
         RuleFor(x => x.City)
-            .NotEmpty().WithMessage("City is required.")
-            .MaximumLength(100).WithMessage("City must not exceed 100 characters.");
+            .NotEmpty().WithMessage("المدينة مطلوبة.")
+            .MaximumLength(100).WithMessage("المدينة يجب ألا تتجاوز 100 حرف.");
 
         RuleFor(x => x.EmergencyContactName)
-            .NotEmpty().WithMessage("Emergency contact name is required.")
-            .MaximumLength(100).WithMessage("Emergency contact name must not exceed 100 characters.");
+            .NotEmpty().WithMessage("اسم جهة الاتصال الطارئ مطلوب.")
+            .MaximumLength(100).WithMessage("اسم جهة الاتصال الطارئ يجب ألا يتجاوز 100 حرف.");
 
         RuleFor(x => x.EmergencyContactPhone)
-            .NotEmpty().WithMessage("Emergency contact phone is required.")
-            .Matches(ValidationRegex.PhoneNumber).WithMessage("Invalid phone number format.");
+            .NotEmpty().WithMessage("رقم هاتف جهة الاتصال الطارئ مطلوب.")
+            .Matches(ValidationRegex.PhoneNumber).WithMessage("تنسيق رقم الهاتف غير صحيح.");
     }
 }
 

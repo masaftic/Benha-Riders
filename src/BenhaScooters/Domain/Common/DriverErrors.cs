@@ -6,83 +6,80 @@ public static class DriverErrors
 {
     public static Error DriverNotFound => Error.NotFound(
         "DRIVER_NOT_FOUND",
-        "Driver not found. Please get onboarding status first.");
+        "السائق غير موجود. يرجى الحصول على حالة التسجيل أولاً.");
 
     public static Error DuplicateNationalId => Error.Conflict(
         "DUPLICATE_NATIONAL_ID",
-        "A driver with this national ID already exists.",
+        "يوجد سائق آخر بنفس رقم الهوية الوطنية.",
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "National ID must be unique across all drivers."}
+            {"Detail", "رقم الهوية الوطنية يجب أن يكون فريداً لكل سائق."}
         });
 
-    public static Error ValidationError(string message) => Error.Validation(
-        "DRIVER_VALIDATION_ERROR",
-        message);
 
     public static Error UploadError(string message) => Error.Failure(
         "DOCUMENT_UPLOAD_ERROR",
-        $"Failed to upload documents: {message}",
+        $"فشل في رفع المستندات: {message}",
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "Please try uploading the documents again. Ensure files are valid images under 10MB."}
+            {"Detail", "يرجى المحاولة مرة أخرى. تأكد من أن الملفات صور صحيحة وأقل من 10 ميجابايت."}
         });
 
     // Domain-specific onboarding errors
     public static Error OnboardingAlreadyCompleted => Error.Validation(
         "ONBOARDING_ALREADY_COMPLETED",
-        "Cannot update information after onboarding is completed.",
+        "لا يمكن تحديث المعلومات بعد اكتمال التسجيل.",
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "Once onboarding is completed, driver information cannot be modified."}
+            {"Detail", "بمجرد اكتمال التسجيل، لا يمكن تعديل معلومات السائق."}
         });
 
     public static Error PersonalInfoRequired => Error.Validation(
         "PERSONAL_INFO_REQUIRED",
-        "Complete personal information first.",
+        "يجب إكمال المعلومات الشخصية أولاً.",
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "Personal information must be completed before proceeding to vehicle information."}
+            {"Detail", "يجب إكمال المعلومات الشخصية قبل الانتقال إلى معلومات المركبة."}
         });
 
     public static Error PreviousStepsRequired => Error.Validation(
         "PREVIOUS_STEPS_REQUIRED",
-        "Complete previous steps first.",
+        "يجب إكمال الخطوات السابقة أولاً.",
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "All previous onboarding steps must be completed before uploading documents."}
+            {"Detail", "يجب إكمال جميع خطوات التسجيل السابقة قبل رفع المستندات."}
         });
 
     public static Error OnboardingIncomplete => Error.Validation(
         "ONBOARDING_INCOMPLETE",
-        "All onboarding steps must be completed first.",
+        "يجب إكمال جميع خطوات التسجيل أولاً.",
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "Personal information, vehicle information, and documents must all be submitted before approval."}
+            {"Detail", "يجب تقديم المعلومات الشخصية ومعلومات المركبة والمستندات قبل الموافقة."}
         });
 
     public static Error RejectionReasonRequired => Error.Validation(
         "REJECTION_REASON_REQUIRED",
-        "Rejection reason is required.",
+        "سبب الرفض مطلوب.",
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "A clear rejection reason must be provided to help the driver understand what needs to be corrected."}
+            {"Detail", "يجب تقديم سبب واضح للرفض لمساعدة السائق على فهم ما يحتاج إلى تصحيح."}
         });
 
     public static Error InvalidFileFormat => Error.Validation(
         "INVALID_FILE_FORMAT",
-        "Invalid file format. Only JPG, JPEG, and PNG files are allowed.",
+        "تنسيق الملف غير صحيح. يُسمح فقط بملفات JPG و JPEG و PNG.",
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "Please upload images in JPG, JPEG, or PNG format with maximum size of 10MB."}
+            {"Detail", "يرجى رفع الصور بتنسيق JPG أو JPEG أو PNG بحد أقصى 10 ميجابايت."}
         });
 
     public static Error FileTooLarge => Error.Validation(
         "FILE_TOO_LARGE",
-        "File size exceeds the maximum allowed limit.",
+        "حجم الملف يتجاوز الحد الأقصى المسموح.",
         metadata: new Dictionary<string, object>
         {
-            {"Detail", "Maximum file size allowed is 10MB."}
+            {"Detail", "الحد الأقصى المسموح لحجم الملف هو 10 ميجابايت."}
         });
 
     // Driver availability errors
@@ -90,6 +87,6 @@ public static class DriverErrors
     {
         public static readonly Error InvalidStatus = Error.Conflict(
             "DRIVER_INVALID_STATUS",
-            "Cannot perform this operation with current driver status");
+            "لا يمكن تنفيذ هذه العملية مع حالة السائق الحالية");
     }
 }

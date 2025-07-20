@@ -22,16 +22,16 @@ public class UpdateDocumentsCommandValidator : AbstractValidator<UpdateDocuments
     public UpdateDocumentsCommandValidator()
     {
         RuleFor(x => x.LicenseImage)
-            .NotNull().WithMessage("License image is required.")
-            .Must(BeAValidImageFile).WithMessage("License image must be a valid image file (jpg, jpeg, png) under 10MB.");
+            .NotNull().WithMessage("صورة الرخصة مطلوبة.")
+            .Must(BeAValidImageFile).WithMessage("صورة الرخصة يجب أن تكون ملف صورة صحيح (jpg, jpeg, png) أقل من 10 ميجابايت.");
 
         RuleFor(x => x.VehicleRegistrationImage)
-            .NotNull().WithMessage("Vehicle registration image is required.")
-            .Must(BeAValidImageFile).WithMessage("Vehicle registration image must be a valid image file (jpg, jpeg, png) under 10MB.");
+            .NotNull().WithMessage("صورة تسجيل المركبة مطلوبة.")
+            .Must(BeAValidImageFile).WithMessage("صورة تسجيل المركبة يجب أن تكون ملف صورة صحيح (jpg, jpeg, png) أقل من 10 ميجابايت.");
 
         RuleFor(x => x.DriverImage)
-            .NotNull().WithMessage("Driver image is required.")
-            .Must(BeAValidImageFile).WithMessage("Driver image must be a valid image file (jpg, jpeg, png) under 10MB.");
+            .NotNull().WithMessage("صورة السائق مطلوبة.")
+            .Must(BeAValidImageFile).WithMessage("صورة السائق يجب أن تكون ملف صورة صحيح (jpg, jpeg, png) أقل من 10 ميجابايت.");
     }
 
     private static bool BeAValidImageFile(IFormFile? file)
