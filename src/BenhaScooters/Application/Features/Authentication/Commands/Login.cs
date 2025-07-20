@@ -11,15 +11,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Authentication.Commands;
 
-public record LoginCommand(string Email, string Password) : IRequest<ErrorOr<LoginResponse>>;
+public record LoginCommand(string PhoneNumber, string Password) : IRequest<ErrorOr<LoginResponse>>;
 
 public class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
     public LoginCommandValidator()
     {
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required.")
-            .Matches(ValidationRegex.Email).WithMessage("A valid email is required.");
+        RuleFor(x => x.PhoneNumber)
+            .NotEmpty().WithMessage("Phone number is required.")
+            .Matches(ValidationRegex.PhoneNumber).WithMessage("A valid phone number is required.");
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password is required.");
@@ -48,7 +48,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
     {
         var user = await _db.Users
             .Include(u => u.Roles)
-            .FirstOrDefaultAsync(u => u.EmailNormalized == User.NormalizeEmail(Email.From(request.Email)), cancellationToken);
+            .FirstOrDefaultAsync(u => u.PhoneNumberNormalized == User.NormalizePhone(PhoneNumber.From(request.PhoneNumber)), cancellationToken);
 
         if (user is null || !_passwordHasher.Verify(user.PasswordHash, request.Password))
         {

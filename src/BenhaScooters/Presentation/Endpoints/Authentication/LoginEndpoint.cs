@@ -10,7 +10,7 @@ namespace BenhaScooters.Presentation.Endpoints.Authentication;
 
 public class LoginEndpoint : IEndpoint
 {
-    public record LoginRequestDto(string Email, string Password);
+    public record LoginRequestDto(string PhoneNumber, string Password);
 
     public record LoginResponseDto(string Type, object Result);
 
@@ -20,7 +20,7 @@ public class LoginEndpoint : IEndpoint
             .WithName("LoginUser")
             .WithTags("Authentication")
             .WithSummary("User login")
-            .WithDescription("Authenticates a user with email and password. Returns JWT access token and refresh token on successful authentication. If onboarding is required, returns an onboarding token and next step.")
+            .WithDescription("Authenticates a user with phone number and password. Returns JWT access token and refresh token on successful authentication. If onboarding is required, returns an onboarding token and next step.")
             .Produces<LoginResponseDto>()
             .ProducesValidationProblem()
             .Produces(401)
