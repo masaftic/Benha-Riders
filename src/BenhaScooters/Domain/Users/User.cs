@@ -50,10 +50,10 @@ public class User
     public Email Email { get; private set; }
     public Email EmailNormalized { get; private set; }
     public bool EmailVerified { get; private set; } = false;
-    public PhoneNumber PhoneNumber { get; private set; }
-    public PhoneNumber PhoneNumberNormalized { get; private set; }
+    public PhoneNumber? PhoneNumber { get; private set; }
+    public PhoneNumber? PhoneNumberNormalized { get; private set; }
     public bool PhoneNumberVerified { get; private set; } = false;
-    public string PasswordHash { get; private set; } = null!;
+    public string? PasswordHash { get; private set; } = null;
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
     public UserStatus Status { get; private set; }
@@ -64,28 +64,29 @@ public class User
     private readonly List<RefreshToken> _refreshTokens = [];
     public IReadOnlyCollection<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
 
+    private readonly List<ExternalAuth> _externalAuths = [];
+    public IReadOnlyCollection<ExternalAuth> ExternalAuths => _externalAuths.AsReadOnly();
+
+
     private User() { }
 
-    public User(string name, Email email, PhoneNumber phoneNumber, string passwordHash)
+    public User(string name, Email email, PhoneNumber? phoneNumber, string? passwordHash)
     {
         if (string.IsNullOrEmpty(name))
             throw new ArgumentException("Name cannot be empty.", nameof(name));
-
-        if (string.IsNullOrEmpty(passwordHash))
-            throw new ArgumentException("Password hash cannot be empty.", nameof(passwordHash));
 
         Name = name;
         Email = email;
         EmailNormalized = NormalizeEmail(email);
         PhoneNumber = phoneNumber;
-        PhoneNumberNormalized = NormalizePhone(phoneNumber);
+        PhoneNumberNormalized = phoneNumber.HasValue ? NormalizePhone(phoneNumber.Value) : null;
         PasswordHash = passwordHash;
         Status = UserStatus.Registered;
     }
 
     public static PhoneNumber NormalizePhone(PhoneNumber phone)
     {
-        var normalizedPhone = phone.Value.Trim().Replace(" ", "").Replace("-", "");
+        string normalizedPhone = phone.Value.Trim().Replace(" ", "").Replace("-", "");
         if (normalizedPhone.StartsWith("0"))
         {
             normalizedPhone = "+20" + normalizedPhone.Substring(1);
@@ -94,7 +95,8 @@ public class User
         {
             normalizedPhone = "+20" + normalizedPhone;
         }
-        return PhoneNumber.From(normalizedPhone);
+
+        return Users.PhoneNumber.From(normalizedPhone);
     }
 
     public static Email NormalizeEmail(Email email)
@@ -147,15 +149,22 @@ public class User
         EmailVerified = true;
     }
 
-    public void VerifyPhoneNumber()
+    public void VerifyPhoneNumber(PhoneNumber? number = null)
     {
+        if (!PhoneNumber.HasValue && number.HasValue)
+        {
+            PhoneNumber = number;
+            PhoneNumberNormalized = NormalizePhone(number.Value);
+        }
+
         PhoneNumberVerified = true;
         var newStatusResult = UserOnboardingStateMachine.GetNewStatusAfterStep(Status, OnboardingSteps.VerifyPhone);
         if (newStatusResult.IsError)
             throw new InvalidOperationException($"Cannot verify phone number from status {Status}");
-        
+
         Status = newStatusResult.Value;
     }
+
 
     public void ChangePassword(string newPasswordHash)
     {
@@ -174,7 +183,7 @@ public class User
         return newStatus switch
         {
             UserStatus.Active when !UserOnboardingStateMachine.CanPerformStep(Status, OnboardingSteps.SelectRole) =>
-                Error.Forbidden("USER_NOT_READY_FOR_ACTIVATION", 
+                Error.Forbidden("USER_NOT_READY_FOR_ACTIVATION",
                     "User must complete phone verification before selecting a role."),
             _ => UpdateStatusInternal(newStatus)
         };
@@ -184,6 +193,15 @@ public class User
     {
         Status = newStatus;
         return Result.Success;
+    }
+
+
+    public void AddExternalAuth(ExternalAuth externalAuth)
+    {
+        if (_externalAuths.Any(ea => ea.Provider == externalAuth.Provider && ea.ProviderUserId == externalAuth.ProviderUserId))
+            throw new InvalidOperationException("External auth already exists for this provider and user ID.");
+
+        _externalAuths.Add(externalAuth);
     }
 }
 

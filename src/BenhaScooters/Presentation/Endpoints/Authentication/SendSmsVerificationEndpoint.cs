@@ -34,7 +34,7 @@ public class SendSmsVerificationEndpoint : IEndpoint
     public async Task<IResult> SendSmsVerification([FromServices] ISender sender, [FromBody] SendSmsVerificationRequestDto smsRequest, HttpContext ctx)
     {
         var mapper = new SendSmsVerificationEndpointMapper();
-        var command = mapper.MapToCommand(smsRequest);
+        var command = mapper.MapToCommand(ctx.GetCurrentUserId(), smsRequest);
         var result = await sender.Send(command);
 
         if (result.IsError)
@@ -50,6 +50,6 @@ public class SendSmsVerificationEndpoint : IEndpoint
 [Mapper]
 public partial class SendSmsVerificationEndpointMapper
 {
-    public partial SendSmsVerificationCommand MapToCommand(SendSmsVerificationEndpoint.SendSmsVerificationRequestDto request);
+    public SendSmsVerificationCommand MapToCommand(UserId userId, SendSmsVerificationEndpoint.SendSmsVerificationRequestDto request) => new(userId, request.PhoneNumber);
     public partial SendSmsVerificationEndpoint.SendSmsVerificationResponseDto MapToResponse(SendSmsVerificationResponse response);
 }

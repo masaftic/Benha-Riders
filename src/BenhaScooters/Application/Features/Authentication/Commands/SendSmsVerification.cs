@@ -11,12 +11,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Authentication.Commands;
 
-public record SendSmsVerificationCommand(string PhoneNumber) : IRequest<ErrorOr<SendSmsVerificationResponse>>;
+public record SendSmsVerificationCommand(UserId UserId, string PhoneNumber) : IRequest<ErrorOr<SendSmsVerificationResponse>>;
 
 public class SendSmsVerificationCommandValidator : AbstractValidator<SendSmsVerificationCommand>
 {
     public SendSmsVerificationCommandValidator()
     {
+        RuleFor(x => x.UserId.Value)
+            .NotEmpty().WithMessage("User ID is required.");
+
         RuleFor(x => x.PhoneNumber)
             .NotEmpty().WithMessage("رقم الهاتف مطلوب.")
             .Matches(ValidationRegex.PhoneNumber).WithMessage("تنسيق رقم الهاتف غير صحيح.");
@@ -40,9 +43,8 @@ public class SendSmsVerificationCommandHandler : IRequestHandler<SendSmsVerifica
     {
         var normalizedPhone = User.NormalizePhone(PhoneNumber.From(request.PhoneNumber));
         
-        // Find user by phone number
         var user = await _db.Users
-            .FirstOrDefaultAsync(u => u.PhoneNumberNormalized == normalizedPhone, cancellationToken);
+            .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
 
         if (user is null)
         {

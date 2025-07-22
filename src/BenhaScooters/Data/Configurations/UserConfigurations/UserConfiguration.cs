@@ -25,15 +25,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(100);
 
         builder.Property(x => x.PhoneNumber)
-            .IsRequired()
             .HasMaxLength(20);
         
         builder.Property(x => x.PhoneNumberNormalized)
-            .IsRequired()
             .HasMaxLength(20);
 
         builder.Property(x => x.PasswordHash)
-            .IsRequired()
             .HasMaxLength(256);
 
         builder.Property(x => x.Status)

@@ -43,7 +43,7 @@ public class JwtService : IJwtService
             new Claim(JwtClaims.Sub, user.Id.ToString()),
             new Claim(JwtClaims.Name, user.Name),
             new Claim(JwtClaims.Email, user.Email.Value),
-            new Claim(JwtClaims.PhoneNumber, user.PhoneNumber.Value),
+            new Claim(JwtClaims.PhoneNumber, user.PhoneNumber!.Value.Value),
             new Claim(JwtClaims.Status, user.Status.ToString()),
             new Claim(JwtClaims.EmailVerified, user.EmailVerified.ToString()),
             new Claim(JwtClaims.PhoneVerified, user.PhoneNumberVerified.ToString()),

@@ -59,4 +59,8 @@ public static class UserErrors
     public static Error RoleAlreadyAssigned => Error.Conflict(
         "ROLE_ALREADY_ASSIGNED", 
         "المستخدم لديه دور مخصص بالفعل.");
+
+    public static Error InvalidGoogleIdToken => Error.Validation(
+        "INVALID_GOOGLE_ID_TOKEN", 
+        "رمز Google ID غير صالح.");
 }

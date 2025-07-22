@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Infrastructure.Trips.Services;
+using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Application.Services;
 
 namespace BenhaScooters.Infrastructure;
@@ -55,6 +56,9 @@ public static class DependencyInjection
         
         // Register MinIO initialization service
         services.AddScoped<IMinioInitializationService, MinioInitializationService>();
+
+        // Register Google authentication service
+        services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 
         return services;
     }

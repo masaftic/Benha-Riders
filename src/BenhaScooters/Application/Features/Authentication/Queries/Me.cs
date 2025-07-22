@@ -45,7 +45,7 @@ public class MeQueryHandler : IRequestHandler<MeQuery, ErrorOr<MeResponse>>
             user.Name,
             user.Email,
             user.EmailVerified,
-            user.PhoneNumber,
+            user.PhoneNumber.Value,
             user.PhoneNumberVerified,
             user.CreatedAt,
             user.Roles.Select(r => r.Name));

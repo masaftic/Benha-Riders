@@ -11,6 +11,7 @@ namespace BenhaScooters.Data;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
+    public DbSet<ExternalAuth> ExternalAuths => Set<ExternalAuth>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<SmsVerificationCode> SmsVerificationCodes => Set<SmsVerificationCode>();

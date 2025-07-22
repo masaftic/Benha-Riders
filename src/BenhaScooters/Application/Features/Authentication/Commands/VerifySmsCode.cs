@@ -66,7 +66,7 @@ public class VerifySmsCodeCommandHandler : IRequestHandler<VerifySmsCodeCommand,
             return UserErrors.UserNotFound;
         }
 
-        user.VerifyPhoneNumber();
+        user.VerifyPhoneNumber(verificationCode.PhoneNumber);
 
         await _db.SaveChangesAsync(cancellationToken);
 
