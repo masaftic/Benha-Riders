@@ -1,4 +1,5 @@
 using BenhaScooters.Application.Features.Authentication.Commands.Common;
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
@@ -32,15 +33,18 @@ public class GoogleSignInCommandHandler : IRequestHandler<GoogleSignInCommand, E
     private readonly AppDbContext _db;
     private readonly IGoogleAuthService _googleAuthService;
     private readonly IJwtService _jwtService;
+    private readonly IAuthenticationService _authenticationService;
 
     public GoogleSignInCommandHandler(
         AppDbContext db, 
         IGoogleAuthService googleAuthService, 
-        IJwtService jwtService)
+        IJwtService jwtService,
+        IAuthenticationService authenticationService)
     {
         _db = db;
         _googleAuthService = googleAuthService;
         _jwtService = jwtService;
+        _authenticationService = authenticationService;
     }
 
     public async Task<ErrorOr<GoogleSignInResponse>> Handle(GoogleSignInCommand request, CancellationToken cancellationToken)
@@ -107,14 +111,7 @@ public class GoogleSignInCommandHandler : IRequestHandler<GoogleSignInCommand, E
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.UserId == user.Id, cancellationToken);
 
-        var expiresAt = _jwtService.GetAccessTokenExpiryTime();
-        var accessToken = _jwtService.GenerateAccessToken(user, driver, rider);
-        var refreshToken = _jwtService.GenerateRefreshToken();
-
-        // Create and store refresh token
-        var refreshTokenEntity = user.CreateRefreshToken(refreshToken, _jwtService.GetRefreshTokenExpiryTime());
-        await _db.SaveChangesAsync(cancellationToken);
-
-        return new GoogleSignInSuccess(accessToken, refreshToken, expiresAt);
+        var authenticatedResponse = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driver, rider, cancellationToken);
+        return new GoogleSignInSuccess(authenticatedResponse.AccessToken, authenticatedResponse.RefreshToken, authenticatedResponse.ExpiresAt);
     }
 }

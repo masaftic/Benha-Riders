@@ -1,4 +1,5 @@
 using BenhaScooters.Application.Features.Authentication.Commands.Common;
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
@@ -33,12 +34,12 @@ public class SelectRoleCommandValidator : AbstractValidator<SelectRoleCommand>
 public class SelectRoleCommandHandler : IRequestHandler<SelectRoleCommand, ErrorOr<AuthenticatedResponse>>
 {
     private readonly AppDbContext _db;
-    private readonly IJwtService _jwtService;
+    private readonly IAuthenticationService _authenticationService;
 
-    public SelectRoleCommandHandler(AppDbContext db, IJwtService jwtService)
+    public SelectRoleCommandHandler(AppDbContext db, IAuthenticationService authenticationService)
     {
         _db = db;
-        _jwtService = jwtService;
+        _authenticationService = authenticationService;
     }
 
     public async Task<ErrorOr<AuthenticatedResponse>> Handle(SelectRoleCommand request, CancellationToken cancellationToken)
@@ -87,12 +88,6 @@ public class SelectRoleCommandHandler : IRequestHandler<SelectRoleCommand, Error
         var result = user.UpdateStatus(newStatusResult.Value);
         if (result.IsError) return result.Errors;
 
-        await _db.SaveChangesAsync(cancellationToken);
-
-        var expiresAt = _jwtService.GetAccessTokenExpiryTime();
-        var accessToken = _jwtService.GenerateAccessToken(user, driver, rider);
-        var refreshToken = _jwtService.GenerateRefreshToken();
-
-        return new AuthenticatedResponse(accessToken, refreshToken, expiresAt);
+        return await _authenticationService.GenerateAuthenticatedResponseAsync(user, driver, rider, cancellationToken);
     }
 }

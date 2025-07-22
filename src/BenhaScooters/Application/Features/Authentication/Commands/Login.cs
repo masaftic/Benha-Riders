@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
@@ -36,12 +37,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
     private readonly AppDbContext _db;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtService _jwtService;
+    private readonly IAuthenticationService _authenticationService;
 
-    public LoginCommandHandler(AppDbContext db, IPasswordHasher passwordHasher, IJwtService jwtService)
+    public LoginCommandHandler(AppDbContext db, IPasswordHasher passwordHasher, IJwtService jwtService, IAuthenticationService authenticationService)
     {
         _db = db;
         _passwordHasher = passwordHasher;
         _jwtService = jwtService;
+        _authenticationService = authenticationService;
     }
 
     public async Task<ErrorOr<LoginResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -50,7 +53,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
             .Include(u => u.Roles)
             .FirstOrDefaultAsync(u => u.PhoneNumberNormalized == User.NormalizePhone(PhoneNumber.From(request.PhoneNumber)), cancellationToken);
 
-        if (user is null || !_passwordHasher.Verify(user.PasswordHash, request.Password))
+        if (user is null || user.PasswordHash is null || !_passwordHasher.Verify(user.PasswordHash, request.Password))
         {
             return UserErrors.InvalidCredentials;
         }
@@ -70,14 +73,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.UserId == user.Id, cancellationToken);
 
-        var expiresAt = _jwtService.GetAccessTokenExpiryTime();
-        var accessToken = _jwtService.GenerateAccessToken(user, driver, rider);
-        var refreshToken = _jwtService.GenerateRefreshToken();
-
-        // Create and store refresh token
-        var refreshTokenEntity = user.CreateRefreshToken(refreshToken, _jwtService.GetRefreshTokenExpiryTime());
-        await _db.SaveChangesAsync(cancellationToken);
-
-        return new LoginSuccess(accessToken, refreshToken, expiresAt);
+        var authenticatedResponse = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driver, rider, cancellationToken);
+        return new LoginSuccess(authenticatedResponse.AccessToken, authenticatedResponse.RefreshToken, authenticatedResponse.ExpiresAt);
     }
 }

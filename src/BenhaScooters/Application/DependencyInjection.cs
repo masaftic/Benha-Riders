@@ -1,5 +1,6 @@
 using System.Reflection;
 using BenhaScooters.Application.Common.Behaviors;
+using BenhaScooters.Application.Services;
 using FluentValidation;
 using MediatR;
 using MediatR.Registration;
@@ -20,6 +21,9 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
+        // Register application services
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
 
         return services;
     }

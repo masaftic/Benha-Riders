@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
@@ -25,12 +26,12 @@ public record RefreshTokenResponse(string AccessToken, string RefreshToken, Date
 public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, ErrorOr<RefreshTokenResponse>>
 {
     private readonly AppDbContext _db;
-    private readonly IJwtService _jwtService;
+    private readonly IAuthenticationService _authenticationService;
 
-    public RefreshTokenCommandHandler(AppDbContext db, IJwtService jwtService)
+    public RefreshTokenCommandHandler(AppDbContext db, IAuthenticationService authenticationService)
     {
         _db = db;
-        _jwtService = jwtService;
+        _authenticationService = authenticationService;
     }
 
     public async Task<ErrorOr<RefreshTokenResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
@@ -62,15 +63,9 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, E
         // Revoke the old refresh token
         refreshToken.Revoke();
 
-        // Generate new tokens
-        var accessToken = _jwtService.GenerateAccessToken(user, driver, rider);
-        var newRefreshToken = _jwtService.GenerateRefreshToken();
-        var expiresAt = _jwtService.GetAccessTokenExpiryTime();
+        // Generate new tokens using the authentication service
+        var authenticatedResponse = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driver, rider, cancellationToken);
 
-        // Create and store new refresh token
-        var newRefreshTokenEntity = user.CreateRefreshToken(newRefreshToken, _jwtService.GetRefreshTokenExpiryTime());
-        await _db.SaveChangesAsync(cancellationToken);
-
-        return new RefreshTokenResponse(accessToken, newRefreshToken, expiresAt);
+        return new RefreshTokenResponse(authenticatedResponse.AccessToken, authenticatedResponse.RefreshToken, authenticatedResponse.ExpiresAt);
     }
 }
