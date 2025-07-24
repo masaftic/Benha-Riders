@@ -17,9 +17,9 @@ public record GetTripStatusQuery(
 public record GetTripStatusResult(
     TripRequestId TripRequestId,
     TripRequestStatus Status,
-    string? AssignedDriverName,
+    string? MatchedDriverName,
     DateTime RequestedAt,
-    DateTime? AcceptedAt,
+    DateTime? MatchedAt,
     DateTime? ExpiresAt,
     string? CancellationReason);
 
@@ -42,24 +42,34 @@ public class GetTripStatusQueryHandler(AppDbContext db) : IRequestHandler<GetTri
     public async Task<ErrorOr<GetTripStatusResult>> Handle(GetTripStatusQuery request, CancellationToken cancellationToken)
     {
         // Find the trip request
-        var tripRequest = await db.TripRequests
-            .Include(tr => tr.AssignedDriver)
-            .FirstOrDefaultAsync(tr => tr.Id == request.TripRequestId && tr.RiderId == request.RiderId, cancellationToken);
+        var tripStatusInfo = await db.TripRequests
+            .Include(tr => tr.MatchedDriver)
+            .AsNoTracking()
+            .Where(tr => tr.RiderId == request.RiderId && tr.Id == request.TripRequestId)
+            .Select(tr => new
+            {
+                tr.Id,
+                tr.Status,
+                MatchedDriverName = tr.MatchedDriver != null ? tr.MatchedDriver.PersonalInfo!.FullName : null,
+                tr.RequestedAt,
+                tr.MatchedAt,
+                tr.ExpiresAt,
+                tr.CancellationReason
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (tripRequest == null)
+        if (tripStatusInfo == null)
         {
             return TripErrors.TripRequest.NotFound;
         }
 
-        var driverName = tripRequest.AssignedDriver?.PersonalInfo?.FullName;
-
         return new GetTripStatusResult(
-            tripRequest.Id,
-            tripRequest.Status,
-            driverName,
-            tripRequest.RequestedAt,
-            tripRequest.AssignedAt,
-            tripRequest.ExpiresAt,
-            tripRequest.CancellationReason);
+            tripStatusInfo.Id,
+            tripStatusInfo.Status,
+            tripStatusInfo.MatchedDriverName,
+            tripStatusInfo.RequestedAt,
+            tripStatusInfo.MatchedAt,
+            tripStatusInfo.ExpiresAt,
+            tripStatusInfo.CancellationReason);
     }
 }

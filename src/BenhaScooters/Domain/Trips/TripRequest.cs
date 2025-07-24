@@ -3,6 +3,7 @@ using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Domain.Trips.ValueObjects;
+using BenhaScooters.Domain.Trips.Events;
 using BenhaScooters.Domain.Common;
 using ErrorOr;
 using Vogen;
@@ -12,7 +13,7 @@ namespace BenhaScooters.Domain.Trips;
 [ValueObject<int>]
 public partial struct TripRequestId;
 
-public class TripRequest
+public class TripRequest : AggregateRoot
 {
     public TripRequestId Id { get; private set; }
     public RiderId RiderId { get; private set; }
@@ -27,15 +28,14 @@ public class TripRequest
     // Pricing
     public FareEstimate EstimatedFare { get; private set; } = null!;
 
-    // Matching
-    public DriverId? AssignedDriverId { get; private set; }
-    public DateTime? AssignedAt { get; private set; }
-    public int AttemptCount { get; private set; } = 0; // Number of times drivers rejected this request
+    // Final matching result (set by matching system when completed)
+    public DriverId? MatchedDriverId { get; private set; }
+    public DateTime? MatchedAt { get; private set; }
     public string? CancellationReason { get; private set; }
 
     // Navigation Properties
     public Rider Rider { get; private set; } = null!;
-    public Driver? AssignedDriver { get; private set; }
+    public Driver? MatchedDriver { get; private set; }
 
     private TripRequest() { } // For EF Core
 
@@ -53,7 +53,26 @@ public class TripRequest
         Status = TripRequestStatus.Pending;
     }
 
-    public ErrorOr<Success> AcceptByDriver(DriverId driverId)
+    /// <summary>
+    /// Call this method after the entity is saved to the database to publish the domain event
+    /// </summary>
+    public void PublishTripRequestedEvent()
+    {
+        RaiseDomainEvent(new TripRequestedEvent(
+            Id,
+            RiderId,
+            PickupLocation,
+            DropoffLocation,
+            PickupAddress,
+            DropoffAddress,
+            EstimatedFare,
+            RequestedAt));
+    }
+
+    /// <summary>
+    /// Called by the matching system when a driver is successfully matched
+    /// </summary>
+    public ErrorOr<Success> MarkAsMatched(DriverId driverId)
     {
         if (Status != TripRequestStatus.Pending)
             return TripErrors.TripRequest.NotPending;
@@ -61,34 +80,25 @@ public class TripRequest
         if (IsExpired)
             return TripErrors.TripRequest.Expired;
 
-        AssignedDriverId = driverId;
-        AssignedAt = DateTime.UtcNow;
+        MatchedDriverId = driverId;
+        MatchedAt = DateTime.UtcNow;
         Status = TripRequestStatus.Matched;
-        return Result.Success;
-    }
-
-    public ErrorOr<Success> Reject(string? reason = null)
-    {
-        if (Status != TripRequestStatus.Pending)
-            return TripErrors.TripRequest.NotPending;
-
-        Status = TripRequestStatus.Pending;
-        AssignedDriverId = null;
-        AssignedAt = null;
-        AttemptCount++;
-
-        if (AttemptCount >= 3) // After 3 rejections, cancel the request
-        {
-            var cancelResult = Cancel("Too many driver rejections");
-            if (cancelResult.IsError)
-                return cancelResult.FirstError;
-        }
 
         return Result.Success;
     }
 
     public ErrorOr<Success> Cancel(string reason)
     {
+        if (Status == TripRequestStatus.Cancelled)
+        {
+            return TripErrors.TripRequest.AlreadyCancelled;
+        }
+
+        if (Status == TripRequestStatus.Matched)
+        {
+            return TripErrors.TripRequest.AlreadyMatched;
+        }
+
         if (Status != TripRequestStatus.Pending)
             return TripErrors.TripRequest.NotPending;
 

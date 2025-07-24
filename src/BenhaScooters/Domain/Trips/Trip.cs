@@ -3,6 +3,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Trips.ValueObjects;
 using BenhaScooters.Domain.Trips.Enums;
+using BenhaScooters.Domain.Trips.Events;
 using BenhaScooters.Domain.Common;
 using ErrorOr;
 using Vogen;
@@ -12,12 +13,11 @@ namespace BenhaScooters.Domain.Trips;
 [ValueObject<int>]
 public partial struct TripId;
 
-public class Trip
+public class Trip : AggregateRoot
 {
     public TripId Id { get; private set; }
     public DriverId DriverId { get; private set; }
     public RiderId RiderId { get; private set; }
-    public TripRequestId? TripRequestId { get; private set; }
 
     // Trip Details
     public Point PickupLocation { get; private set; } = null!;
@@ -46,11 +46,10 @@ public class Trip
 
     private Trip() { } // For EF Core
 
-    public Trip(TripRequestId tripRequestId, DriverId driverId, RiderId riderId,
+    public Trip(DriverId driverId, RiderId riderId,
         Point pickupLocation, Point dropoffLocation, string? pickupAddress, string? dropoffAddress,
         FareEstimate estimatedFare)
     {
-        TripRequestId = tripRequestId;
         DriverId = driverId;
         RiderId = riderId;
         PickupLocation = pickupLocation;
@@ -62,6 +61,18 @@ public class Trip
         CreatedAt = DateTime.UtcNow;
     }
 
+    /// <summary>
+    /// Call this method after the entity is saved to the database to publish the domain event
+    /// </summary>
+    public void PublishTripAcceptedEvent(TripRequestId tripRequestId)
+    {
+        RaiseDomainEvent(new TripAcceptedEvent(
+            tripRequestId,
+            Id,
+            DriverId,
+            CreatedAt));
+    }
+
     public ErrorOr<Success> DriverArrived()
     {
         if (Status != TripStatus.Assigned)
@@ -69,6 +80,10 @@ public class Trip
 
         Status = TripStatus.DriverArrived;
         DriverArrivedAt = DateTime.UtcNow;
+
+        // Publish domain event
+        RaiseDomainEvent(new DriverArrivedEvent(Id, DriverId, DriverArrivedAt.Value));
+
         return Result.Success;
     }
 
@@ -84,6 +99,9 @@ public class Trip
         {
             TripRoute = new TripRoute(Id);
         }
+
+        // Publish domain event
+        RaiseDomainEvent(new TripStartedEvent(Id, DriverId, StartedAt.Value));
 
         return Result.Success;
     }

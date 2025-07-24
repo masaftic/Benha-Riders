@@ -66,9 +66,9 @@ public partial class GetTripStatusEndpointMapper
         return new GetTripStatusEndpoint.GetTripStatusResponseDto(
             result.TripRequestId.Value,
             result.Status,
-            result.AssignedDriverName,
+            result.MatchedDriverName,
             result.RequestedAt,
-            result.AcceptedAt,
+            result.MatchedAt,
             result.ExpiresAt,
             result.CancellationReason);
     }

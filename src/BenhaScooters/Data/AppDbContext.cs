@@ -26,9 +26,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TripGpsPoint> TripGpsPoints => Set<TripGpsPoint>();
     public DbSet<TripRoute> TripRoutes => Set<TripRoute>();
     public DbSet<TripFare> TripFares => Set<TripFare>();
+
     public DbSet<TripRequest> TripRequests => Set<TripRequest>();
 
     public DbSet<DriverMatchAttempt> DriverMatchAttempts => Set<DriverMatchAttempt>();
+    public DbSet<MatchingSession> MatchingSessions => Set<MatchingSession>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

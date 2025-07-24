@@ -1,8 +1,10 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
+using BenhaScooters.Domain.Trips.Events;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -37,69 +39,90 @@ public class AcceptTripCommandHandler(AppDbContext db) : IRequestHandler<AcceptT
 {
     public async Task<ErrorOr<AcceptTripResult>> Handle(AcceptTripCommand request, CancellationToken cancellationToken)
     {
-        // Check driver availability first
-        var driverAvailability = await db.DriverAvailabilities
-            .FirstOrDefaultAsync(x => x.DriverId == request.DriverId, cancellationToken);
+        // Use a transaction to ensure consistency
+        using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
-        if (driverAvailability == null || driverAvailability.Status != DriverStatus.Online)
+        try
         {
-            return TripErrors.Driver.NotAvailable;
+            // Check driver availability first
+            var driverAvailability = await db.DriverAvailabilities
+                .FirstOrDefaultAsync(x => x.DriverId == request.DriverId, cancellationToken);
+
+            if (driverAvailability == null || driverAvailability.Status != DriverStatus.Online)
+            {
+                return TripErrors.Driver.NotAvailable;
+            }
+
+            // Find the matching session for this trip request
+            var matchingSession = await db.MatchingSessions
+                .Include(ms => ms.TripRequest)
+                .FirstOrDefaultAsync(ms => ms.TripRequestId == request.TripRequestId, cancellationToken);
+
+            if (matchingSession == null)
+            {
+                return MatchingErrors.Session.NotFound;
+            }
+
+            if (!matchingSession.IsActive)
+            {
+                return MatchingErrors.Session.NotActive;
+            }
+
+            var tripRequest = matchingSession.TripRequest;
+
+            var acceptResult = tripRequest.MarkAsMatched(request.DriverId);
+            if (acceptResult.IsError)
+            {
+                return acceptResult.Errors;
+            }
+
+            // Complete the matching session
+            var completeResult = matchingSession.Complete();
+            if (completeResult.IsError)
+            {
+                return completeResult.Errors;
+            }
+
+            // Create trip entity
+            var trip = new Trip(
+                request.DriverId,
+                tripRequest.RiderId,
+                tripRequest.PickupLocation,
+                tripRequest.DropoffLocation,
+                tripRequest.PickupAddress,
+                tripRequest.DropoffAddress,
+                tripRequest.EstimatedFare);
+
+            // Add trip to context
+            db.Trips.Add(trip);
+
+            // Save changes to get the trip id
+            await db.SaveChangesAsync(cancellationToken);
+
+            // Update driver availability to OnTrip
+            var startTripResult = driverAvailability.StartTrip(trip.Id);
+            if (startTripResult.IsError)
+            {
+                return startTripResult.Errors;
+            }
+
+            await db.SaveChangesAsync(cancellationToken);
+
+            // Publish domain events after successful save
+            trip.PublishTripAcceptedEvent(tripRequest.Id);
+
+            // Commit the transaction
+            await transaction.CommitAsync(cancellationToken);
+
+            return new AcceptTripResult(
+                trip.Id,
+                "Trip accepted and created successfully",
+                DateTime.UtcNow);
         }
-
-        // Find the trip request
-        var tripRequest = await db.TripRequests
-            .FirstOrDefaultAsync(tr => tr.Id == request.TripRequestId, cancellationToken);
-
-        if (tripRequest == null)
+        catch (Exception)
         {
-            return TripErrors.TripRequest.NotFound;
+            // Transaction will be automatically rolled back
+            throw;
         }
-
-        // Check if trip is still available
-        if (tripRequest.Status != TripRequestStatus.Pending)
-        {
-            return TripErrors.TripRequest.NotPending;
-        }
-
-        // Check if trip has expired
-        if (tripRequest.ExpiresAt <= DateTime.UtcNow)
-        {
-            return TripErrors.TripRequest.Expired;
-        }
-
-        // Accept the trip and create Trip entity in one transaction
-        var acceptResult = tripRequest.AcceptByDriver(request.DriverId);
-        if (acceptResult.IsError)
-        {
-            return acceptResult.Errors;
-        }
-        
-        var trip = new Trip(
-            tripRequest.Id,
-            request.DriverId,
-            tripRequest.RiderId,
-            tripRequest.PickupLocation,
-            tripRequest.DropoffLocation,
-            tripRequest.PickupAddress,
-            tripRequest.DropoffAddress,
-            tripRequest.EstimatedFare);
-
-        db.Trips.Add(trip);
-        await db.SaveChangesAsync(cancellationToken);
-
-        // Update driver availability to OnTrip
-        var startTripResult = driverAvailability.StartTrip(trip.Id);
-        if (startTripResult.IsError)
-        {
-            // TODO: Rollback
-            return startTripResult.Errors;
-        }
-
-        await db.SaveChangesAsync(cancellationToken);
-
-        return new AcceptTripResult(
-            trip.Id,
-            "Trip accepted and created successfully",
-            DateTime.UtcNow);
     }
 }

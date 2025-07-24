@@ -36,7 +36,7 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
             var user = new User(
                 "Driver",
                 Email.From("driver@gmail.com"),
-                PhoneNumber.From("01234567890"),
+                PhoneNumber.From("01234567891"),
                 passwordHasher.Hash("password"));
 
             user.AddRole(new UserRole(RoleName.Driver));
@@ -50,7 +50,7 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
 
             driver.UpdatePersonalInfo("Sample Driver", NationalId.From("12345678901234"),
                 new DateOnly(1990, 1, 1), "123 Street", "City", "Emergency Contact",
-                PhoneNumber.From("09876543210"));
+                PhoneNumber.From("09876543213"));
 
             driver.UpdateVehicleInfo(
                 VehicleType.Scooter, "Brand", "Model", "Color",
@@ -70,7 +70,7 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
             var user = new User(
                 "Rider",
                 Email.From("rider@gmail.com"),
-                PhoneNumber.From("01234567890"),
+                PhoneNumber.From("01234567893"),
                 passwordHasher.Hash("password"));
 
             user.AddRole(new UserRole(RoleName.Rider));

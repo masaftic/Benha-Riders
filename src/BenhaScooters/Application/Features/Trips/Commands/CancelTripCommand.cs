@@ -1,5 +1,6 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
@@ -43,34 +44,45 @@ public class CancelTripCommandHandler(AppDbContext db) : IRequestHandler<CancelT
 {
     public async Task<ErrorOr<CancelTripResult>> Handle(CancelTripCommand request, CancellationToken cancellationToken)
     {
-        // Find the trip request
-        var tripRequest = await db.TripRequests
-            .FirstOrDefaultAsync(tr => tr.Id == request.TripRequestId && tr.RiderId == request.RiderId, cancellationToken);
-
-        if (tripRequest == null)
-        {
-            return TripErrors.TripRequest.NotFound;
-        }
-
-        // Check if trip can be cancelled
-        if (tripRequest.Status == TripRequestStatus.Cancelled)
-        {
-            return TripErrors.TripRequest.AlreadyCancelled;
-        }
-
-        if (tripRequest.Status == TripRequestStatus.Matched)
-        {
-            return TripErrors.TripRequest.AlreadyMatched;
-        }
-
-        // Cancel the trip request
-        tripRequest.Cancel(request.CancellationReason ?? "Cancelled by rider");
+        using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            // Find the trip request
+            var tripRequest = await db.TripRequests
+                .FirstOrDefaultAsync(tr => tr.Id == request.TripRequestId && tr.RiderId == request.RiderId, cancellationToken);
 
-        return new CancelTripResult(
-            tripRequest.Id,
-            "Trip request cancelled successfully",
-            DateTime.UtcNow);
+            if (tripRequest == null)
+            {
+                return TripErrors.TripRequest.NotFound;
+            }
+
+
+            // Cancel the trip request
+            var result = tripRequest.Cancel(request.CancellationReason ?? "Cancelled by rider");
+            if (result.IsError) return result.Errors;
+
+            // Also cancel any associated matching session
+            var matchingSession = await db.MatchingSessions
+                .FirstOrDefaultAsync(ms => ms.TripRequestId == request.TripRequestId, cancellationToken);
+
+            if (matchingSession != null && matchingSession.IsActive)
+            {
+                matchingSession.Cancel("Trip request cancelled by rider");
+            }
+            
+            await db.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return new CancelTripResult(
+                tripRequest.Id,
+                "Trip request cancelled successfully",
+                DateTime.UtcNow);
+        }
+        catch (Exception)
+        {
+            // Transaction will be automatically rolled back
+            throw;
+        }
     }
 }

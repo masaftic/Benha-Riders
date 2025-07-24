@@ -100,6 +100,9 @@ public class RequestTripCommandHandler(
         await db.TripRequests.AddAsync(tripRequest, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
+        // Publish the domain event after the ID is set 
+        tripRequest.PublishTripRequestedEvent();
+
         return new RequestTripResult(
             tripRequest.Id,
             fareEstimate.Amount,

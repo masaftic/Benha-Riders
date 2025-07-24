@@ -1,3 +1,4 @@
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -36,9 +37,9 @@ public class TripRequestConfiguration : IEntityTypeConfiguration<TripRequest>
             .HasForeignKey(tr => tr.RiderId)
             .OnDelete(DeleteBehavior.Cascade);
         
-        builder.HasOne(tr => tr.AssignedDriver)
+        builder.HasOne(tr => tr.MatchedDriver)
             .WithMany()
-            .HasForeignKey(tr => tr.AssignedDriverId)
+            .HasForeignKey(tr => tr.MatchedDriverId)
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(tr => tr.Status);

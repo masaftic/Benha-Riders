@@ -43,11 +43,6 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
             .HasForeignKey<TripRoute>(tr => tr.TripId)
             .OnDelete(DeleteBehavior.Cascade);
         
-        builder.HasOne<TripRequest>()
-            .WithOne()
-            .HasForeignKey<Trip>(t => t.TripRequestId)
-            .OnDelete(DeleteBehavior.SetNull);
-        
         // builder.HasOne(t => t.Rating)
         //     .WithOne()
         //     .HasForeignKey<TripRating>(tr => tr.TripId)

@@ -21,6 +21,7 @@ public class DriverMatchAttempt
     public DriverMatchAttemptId Id { get; private set; }
     public TripRequestId TripRequestId { get; private set; }
     public DriverId DriverId { get; private set; }
+    public MatchingSessionId MatchingSessionId { get; private set; }
     public MatchAttemptStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? RespondedAt { get; private set; }
@@ -38,11 +39,12 @@ public class DriverMatchAttempt
 
     private DriverMatchAttempt() { } // For EF Core
 
-    public DriverMatchAttempt(TripRequestId tripRequestId, DriverId driverId,
+    public DriverMatchAttempt(TripRequestId tripRequestId, DriverId driverId, MatchingSessionId matchingSessionId,
         double distanceToPickup, double estimatedArrivalTime, decimal driverScore)
     {
         TripRequestId = tripRequestId;
         DriverId = driverId;
+        MatchingSessionId = matchingSessionId;
         DistanceToPickup = distanceToPickup;
         EstimatedArrivalTime = estimatedArrivalTime;
         DriverScore = driverScore;

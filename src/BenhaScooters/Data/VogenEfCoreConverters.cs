@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.ValueObjects;
@@ -31,12 +32,15 @@ namespace BenhaScooters.Data;
 [EfCoreConverter<DriverRatingId>]
 [EfCoreConverter<DriverLocationId>]
 [EfCoreConverter<DriverAvailabilityId>]
-[EfCoreConverter<DriverMatchAttemptId>]
+
+[EfCoreConverter<TripRequestId>]
 
 [EfCoreConverter<TripId>]
-[EfCoreConverter<TripRequestId>]
 [EfCoreConverter<TripGpsPointId>]
 [EfCoreConverter<TripRatingId>]
 [EfCoreConverter<TripFareId>]
 [EfCoreConverter<TripRouteId>]
+
+[EfCoreConverter<DriverMatchAttemptId>]
+[EfCoreConverter<MatchingSessionId>]
 public partial class VogenEfCoreConverters;
