@@ -111,12 +111,8 @@ public abstract class FeatureTestBase : IClassFixture<DatabaseFixture>, IAsyncLi
     {
         if (DbContext == null) return;
 
-        // Clean up test data in reverse order of dependencies
-        DbContext.SmsVerificationCodes.RemoveRange(DbContext.SmsVerificationCodes);
-        DbContext.RefreshTokens.RemoveRange(DbContext.RefreshTokens);
-        DbContext.UserRoles.RemoveRange(DbContext.UserRoles);
-        DbContext.Users.RemoveRange(DbContext.Users);
-        
+        DbContext.Database.EnsureDeleted();
+
         await DbContext.SaveChangesAsync();
     }
 
