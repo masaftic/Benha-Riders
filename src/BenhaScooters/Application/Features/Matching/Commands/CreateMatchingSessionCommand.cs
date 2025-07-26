@@ -1,6 +1,7 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Matching;
+using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using ErrorOr;
 using FluentValidation;

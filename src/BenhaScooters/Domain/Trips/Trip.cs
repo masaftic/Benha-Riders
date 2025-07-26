@@ -64,12 +64,12 @@ public class Trip : AggregateRoot
     /// <summary>
     /// Call this method after the entity is saved to the database to publish the domain event
     /// </summary>
-    public void PublishTripAcceptedEvent(TripRequestId tripRequestId)
+    public void PublishTripCreatedEvent()
     {
-        RaiseDomainEvent(new TripAcceptedEvent(
-            tripRequestId,
+        RaiseDomainEvent(new TripCreatedEvent(
             Id,
             DriverId,
+            RiderId,
             CreatedAt));
     }
 

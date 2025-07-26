@@ -29,4 +29,19 @@ public static class MatchingErrors
             "DRIVER_ALREADY_HAS_OFFER",
             "Driver already has a pending trip offer");
     }
+
+    public static class MatchAttempt
+    {
+        public static Error NotFound => Error.NotFound(
+            "MATCH_ATTEMPT_NOT_FOUND",
+            "Driver match attempt not found");
+
+        public static Error Expired => Error.Validation(
+            "MATCH_ATTEMPT_EXPIRED",
+            "Driver match attempt has expired");
+
+        public static Error InvalidStatus => Error.Validation(
+            "MATCH_ATTEMPT_INVALID_STATUS",
+            "Match attempt is not in a valid state for this operation");
+    }
 }

@@ -1,4 +1,6 @@
-using BenhaScooters.Application.Features.Trips.Queries;
+using BenhaScooters.Application.Features.TripRequests.Queries;
+using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Domain.TripRequests.Enums;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Presentation.Endpoints;
@@ -7,7 +9,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Riok.Mapperly.Abstractions;
 
-namespace BenhaScooters.Presentation.Endpoints.Trips;
+namespace BenhaScooters.Presentation.Endpoints.TripRequests;
 
 public class GetTripRequestByIdEndpoint : IEndpoint
 {
@@ -28,9 +30,9 @@ public class GetTripRequestByIdEndpoint : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/trips/requests/{tripRequestId}", GetTripRequestById)
+        app.MapGet("/trip-requests/{tripRequestId}", GetTripRequestById)
             .WithName("GetTripRequestById")
-            .WithTags("Trips - Driver")
+            .WithTags("Trip Requests - Driver")
             .WithSummary("Get trip request details by ID")
             .WithDescription("Retrieves detailed information about a specific trip request for drivers to review before accepting.")
             .Produces<GetTripRequestByIdResponseDto>()
@@ -67,21 +69,7 @@ public partial class GetTripRequestByIdEndpointMapper
             TripRequestId.From(tripRequestId));
     }
 
-    public GetTripRequestByIdEndpoint.GetTripRequestByIdResponseDto MapToResponse(GetTripRequestByIdResult result)
-    {
-        return new GetTripRequestByIdEndpoint.GetTripRequestByIdResponseDto(
-            result.TripRequestId,
-            result.PickupLatitude,
-            result.PickupLongitude,
-            result.DropoffLatitude,
-            result.DropoffLongitude,
-            result.PickupAddress,
-            result.DropoffAddress,
-            result.EstimatedFare,
-            result.EstimatedDistance,
-            result.EstimatedDuration,
-            result.RequestedAt,
-            result.ExpiresAt,
-            result.Status);
-    }
+    public partial GetTripRequestByIdEndpoint.GetTripRequestByIdResponseDto MapToResponse(GetTripRequestByIdResult result);
+
+    private int MapTripRequestId(TripRequestId id) => id.Value;
 }

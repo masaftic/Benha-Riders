@@ -2,6 +2,7 @@ using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Riders;
+using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Users;
 using Microsoft.EntityFrameworkCore;

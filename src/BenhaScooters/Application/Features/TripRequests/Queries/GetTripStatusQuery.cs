@@ -1,6 +1,8 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Riders;
+using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Domain.TripRequests.Enums;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
 using ErrorOr;
@@ -8,7 +10,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BenhaScooters.Application.Features.Trips.Queries;
+namespace BenhaScooters.Application.Features.TripRequests.Queries;
 
 public record GetTripStatusQuery(
     RiderId RiderId,

@@ -1,4 +1,6 @@
 using BenhaScooters.Application.Features.Matching.Commands;
+using BenhaScooters.Application.Features.Matching.Services;
+using BenhaScooters.Domain.TripRequests.Events;
 using BenhaScooters.Domain.Trips.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -13,11 +15,16 @@ public class TripRequestedEventHandler : INotificationHandler<TripRequestedEvent
 {
     private readonly ILogger<TripRequestedEventHandler> _logger;
     private readonly ISender _sender;
+    private readonly IDriverMatchingService _driverMatchingService;
 
-    public TripRequestedEventHandler(ILogger<TripRequestedEventHandler> logger, ISender sender)
+    public TripRequestedEventHandler(
+        ILogger<TripRequestedEventHandler> logger, 
+        ISender sender,
+        IDriverMatchingService driverMatchingService)
     {
         _logger = logger;
         _sender = sender;
+        _driverMatchingService = driverMatchingService;
     }
 
     public async Task Handle(TripRequestedEvent notification, CancellationToken cancellationToken)
@@ -28,6 +35,8 @@ public class TripRequestedEventHandler : INotificationHandler<TripRequestedEvent
             notification.RiderId.Value,
             notification.PickupAddress ?? "Unknown location",
             notification.DropoffAddress ?? "Unknown location");
+
+        await Task.Delay(5000);
 
         try
         {
@@ -47,11 +56,21 @@ public class TripRequestedEventHandler : INotificationHandler<TripRequestedEvent
                 notification.TripRequestId.Value,
                 sessionResult.Value.Mode);
 
-            // TODO: In the next phase, this will:
-            // 2. Find the best available drivers near pickup location
-            // 3. Send trip offers to drivers (starting with the best match)
-            // 4. Handle driver responses (accept/decline/timeout)
-            // 5. Switch to BROADCAST mode if needed
+            // Start the actual driver matching process
+            var matchingResult = await _driverMatchingService.StartMatchingAsync(
+                sessionResult.Value.MatchingSessionId,
+                cancellationToken);
+
+            if (matchingResult.IsError)
+            {
+                _logger.LogError("Failed to start driver matching for session {MatchingSessionId}: {Errors}",
+                    sessionResult.Value.MatchingSessionId.Value,
+                    string.Join(", ", matchingResult.Errors.Select(e => e.Description)));
+                return;
+            }
+
+            _logger.LogInformation("Driver matching started successfully for session {MatchingSessionId}",
+                sessionResult.Value.MatchingSessionId.Value);
         }
         catch (Exception ex)
         {

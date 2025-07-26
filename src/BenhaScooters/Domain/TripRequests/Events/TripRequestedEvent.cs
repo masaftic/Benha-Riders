@@ -3,7 +3,7 @@ using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Trips.ValueObjects;
 using NetTopologySuite.Geometries;
 
-namespace BenhaScooters.Domain.Trips.Events;
+namespace BenhaScooters.Domain.TripRequests.Events;
 
 /// <summary>
 /// Event published when a rider requests a trip

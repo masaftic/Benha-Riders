@@ -1,5 +1,6 @@
 using System.Reflection;
 using BenhaScooters.Application.Common.Behaviors;
+using BenhaScooters.Application.Features.Matching.Services;
 using BenhaScooters.Application.Services;
 using FluentValidation;
 using MediatR;
@@ -25,6 +26,7 @@ public static class DependencyInjection
 
         // Register application services
         services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IDriverMatchingService, DriverMatchingService>();
 
         return services;
     }

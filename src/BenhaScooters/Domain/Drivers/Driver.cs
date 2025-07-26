@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using Vogen;
 
@@ -14,7 +15,7 @@ public partial struct DriverId;
 public class Driver
 {
     public DriverId Id { get; private set; }
-    public Users.UserId UserId { get; private set; }
+    public UserId UserId { get; private set; }
     
     public PersonalInfo? PersonalInfo { get; private set; }
     public VehicleInfo? VehicleInfo { get; private set; }

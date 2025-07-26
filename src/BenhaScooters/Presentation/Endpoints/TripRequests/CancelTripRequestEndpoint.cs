@@ -1,4 +1,5 @@
 using BenhaScooters.Application.Features.Trips.Commands;
+using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
@@ -8,25 +9,25 @@ using Riok.Mapperly.Abstractions;
 
 namespace BenhaScooters.Presentation.Endpoints.Trips;
 
-public class CancelTripEndpoint : IEndpoint
+public class CancelTripRequestEndpoint : IEndpoint
 {
-    public record CancelTripRequestDto(
+    public record CancelTripRequestRequestDto(
         int TripRequestId,
         string? CancellationReason = null);
 
-    public record CancelTripResponseDto(
+    public record CancelTripRequestResponseDto(
         int TripRequestId,
         string Message,
         DateTime CancelledAt);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/trips/cancel", CancelTrip)
-            .WithName("CancelTrip")
-            .WithTags("Trips - Rider")
+        app.MapPost("/trip-requests/cancel", CancelTripRequest)
+            .WithName("CancelTripRequest")
+            .WithTags("Trip Requests - Rider")
             .WithSummary("Cancel a trip request")
             .WithDescription("Allows riders to cancel their pending trip requests. Only pending trips can be cancelled.")
-            .Produces<CancelTripResponseDto>()
+            .Produces<CancelTripRequestResponseDto>()
             .ProducesValidationProblem()
             .Produces(401)
             .Produces(404)
@@ -34,10 +35,10 @@ public class CancelTripEndpoint : IEndpoint
             .WithOpenApi();
     }
 
-    public async Task<IResult> CancelTrip([FromServices] ISender sender, [FromBody] CancelTripRequestDto request, HttpContext ctx)
+    public async Task<IResult> CancelTripRequest([FromServices] ISender sender, [FromBody] CancelTripRequestRequestDto request, HttpContext ctx)
     {
         var riderId = ctx.GetRiderId();
-        var mapper = new CancelTripEndpointMapper();
+        var mapper = new CancelTripRequestEndpointMapper();
         var command = mapper.MapToCommand(request, riderId);
         var result = await sender.Send(command);
 
@@ -52,21 +53,17 @@ public class CancelTripEndpoint : IEndpoint
 }
 
 [Mapper]
-public partial class CancelTripEndpointMapper
+public partial class CancelTripRequestEndpointMapper
 {
-    public CancelTripCommand MapToCommand(CancelTripEndpoint.CancelTripRequestDto request, Domain.Riders.RiderId riderId)
+    public CancelTripRequestCommand MapToCommand(CancelTripRequestEndpoint.CancelTripRequestRequestDto request, Domain.Riders.RiderId riderId)
     {
-        return new CancelTripCommand(
+        return new CancelTripRequestCommand(
             riderId,
             TripRequestId.From(request.TripRequestId),
             request.CancellationReason);
     }
 
-    public CancelTripEndpoint.CancelTripResponseDto MapToResponse(CancelTripResult result)
-    {
-        return new CancelTripEndpoint.CancelTripResponseDto(
-            result.TripRequestId.Value,
-            result.Message,
-            result.CancelledAt);
-    }
+    public partial CancelTripRequestEndpoint.CancelTripRequestResponseDto MapToResponse(CancelTripRequestResult result);
+
+    private int MapTripRequestId(TripRequestId id) => id.Value;
 }

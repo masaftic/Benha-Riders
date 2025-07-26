@@ -1,4 +1,5 @@
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using Vogen;
 
@@ -36,6 +37,7 @@ public class DriverMatchAttempt
     // Navigation Properties
     public TripRequest TripRequest { get; private set; } = null!;
     public Driver Driver { get; private set; } = null!;
+    public MatchingSession MatchingSession { get; private set; } = null!;
 
     private DriverMatchAttempt() { } // For EF Core
 

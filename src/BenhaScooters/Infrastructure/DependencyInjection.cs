@@ -6,6 +6,8 @@ using Microsoft.Extensions.Options;
 using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Infrastructure.Trips.Services;
 using BenhaScooters.Infrastructure.Authentication.Services;
+using BenhaScooters.Infrastructure.Matching.Services;
+using BenhaScooters.Infrastructure.Matching.BackgroundServices;
 using BenhaScooters.Application.Services;
 
 namespace BenhaScooters.Infrastructure;
@@ -59,6 +61,12 @@ public static class DependencyInjection
 
         // Register Google authentication service
         services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+
+        // Register matching services
+        services.AddScoped<IDriverRankingService, DriverRankingService>();
+        
+        // Register background services
+        services.AddHostedService<MatchTimeoutBackgroundService>();
 
         return services;
     }

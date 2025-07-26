@@ -23,7 +23,7 @@ public class MatchingSessionConfiguration : IEntityTypeConfiguration<MatchingSes
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(ms => ms.MatchAttempts)
-            .WithOne()
+            .WithOne(ma => ma.MatchingSession)
             .HasForeignKey(ma => ma.MatchingSessionId)
             .OnDelete(DeleteBehavior.Cascade);
 

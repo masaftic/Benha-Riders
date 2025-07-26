@@ -1,11 +1,14 @@
+using BenhaScooters.Application.Features.RequestTrips.Commands;
 using BenhaScooters.Application.Features.Trips.Commands;
+using BenhaScooters.Domain.Riders;
+using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Riok.Mapperly.Abstractions;
 
-namespace BenhaScooters.Presentation.Endpoints.Trips;
+namespace BenhaScooters.Presentation.Endpoints.TripRequests;
 
 public class RequestTripEndpoint : IEndpoint
 {
@@ -26,9 +29,9 @@ public class RequestTripEndpoint : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/trips/request", RequestTrip)
+        app.MapPost("/trip-requests", RequestTrip)
             .WithName("RequestTrip")
-            .WithTags("Trips - Rider")
+            .WithTags("Trip Requests - Rider")
             .WithSummary("Request a new trip")
             .WithDescription("Creates a new trip request with pickup and dropoff locations. Calculates estimated fare and distance using the Haversine formula.")
             .Produces<RequestTripResponseDto>()
@@ -59,7 +62,7 @@ public class RequestTripEndpoint : IEndpoint
 [Mapper]
 public partial class RequestTripEndpointMapper
 {
-    public RequestTripCommand MapToCommand(RequestTripEndpoint.RequestTripRequestDto request, Domain.Riders.RiderId riderId)
+    public RequestTripCommand MapToCommand(RequestTripEndpoint.RequestTripRequestDto request, RiderId riderId)
     {
         return new RequestTripCommand(
             riderId,
@@ -71,13 +74,7 @@ public partial class RequestTripEndpointMapper
             request.DropoffAddress);
     }
 
-    public RequestTripEndpoint.RequestTripResponseDto MapToResponse(RequestTripResult result)
-    {
-        return new RequestTripEndpoint.RequestTripResponseDto(
-            result.TripRequestId.Value,
-            result.EstimatedFare,
-            result.EstimatedDistance,
-            result.EstimatedDuration,
-            result.RequestedAt);
-    }
+    public partial RequestTripEndpoint.RequestTripResponseDto MapToResponse(RequestTripResult result);
+
+    private int MapTripRequestId(TripRequestId id) => id.Value;
 }

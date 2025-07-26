@@ -4,6 +4,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Riders;
+using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Users;
 using Vogen;

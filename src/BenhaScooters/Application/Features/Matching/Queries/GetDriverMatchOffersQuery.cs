@@ -1,0 +1,98 @@
+using BenhaScooters.Data;
+using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Matching;
+using BenhaScooters.Domain.TripRequests;
+using ErrorOr;
+using FluentValidation;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace BenhaScooters.Application.Features.Matching.Queries;
+
+public record GetDriverMatchOffersQuery(DriverId DriverId) : IRequest<ErrorOr<GetDriverMatchOffersResult>>;
+
+public record GetDriverMatchOffersResult(
+    List<DriverMatchOfferDto> MatchOffers);
+
+public record DriverMatchOfferDto(
+    TripRequestId TripRequestId,
+    MatchingSessionId SessionId,
+    double PickupLatitude,
+    double PickupLongitude,
+    double DropoffLatitude,
+    double DropoffLongitude,
+    string? PickupAddress,
+    string? DropoffAddress,
+    decimal EstimatedFare,
+    DateTime OfferedAt,
+    DateTime ExpiresAt);
+
+public class GetDriverMatchOffersQueryValidator : AbstractValidator<GetDriverMatchOffersQuery>
+{
+    public GetDriverMatchOffersQueryValidator()
+    {
+        RuleFor(x => x.DriverId.Value)
+            .NotEmpty()
+            .WithMessage("Driver ID is required");
+    }
+}
+
+public class GetDriverMatchOffersQueryHandler(AppDbContext db) 
+    : IRequestHandler<GetDriverMatchOffersQuery, ErrorOr<GetDriverMatchOffersResult>>
+{
+    public async Task<ErrorOr<GetDriverMatchOffersResult>> Handle(
+        GetDriverMatchOffersQuery request, 
+        CancellationToken cancellationToken)
+    {
+        // Check if driver exists and is available
+        var driverAvailability = await db.DriverAvailabilities
+            .FirstOrDefaultAsync(d => d.DriverId == request.DriverId, cancellationToken);
+
+        if (driverAvailability == null)
+        {
+            return DriverErrors.DriverNotFound;
+        }
+
+        if (driverAvailability.Status != DriverStatus.Online)
+        {
+            return TripErrors.Driver.NotOnline;
+        }
+
+        // Get pending match offers for this driver
+        var matchOffers = await db.DriverMatchAttempts
+            .Include(ma => ma.MatchingSession)
+            .ThenInclude(ms => ms.TripRequest)
+            .Where(ma => ma.DriverId == request.DriverId && 
+                        ma.Status == MatchAttemptStatus.Pending && 
+                        ma.ExpiresAt > DateTime.UtcNow)
+            .OrderBy(ma => ma.CreatedAt)
+            .Select(ma =>  new
+            {
+                ma.MatchingSession.TripRequestId,
+                ma.MatchingSession.Id,
+                ma.MatchingSession.TripRequest.PickupLocation,
+                ma.MatchingSession.TripRequest.DropoffLocation,
+                ma.MatchingSession.TripRequest.PickupAddress,
+                ma.MatchingSession.TripRequest.DropoffAddress,
+                ma.MatchingSession.TripRequest.EstimatedFare.Amount,
+                ma.CreatedAt,
+                ma.ExpiresAt
+            })
+            .ToListAsync(cancellationToken);
+
+
+        return new GetDriverMatchOffersResult(matchOffers.Select(x => new DriverMatchOfferDto(
+            x.TripRequestId,
+            x.Id,
+            x.PickupLocation.Y, // Latitude
+            x.PickupLocation.X, // Longitude
+            x.DropoffLocation.Y, // Latitude
+            x.DropoffLocation.X, // Longitude
+            x.PickupAddress,
+            x.DropoffAddress,
+            x.Amount,
+            x.CreatedAt,
+            x.ExpiresAt)).ToList());
+    }
+}

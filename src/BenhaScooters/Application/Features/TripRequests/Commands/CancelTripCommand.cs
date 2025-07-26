@@ -2,6 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Riders;
+using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
 using ErrorOr;
@@ -11,17 +12,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Trips.Commands;
 
-public record CancelTripCommand(
+public record CancelTripRequestCommand(
     RiderId RiderId,
     TripRequestId TripRequestId,
-    string? CancellationReason = null) : IRequest<ErrorOr<CancelTripResult>>;
+    string? CancellationReason = null) : IRequest<ErrorOr<CancelTripRequestResult>>;
 
-public record CancelTripResult(
+public record CancelTripRequestResult(
     TripRequestId TripRequestId,
     string Message,
     DateTime CancelledAt);
 
-public class CancelTripCommandValidator : AbstractValidator<CancelTripCommand>
+public class CancelTripCommandValidator : AbstractValidator<CancelTripRequestCommand>
 {
     public CancelTripCommandValidator()
     {
@@ -40,9 +41,9 @@ public class CancelTripCommandValidator : AbstractValidator<CancelTripCommand>
     }
 }
 
-public class CancelTripCommandHandler(AppDbContext db) : IRequestHandler<CancelTripCommand, ErrorOr<CancelTripResult>>
+public class CancelTripCommandHandler(AppDbContext db) : IRequestHandler<CancelTripRequestCommand, ErrorOr<CancelTripRequestResult>>
 {
-    public async Task<ErrorOr<CancelTripResult>> Handle(CancelTripCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<CancelTripRequestResult>> Handle(CancelTripRequestCommand request, CancellationToken cancellationToken)
     {
         using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         
@@ -74,7 +75,7 @@ public class CancelTripCommandHandler(AppDbContext db) : IRequestHandler<CancelT
             await db.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            return new CancelTripResult(
+            return new CancelTripRequestResult(
                 tripRequest.Id,
                 "Trip request cancelled successfully",
                 DateTime.UtcNow);

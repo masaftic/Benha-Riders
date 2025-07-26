@@ -2,6 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
+using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Domain.Trips.Events;
@@ -12,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Trips.Commands;
 
+// Deprecated
 public record AcceptTripCommand(
     DriverId DriverId,
     TripRequestId TripRequestId) : IRequest<ErrorOr<AcceptTripResult>>;
@@ -109,7 +111,7 @@ public class AcceptTripCommandHandler(AppDbContext db) : IRequestHandler<AcceptT
             await db.SaveChangesAsync(cancellationToken);
 
             // Publish domain events after successful save
-            trip.PublishTripAcceptedEvent(tripRequest.Id);
+            trip.PublishTripCreatedEvent();
 
             // Commit the transaction
             await transaction.CommitAsync(cancellationToken);

@@ -5,28 +5,27 @@ using Microsoft.Extensions.Logging;
 namespace BenhaScooters.Application.Features.Trips.EventHandlers;
 
 /// <summary>
-/// Handles the TripAcceptedEvent for notifications and tracking
+/// Handles the TripCreatedEvent for notifications and tracking
 /// </summary>
-public class TripAcceptedEventHandler : INotificationHandler<TripAcceptedEvent>
+public class TripCreatedEventHandler : INotificationHandler<TripCreatedEvent>
 {
-    private readonly ILogger<TripAcceptedEventHandler> _logger;
+    private readonly ILogger<TripCreatedEventHandler> _logger;
 
-    public TripAcceptedEventHandler(ILogger<TripAcceptedEventHandler> logger)
+    public TripCreatedEventHandler(ILogger<TripCreatedEventHandler> logger)
     {
         _logger = logger;
     }
 
-    public Task Handle(TripAcceptedEvent notification, CancellationToken cancellationToken)
+    public Task Handle(TripCreatedEvent notification, CancellationToken cancellationToken)
     {
-        _logger.LogInformation(
-            "Trip {TripId} accepted by driver {DriverId} for trip request {TripRequestId}",
-            notification.TripId.Value,
+        _logger.LogInformation("Driver {DriverId} accepted trip {TripId} for rider {RiderId} at {CreatedAt}",
             notification.DriverId.Value,
-            notification.TripRequestId.Value);
+            notification.TripId.Value,
+            notification.RiderId.Value,
+            notification.CreatedAt);
 
         // TODO: In later phases, this will:
         // - Notify the rider
-        // - Cancel other matching attempts
         // - Start driver tracking
         
         return Task.CompletedTask;

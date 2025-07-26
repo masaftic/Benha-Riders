@@ -1,13 +1,13 @@
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.TripRequests;
 
-namespace BenhaScooters.Domain.Trips.Events;
+namespace BenhaScooters.Domain.Matching.Events;
 
 /// <summary>
 /// Event published when a trip assignment offer is created for a driver
 /// </summary>
-public record TripAssignmentOfferCreatedEvent(
+public record DriverMatchOfferCreatedEvent(
     TripRequestId TripRequestId,
     DriverId DriverId,
     double DistanceToPickup,

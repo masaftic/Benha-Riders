@@ -1,17 +1,19 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Domain.TripRequests.Enums;
 using BenhaScooters.Domain.Trips.Enums;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BenhaScooters.Application.Features.Trips.Queries;
+namespace BenhaScooters.Application.Features.TripRequests.Queries;
 
 public record GetAvailableTripsQuery(DriverId DriverId) : IRequest<ErrorOr<GetAvailableTripsResult>>;
 
 public record AvailableTripDto(
-    int TripRequestId,
+    TripRequestId TripRequestId,
     double PickupLatitude,
     double PickupLongitude,
     double DropoffLatitude,
@@ -59,7 +61,7 @@ public class GetAvailableTripsQueryHandler(AppDbContext db) : IRequestHandler<Ge
 
         var result = availableTrips.Select(
             at => new AvailableTripDto(
-                at.Id.Value,
+                at.Id,
                 at.PickupLocation.Y, // Latitude
                 at.PickupLocation.X, // Longitude
                 at.DropoffLocation.Y, // Latitude

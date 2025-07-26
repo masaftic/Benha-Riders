@@ -1,4 +1,4 @@
-namespace BenhaScooters.Domain.Trips.Enums;
+namespace BenhaScooters.Domain.TripRequests.Enums;
 
 public enum TripRequestStatus
 {

@@ -7,8 +7,10 @@ using BenhaScooters.Domain.Trips.Events;
 using BenhaScooters.Domain.Common;
 using ErrorOr;
 using Vogen;
+using BenhaScooters.Domain.TripRequests.Enums;
+using BenhaScooters.Domain.TripRequests.Events;
 
-namespace BenhaScooters.Domain.Trips;
+namespace BenhaScooters.Domain.TripRequests;
 
 [ValueObject<int>]
 public partial struct TripRequestId;

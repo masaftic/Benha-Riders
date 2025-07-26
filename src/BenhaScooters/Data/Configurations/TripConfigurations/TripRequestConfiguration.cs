@@ -1,5 +1,5 @@
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.TripRequests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

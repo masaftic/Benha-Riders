@@ -1,9 +1,7 @@
-using BenhaScooters.Application.Features.Trips.Queries;
-using BenhaScooters.Domain.Trips;
-using BenhaScooters.Domain.Trips.Enums;
-using BenhaScooters.Presentation.Endpoints;
+using BenhaScooters.Application.Features.TripRequests.Queries;
+using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Domain.TripRequests.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Riok.Mapperly.Abstractions;
 
@@ -14,17 +12,17 @@ public class GetTripStatusEndpoint : IEndpoint
     public record GetTripStatusResponseDto(
         int TripRequestId,
         TripRequestStatus Status,
-        string? AssignedDriverName,
+        string? MatchedDriverName,
         DateTime RequestedAt,
-        DateTime? AcceptedAt,
+        DateTime? MatchedAt,
         DateTime? ExpiresAt,
         string? CancellationReason);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/trips/{tripRequestId}/status", GetTripStatus)
+        app.MapGet("/trip-requests/{tripRequestId}/status", GetTripStatus)
             .WithName("GetTripStatus")
-            .WithTags("Trips - Rider")
+            .WithTags("Trip Requests - Rider")
             .WithSummary("Get trip request status")
             .WithDescription("Retrieves the current status of a trip request including driver details if assigned. Only accessible by the rider who created the request.")
             .Produces<GetTripStatusResponseDto>()
@@ -61,15 +59,7 @@ public partial class GetTripStatusEndpointMapper
             TripRequestId.From(tripRequestId));
     }
 
-    public GetTripStatusEndpoint.GetTripStatusResponseDto MapToResponse(GetTripStatusResult result)
-    {
-        return new GetTripStatusEndpoint.GetTripStatusResponseDto(
-            result.TripRequestId.Value,
-            result.Status,
-            result.MatchedDriverName,
-            result.RequestedAt,
-            result.MatchedAt,
-            result.ExpiresAt,
-            result.CancellationReason);
-    }
+    public partial GetTripStatusEndpoint.GetTripStatusResponseDto MapToResponse(GetTripStatusResult result);
+
+    private int MapTripRequestId(TripRequestId id) => id.Value;
 }

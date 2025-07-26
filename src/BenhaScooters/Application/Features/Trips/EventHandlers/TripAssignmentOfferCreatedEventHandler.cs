@@ -1,3 +1,4 @@
+using BenhaScooters.Domain.Matching.Events;
 using BenhaScooters.Domain.Trips.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -7,7 +8,7 @@ namespace BenhaScooters.Application.Features.Trips.EventHandlers;
 /// <summary>
 /// Handles the TripAssignmentOfferCreatedEvent to notify drivers
 /// </summary>
-public class TripAssignmentOfferCreatedEventHandler : INotificationHandler<TripAssignmentOfferCreatedEvent>
+public class TripAssignmentOfferCreatedEventHandler : INotificationHandler<DriverMatchOfferCreatedEvent>
 {
     private readonly ILogger<TripAssignmentOfferCreatedEventHandler> _logger;
 
@@ -16,7 +17,7 @@ public class TripAssignmentOfferCreatedEventHandler : INotificationHandler<TripA
         _logger = logger;
     }
 
-    public async Task Handle(TripAssignmentOfferCreatedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(DriverMatchOfferCreatedEvent notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation(
             "Trip offer created for driver {DriverId} for trip request {TripRequestId}. Distance: {Distance}km, ETA: {ETA}min, Score: {Score}, Expires at: {ExpiresAt}",

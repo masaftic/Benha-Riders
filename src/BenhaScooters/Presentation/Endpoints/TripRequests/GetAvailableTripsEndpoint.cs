@@ -1,4 +1,5 @@
-using BenhaScooters.Application.Features.Trips.Queries;
+using BenhaScooters.Application.Features.TripRequests.Queries;
+using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -27,9 +28,9 @@ public class GetAvailableTripsEndpoint : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/trips/available", GetAvailableTrips)
+        app.MapGet("/trip-requests/available", GetAvailableTrips)
             .WithName("GetAvailableTrips")
-            .WithTags("Trips - Driver")
+            .WithTags("Trip Requests - Driver")
             .WithSummary("Get available trip requests for drivers")
             .WithDescription("Returns a list of pending trip requests that drivers can accept. Only shows trips if the driver is available for requests.")
             .Produces<GetAvailableTripsResponseDto>()
@@ -64,26 +65,7 @@ public partial class GetAvailableTripsEndpointMapper
         return new GetAvailableTripsQuery(driverId);
     }
 
-    public GetAvailableTripsEndpoint.GetAvailableTripsResponseDto MapToResponse(GetAvailableTripsResult result)
-    {
-        return new GetAvailableTripsEndpoint.GetAvailableTripsResponseDto(
-            result.AvailableTrips.Select(MapToDto).ToList());
-    }
+    public partial GetAvailableTripsEndpoint.GetAvailableTripsResponseDto MapToResponse(GetAvailableTripsResult result);
 
-    private GetAvailableTripsEndpoint.AvailableTripDto MapToDto(AvailableTripDto source)
-    {
-        return new GetAvailableTripsEndpoint.AvailableTripDto(
-            source.TripRequestId,
-            source.PickupLatitude,
-            source.PickupLongitude,
-            source.DropoffLatitude,
-            source.DropoffLongitude,
-            source.PickupAddress,
-            source.DropoffAddress,
-            source.EstimatedFare,
-            source.EstimatedDistance,
-            source.EstimatedDuration,
-            source.RequestedAt,
-            source.ExpiresAt);
-    }
+    private int MapTripRequestId(TripRequestId id) => id.Value;
 }
