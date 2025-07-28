@@ -9,6 +9,7 @@ using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Infrastructure.Matching.Services;
 using BenhaScooters.Infrastructure.Matching.BackgroundServices;
 using BenhaScooters.Application.Services;
+using BenhaScooters.Infrastructure.Interceptors;
 
 namespace BenhaScooters.Infrastructure;
 
@@ -67,6 +68,9 @@ public static class DependencyInjection
         
         // Register background services
         services.AddHostedService<MatchTimeoutBackgroundService>();
+
+
+        services.AddScoped<PublishDomainEventsInterceptor>();
 
         return services;
     }

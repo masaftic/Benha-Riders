@@ -22,7 +22,7 @@ public class TripStartedEventHandler : INotificationHandler<TripStartedEvent>
             "Trip {TripId} started by driver {DriverId} at {StartedAt}",
             notification.TripId.Value,
             notification.DriverId.Value,
-            notification.StartedAt);
+            notification.OccurredAt);
 
         // TODO: In later phases, this will:
         // - Begin GPS tracking for route building

@@ -1,14 +1,10 @@
+using BenhaScooters.Domain.Common;
 using Vogen;
 
-namespace BenhaScooters.Domain.Trips;
+namespace BenhaScooters.Domain.Trips.ValueObjects;
 
-[ValueObject<int>]
-public partial struct TripFareId;
-
-public class TripFare
+public class TripFare : ValueObject
 {
-    public TripFareId Id { get; private set; }
-    public TripId TripId { get; private set; }
     public decimal BaseFare { get; private set; }
     public decimal DistanceFare { get; private set; }
     public decimal DurationFare { get; private set; }
@@ -17,9 +13,8 @@ public class TripFare
 
     private TripFare() { }
 
-    public TripFare(TripId tripId, decimal baseFare, decimal distanceFare, decimal timeFare, decimal surgeMultiplier)
+    public TripFare(decimal baseFare, decimal distanceFare, decimal timeFare, decimal surgeMultiplier)
     {
-        TripId = tripId;
         BaseFare = baseFare;
         DistanceFare = distanceFare;
         DurationFare = timeFare;
@@ -28,5 +23,14 @@ public class TripFare
         // Calculate total fare
         TotalFare = BaseFare + DistanceFare + DurationFare;
         TotalFare *= SurgeMultiplier; // Apply surge multiplier
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return BaseFare;
+        yield return DistanceFare;
+        yield return DurationFare;
+        yield return SurgeMultiplier;
+        yield return TotalFare;
     }
 }

@@ -19,8 +19,7 @@ public class UpdateGpsLocationEndpoint : IEndpoint
     public record UpdateGpsLocationResponseDto(
         int TripId,
         string Message,
-        DateTime Timestamp,
-        int TotalGpsPoints);
+        DateTime Timestamp);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -73,7 +72,6 @@ public partial class UpdateGpsLocationEndpointMapper
         return new UpdateGpsLocationEndpoint.UpdateGpsLocationResponseDto(
             result.TripId.Value,
             result.Message,
-            result.Timestamp,
-            result.TotalGpsPoints);
+            result.Timestamp);
     }
 }

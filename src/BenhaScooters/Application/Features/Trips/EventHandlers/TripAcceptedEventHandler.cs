@@ -22,7 +22,7 @@ public class TripCreatedEventHandler : INotificationHandler<TripCreatedEvent>
             notification.DriverId.Value,
             notification.TripId.Value,
             notification.RiderId.Value,
-            notification.CreatedAt);
+            notification.OccurredAt);
 
         // TODO: In later phases, this will:
         // - Notify the rider

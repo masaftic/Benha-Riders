@@ -19,8 +19,8 @@ public class DriverRating
     public DriverRating(DriverId driverId)
     {
         DriverId = driverId;
-        AverageRating = 0;
-        TotalRatings = 0;
+        AverageRating = 4.0m; // Default rating for new drivers
+        TotalRatings = 1;
         LastUpdated = DateTime.UtcNow;
     }
 

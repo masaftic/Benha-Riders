@@ -27,15 +27,12 @@ public class Trip : AggregateRoot
 
     // Trip Status & Timing
     public TripStatus Status { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public DateTime? DriverArrivedAt { get; private set; }
-    public DateTime? StartedAt { get; private set; }
-    public DateTime? CompletedAt { get; private set; }
+    private List<TripEvent> _events = new();
+
+    public IReadOnlyList<TripEvent> Events => _events.AsReadOnly();
 
     public FareEstimate EstimatedFare { get; private set; } = null!;
 
-    // public TripRating? Rating { get; private set; }
-    public TripRoute? TripRoute { get; private set; } // Represents the route taken during the trip
     public TripFare? TripFare { get; private set; } // Represents fare details for the trip
 
 
@@ -58,19 +55,24 @@ public class Trip : AggregateRoot
         DropoffAddress = dropoffAddress?.Trim();
         EstimatedFare = estimatedFare;
         Status = TripStatus.Assigned;
-        CreatedAt = DateTime.UtcNow;
+
+        _events.Add(new TripEvent(TripStatus.Assigned, DateTime.UtcNow));
+    }
+
+    public DateTime GetEventTimestamp(TripStatus status)
+    {
+        return _events.FirstOrDefault(e => e.Status == status)?.Timestamp ?? DateTime.MinValue;
     }
 
     /// <summary>
     /// Call this method after the entity is saved to the database to publish the domain event
     /// </summary>
-    public void PublishTripCreatedEvent()
+    public DomainEvent CreateTripCreatedEvent()
     {
-        RaiseDomainEvent(new TripCreatedEvent(
+        return (new TripCreatedEvent(
             Id,
             DriverId,
-            RiderId,
-            CreatedAt));
+            RiderId));
     }
 
     public ErrorOr<Success> DriverArrived()
@@ -79,10 +81,10 @@ public class Trip : AggregateRoot
             return TripErrors.Trip.InvalidStatus;
 
         Status = TripStatus.DriverArrived;
-        DriverArrivedAt = DateTime.UtcNow;
+        _events.Add(new TripEvent(TripStatus.DriverArrived, DateTime.UtcNow));
 
         // Publish domain event
-        RaiseDomainEvent(new DriverArrivedEvent(Id, DriverId, DriverArrivedAt.Value));
+        RaiseDomainEvent(new DriverArrivedEvent(Id, DriverId, RiderId));
 
         return Result.Success;
     }
@@ -93,15 +95,10 @@ public class Trip : AggregateRoot
             return TripErrors.Trip.InvalidStatus;
 
         Status = TripStatus.InProgress;
-        StartedAt = DateTime.UtcNow;
-
-        if (TripRoute == null)
-        {
-            TripRoute = new TripRoute(Id);
-        }
+        _events.Add(new TripEvent(TripStatus.InProgress, DateTime.UtcNow));
 
         // Publish domain event
-        RaiseDomainEvent(new TripStartedEvent(Id, DriverId, StartedAt.Value));
+        RaiseDomainEvent(new TripStartedEvent(Id, DriverId, RiderId));
 
         return Result.Success;
     }
@@ -112,9 +109,10 @@ public class Trip : AggregateRoot
             return TripErrors.Trip.InvalidStatus;
 
         Status = TripStatus.Completed;
-        CompletedAt = DateTime.UtcNow;
+        _events.Add(new TripEvent(TripStatus.Completed, DateTime.UtcNow));
 
-        TripRoute!.ConstructPath();
+        RaiseDomainEvent(new TripCompletedEvent(Id, DriverId, RiderId));
+
         return Result.Success;
     }
 
@@ -134,21 +132,8 @@ public class Trip : AggregateRoot
     }
 
 
-    // public void AddRating(decimal driverRating, decimal riderRating, string? driverComment, string? riderComment)
-    // {
-    //     if (Status != TripStatus.Completed)
-    //         throw new InvalidOperationException("Can only rate completed trips");
-
-    //     if (Rating != null)
-    //         throw new InvalidOperationException("Trip has already been rated");
-
-    //     Rating = new TripRating(driverRating, riderRating, driverComment, riderComment);
-    // }
-
     // Calculated properties
-    public TimeSpan? TotalDuration => CompletedAt.HasValue && CreatedAt != default
-        ? CompletedAt.Value - CreatedAt
-        : null;
+    public TimeSpan? TotalDuration => GetEventTimestamp(TripStatus.Completed) - GetEventTimestamp(TripStatus.Assigned);
 
     public bool IsActive => Status == TripStatus.InProgress;
     public bool IsCompleted => Status == TripStatus.Completed;

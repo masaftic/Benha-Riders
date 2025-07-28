@@ -1,6 +1,7 @@
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Domain.Drivers.Events;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Users;
 using ErrorOr;
@@ -13,7 +14,7 @@ namespace BenhaScooters.Domain.Drivers;
 public partial struct DriverId;
 
 
-public class Driver
+public class Driver : AggregateRoot
 {
     public DriverId Id { get; private set; }
     public UserId UserId { get; private set; }
@@ -135,6 +136,8 @@ public class Driver
 
         OnboardingState = OnboardingState.Complete();
         IsActive = true;
+
+        RaiseDomainEvent(new DriverOnboardingCompletedEvent(Id, OnboardingState.CompletedAt!.Value));
 
         return Result.Success;
     }

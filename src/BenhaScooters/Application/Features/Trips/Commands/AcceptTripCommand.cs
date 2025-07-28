@@ -111,7 +111,7 @@ public class AcceptTripCommandHandler(AppDbContext db) : IRequestHandler<AcceptT
             await db.SaveChangesAsync(cancellationToken);
 
             // Publish domain events after successful save
-            trip.PublishTripCreatedEvent();
+            trip.CreateTripCreatedEvent();
 
             // Commit the transaction
             await transaction.CommitAsync(cancellationToken);

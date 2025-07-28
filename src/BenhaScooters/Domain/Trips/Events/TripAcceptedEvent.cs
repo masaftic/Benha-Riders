@@ -11,6 +11,5 @@ namespace BenhaScooters.Domain.Trips.Events;
 public record TripCreatedEvent(
     TripId TripId,
     DriverId DriverId,
-    RiderId RiderId,
-    DateTime CreatedAt
+    RiderId RiderId
 ) : DomainEvent;

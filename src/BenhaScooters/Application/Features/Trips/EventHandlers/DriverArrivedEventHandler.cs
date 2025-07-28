@@ -22,7 +22,7 @@ public class DriverArrivedEventHandler : INotificationHandler<DriverArrivedEvent
             "Driver {DriverId} arrived for trip {TripId} at {ArrivedAt}",
             notification.DriverId.Value,
             notification.TripId.Value,
-            notification.ArrivedAt);
+            notification.OccurredAt);
 
         // TODO: In later phases, this will:
         // - Notify the rider that driver has arrived

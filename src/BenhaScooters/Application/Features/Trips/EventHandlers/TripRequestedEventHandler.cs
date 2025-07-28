@@ -36,8 +36,6 @@ public class TripRequestedEventHandler : INotificationHandler<TripRequestedEvent
             notification.PickupAddress ?? "Unknown location",
             notification.DropoffAddress ?? "Unknown location");
 
-        await Task.Delay(5000);
-
         try
         {
             // 1. Create a matching session with PUSH mode

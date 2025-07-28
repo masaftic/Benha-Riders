@@ -68,7 +68,8 @@ public class RequestTripCommandValidator : AbstractValidator<RequestTripCommand>
 
 public class RequestTripCommandHandler(
     AppDbContext db,
-    IFareEstimator fareEstimator) : IRequestHandler<RequestTripCommand, ErrorOr<RequestTripResult>>
+    IFareEstimator fareEstimator,
+    IPublisher publisher) : IRequestHandler<RequestTripCommand, ErrorOr<RequestTripResult>>
 {
     public async Task<ErrorOr<RequestTripResult>> Handle(RequestTripCommand request, CancellationToken cancellationToken)
     {
@@ -103,7 +104,7 @@ public class RequestTripCommandHandler(
         await db.SaveChangesAsync(cancellationToken);
 
         // Publish the domain event after the ID is set 
-        tripRequest.PublishTripRequestedEvent();
+        await publisher.Publish(tripRequest.CreateTripRequestedEvent(), cancellationToken);
 
         return new RequestTripResult(
             tripRequest.Id,

@@ -1,3 +1,4 @@
+using BenhaScooters.Domain.Common;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using Vogen;
@@ -9,7 +10,7 @@ namespace BenhaScooters.Domain.Trips;
 public partial struct TripRouteId;
 
 
-public class TripRoute
+public class TripRoute : AggregateRoot
 {
     public TripRouteId Id { get; private set; }
     public TripId TripId { get; private set; }

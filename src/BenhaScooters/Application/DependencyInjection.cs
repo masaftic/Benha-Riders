@@ -17,7 +17,7 @@ public static class DependencyInjection
         {
             config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             config.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>));
-            config.AddOpenBehavior(typeof(DomainEventDispatcherBehavior<,>));
+            // config.AddOpenBehavior(typeof(DomainEventDispatcherBehavior<,>));
             // config.AddOpenBehavior(typeof(LoggingBehavior<,>));
             // config.AddOpenBehavior(typeof(PerformanceBehavior<,>));
         });

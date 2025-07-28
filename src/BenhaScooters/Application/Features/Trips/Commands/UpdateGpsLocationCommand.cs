@@ -23,8 +23,7 @@ public record UpdateGpsLocationCommand(
 public record UpdateGpsLocationResult(
     TripId TripId,
     string Message,
-    DateTime Timestamp,
-    int TotalGpsPoints);
+    DateTime Timestamp);
 
 public class UpdateGpsLocationCommandValidator : AbstractValidator<UpdateGpsLocationCommand>
 {
@@ -61,26 +60,27 @@ public class UpdateGpsLocationCommandHandler(AppDbContext db) : IRequestHandler<
     public async Task<ErrorOr<UpdateGpsLocationResult>> Handle(UpdateGpsLocationCommand request, CancellationToken cancellationToken)
     {
         // Find the trip and verify it's in progress
-        var trip = await db.Trips
-            .Include(t => t.TripRoute)
-            .FirstOrDefaultAsync(t => t.Id == request.TripId && t.DriverId == request.DriverId, cancellationToken);
+        TripStatus? tripStatus = await db.Trips
+            .Where(t => t.Id == request.TripId && t.DriverId == request.DriverId)
+            .Select(t => t.Status)
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (trip == null)
-        {
-            return TripErrors.Trip.NotFound;
-        }
-
-        if (trip.Status != TripStatus.InProgress)
+        if (tripStatus != TripStatus.InProgress)
         {
             return TripErrors.Trip.NotInProgress;
         }
+
+        TripRouteId tripRouteId = await db.TripRoutes
+            .Where(t => t.TripId == request.TripId)
+            .Select(t => t.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
         // Create GPS point
         var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
         var location = geometryFactory.CreatePoint(new Coordinate(request.Longitude, request.Latitude));
         
         var gpsPoint = new TripGpsPoint(
-            trip.TripRoute!.Id,
+            tripRouteId,
             request.DriverId,
             location,
             request.Heading,
@@ -88,18 +88,13 @@ public class UpdateGpsLocationCommandHandler(AppDbContext db) : IRequestHandler<
             DateTime.UtcNow
         );
 
-        trip.TripRoute.AddPoint(gpsPoint);
+        db.TripGpsPoints.Add(gpsPoint);
 
         await db.SaveChangesAsync(cancellationToken);
 
-        // Get total GPS points count for this trip
-        var totalGpsPoints = await db.TripGpsPoints
-            .CountAsync(gp => gp.TripRouteId == trip.TripRoute.Id, cancellationToken);
-
         return new UpdateGpsLocationResult(
-            trip.Id,
+            request.TripId,
             "GPS location updated successfully",
-            gpsPoint.Timestamp,
-            totalGpsPoints);
+            gpsPoint.Timestamp);
     }
 }

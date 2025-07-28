@@ -2,6 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Trips.Enums;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -57,6 +58,6 @@ public class DriverArrivedCommandHandler(AppDbContext db) : IRequestHandler<Driv
         return new DriverArrivedResult(
             trip.Id,
             "Driver marked as arrived successfully",
-            trip.DriverArrivedAt!.Value);
+            trip.GetEventTimestamp(TripStatus.DriverArrived));
     }
 }

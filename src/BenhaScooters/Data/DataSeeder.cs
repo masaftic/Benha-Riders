@@ -31,7 +31,9 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                 user.UpdateStatus(UserStatus.Active).Else(e =>
                 {
                     throw new Exception("Failed to update user status: " + e.First().Description);
+#pragma warning disable CS0162 // Unreachable code
                     return e.First();
+#pragma warning restore CS0162 // Unreachable code
                 });
 
                 db.Users.Add(user);
@@ -53,14 +55,18 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                 user.UpdateStatus(UserStatus.Active).Else(e =>
                 {
                     throw new Exception("Failed to update user status: " + e.First().Description);
+#pragma warning disable CS0162 // Unreachable code
                     return e.First();
+#pragma warning restore CS0162 // Unreachable code
                 });
 
                 db.Users.Add(user);
-
                 await db.SaveChangesAsync();
 
                 var driver = new Driver(user.Id);
+
+                db.Drivers.Add(driver);
+                await db.SaveChangesAsync();
 
                 var result = driver
                     .UpdatePersonalInfo("Sample Driver", NationalId.From("12345678901234"), new DateOnly(1990, 1, 1), "123 Street", "City", "Emergency Contact", PhoneNumber.From("09876543213"))
@@ -74,8 +80,6 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                 {
                     throw new Exception("Failed to create driver: " + result.Errors.First().Description);
                 }
-
-                db.Drivers.Add(driver);
 
                 await db.SaveChangesAsync();
             }
@@ -93,7 +97,9 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                 user.UpdateStatus(UserStatus.Active).Else(e =>
                 {
                     throw new Exception("Failed to update user status: " + e.First().Description);
+#pragma warning disable CS0162 // Unreachable code
                     return e.First();
+#pragma warning restore CS0162 // Unreachable code
                 });
 
                 db.Users.Add(user);

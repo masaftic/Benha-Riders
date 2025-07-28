@@ -4,6 +4,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Trips.Enums;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -31,7 +32,7 @@ public class AcceptMatchCommandValidator : AbstractValidator<AcceptMatchCommand>
     }
 }
 
-public class AcceptMatchCommandHandler(AppDbContext db) : IRequestHandler<AcceptMatchCommand, ErrorOr<AcceptMatchResult>>
+public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher) : IRequestHandler<AcceptMatchCommand, ErrorOr<AcceptMatchResult>>
 {
     public async Task<ErrorOr<AcceptMatchResult>> Handle(AcceptMatchCommand request, CancellationToken cancellationToken)
     {
@@ -92,11 +93,11 @@ public class AcceptMatchCommandHandler(AppDbContext db) : IRequestHandler<Accept
 
             await db.SaveChangesAsync(cancellationToken);
 
-            trip.PublishTripCreatedEvent();
+            await publisher.Publish(trip.CreateTripCreatedEvent(), cancellationToken);
 
             await transaction.CommitAsync(cancellationToken);
 
-            return new AcceptMatchResult(trip.Id, "Trip created successfully", trip.CreatedAt);
+            return new AcceptMatchResult(trip.Id, "Trip created successfully", trip.GetEventTimestamp(TripStatus.Assigned));
         }
         catch (Exception)
         {

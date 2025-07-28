@@ -3,6 +3,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Trips.Enums;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -53,8 +54,6 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
     {
         // Find the trip
         var trip = await db.Trips
-            .Include(t => t.TripRoute)
-            .ThenInclude(tr => tr!.TripGpsPoints)
             .FirstOrDefaultAsync(t => t.Id == request.TripId && t.DriverId == request.DriverId, cancellationToken);
 
         if (trip == null)
@@ -62,13 +61,28 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
             return TripErrors.Trip.NotFound;
         }
 
-        // Create final location point
-        var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
-        var finalLocation = geometryFactory.CreatePoint(new Coordinate(request.FinalLongitude, request.FinalLatitude));
+        var tripRoute = await db.TripRoutes
+            .FirstOrDefaultAsync(tr => tr.TripId == request.TripId, cancellationToken);
 
-        // Add final GPS point
-        var finalGpsPoint = new TripGpsPoint(trip.TripRoute!.Id, request.DriverId, finalLocation, 0, 0, DateTime.UtcNow);
-        trip.TripRoute.AddPoint(finalGpsPoint);
+        if (tripRoute is null)
+        {
+            return TripErrors.Trip.NotFound;
+        }
+
+        // Create GPS point
+        var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+        var location = geometryFactory.CreatePoint(new Coordinate(request.FinalLongitude, request.FinalLatitude));
+
+        var gpsPoint = new TripGpsPoint(
+            tripRoute.Id,
+            request.DriverId,
+            location,
+            0,
+            0,
+            DateTime.UtcNow
+        );
+
+        tripRoute.AddPoint(gpsPoint);
 
         // Complete the trip
         var completeTripResult = trip.CompleteTrip();
@@ -76,7 +90,7 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
         {
             return completeTripResult.Errors;
         }
-        
+
         // Update driver availability back to available
         var driverAvailability = await db.DriverAvailabilities
             .FirstAsync(da => da.DriverId == request.DriverId, cancellationToken);
@@ -88,7 +102,7 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
         }
 
         // Calculate actual trip fare using the service
-        var tripFare = await tripFareService.CalculateActualFareAsync(trip, cancellationToken);
+        var tripFare = await tripFareService.CalculateActualFareAsync(trip, tripRoute, cancellationToken);
         var setFareResult = trip.SetTripFare(tripFare);
         if (setFareResult.IsError)
         {
@@ -97,14 +111,12 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
 
         await db.SaveChangesAsync(cancellationToken);
 
-        var totalDuration = trip.StartedAt.HasValue && trip.CompletedAt.HasValue
-            ? (TimeSpan?)(trip.CompletedAt.Value - trip.StartedAt.Value)
-            : null;
+        var totalDuration = trip.TotalDuration;
 
         return new CompleteTripResult(
             trip.Id,
             "Trip completed successfully",
-            trip.CompletedAt!.Value,
+            trip.GetEventTimestamp(TripStatus.Completed),
             totalDuration,
             trip.TripFare?.TotalFare ?? trip.EstimatedFare.Amount);
     }

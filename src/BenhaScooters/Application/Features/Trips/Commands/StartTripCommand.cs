@@ -2,6 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Trips.Enums;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -57,6 +58,6 @@ public class StartTripCommandHandler(AppDbContext db) : IRequestHandler<StartTri
         return new StartTripResult(
             trip.Id,
             "Trip started successfully",
-            trip.StartedAt!.Value);
+            trip.GetEventTimestamp(TripStatus.Assigned));
     }
 }

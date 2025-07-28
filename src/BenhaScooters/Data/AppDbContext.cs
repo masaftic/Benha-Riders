@@ -1,15 +1,17 @@
 using BenhaScooters.Domain;
+using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Users;
+using BenhaScooters.Infrastructure.Interceptors;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options, PublishDomainEventsInterceptor publishDomainEventsInterceptor) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<ExternalAuth> ExternalAuths => Set<ExternalAuth>();
@@ -27,7 +29,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Trip> Trips => Set<Trip>();
     public DbSet<TripGpsPoint> TripGpsPoints => Set<TripGpsPoint>();
     public DbSet<TripRoute> TripRoutes => Set<TripRoute>();
-    public DbSet<TripFare> TripFares => Set<TripFare>();
 
     public DbSet<TripRequest> TripRequests => Set<TripRequest>();
 
@@ -36,16 +37,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
-
         modelBuilder.HasPostgresExtension("postgis");
+        modelBuilder.Ignore<List<IDomainEvent>>();
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        base.OnModelCreating(modelBuilder);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        base.ConfigureConventions(configurationBuilder);
-
         configurationBuilder.RegisterAllInVogenEfCoreConverters();
+
+        base.ConfigureConventions(configurationBuilder);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.AddInterceptors(publishDomainEventsInterceptor);
+
+        base.OnConfiguring(optionsBuilder);
     }
 }

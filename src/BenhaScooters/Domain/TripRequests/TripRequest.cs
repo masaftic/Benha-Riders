@@ -58,9 +58,9 @@ public class TripRequest : AggregateRoot
     /// <summary>
     /// Call this method after the entity is saved to the database to publish the domain event
     /// </summary>
-    public void PublishTripRequestedEvent()
+    public DomainEvent CreateTripRequestedEvent()
     {
-        RaiseDomainEvent(new TripRequestedEvent(
+        return new TripRequestedEvent(
             Id,
             RiderId,
             PickupLocation,
@@ -68,7 +68,7 @@ public class TripRequest : AggregateRoot
             PickupAddress,
             DropoffAddress,
             EstimatedFare,
-            RequestedAt));
+            RequestedAt);
     }
 
     /// <summary>
