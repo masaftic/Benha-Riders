@@ -17,10 +17,5 @@ public class DriverRatingConfiguration : IEntityTypeConfiguration<DriverRating>
 
         builder.Property(r => r.TotalRatings)
             .IsRequired();
-
-        builder.HasOne(dr => dr.Driver)
-            .WithOne(d => d.Rating)
-            .HasForeignKey<DriverRating>(dr => dr.DriverId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

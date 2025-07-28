@@ -66,6 +66,38 @@ public static class DriverErrors
             {"Detail", "يجب تقديم سبب واضح للرفض لمساعدة السائق على فهم ما يحتاج إلى تصحيح."}
         });
 
+    public static Error DeactivationReasonRequired => Error.Validation(
+        "DEACTIVATION_REASON_REQUIRED",
+        "سبب إلغاء التفعيل مطلوب.",
+        metadata: new Dictionary<string, object>
+        {
+            {"Detail", "يجب تقديم سبب واضح لإلغاء تفعيل السائق."}
+        });
+
+    public static Error VehicleInfoRequired => Error.Validation(
+        "VEHICLE_INFO_REQUIRED",
+        "معلومات المركبة مطلوبة.",
+        metadata: new Dictionary<string, object>
+        {
+            {"Detail", "يجب إضافة مركبة صالحة قبل إكمال التسجيل."}
+        });
+
+    public static Error DocumentsRequired => Error.Validation(
+        "DOCUMENTS_REQUIRED",
+        "المستندات المطلوبة غير مكتملة.",
+        metadata: new Dictionary<string, object>
+        {
+            {"Detail", "يجب رفع جميع المستندات المطلوبة والموافقة عليها قبل إكمال التسجيل."}
+        });
+
+    public static Error DocumentNotFound => Error.NotFound(
+        "DOCUMENT_NOT_FOUND",
+        "المستند غير موجود.",
+        metadata: new Dictionary<string, object>
+        {
+            {"Detail", "المستند المطلوب غير موجود أو تم حذفه."}
+        });
+
     public static Error InvalidFileFormat => Error.Validation(
         "INVALID_FILE_FORMAT",
         "تنسيق الملف غير صحيح. يُسمح فقط بملفات JPG و JPEG و PNG.",

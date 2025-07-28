@@ -5,6 +5,7 @@ namespace BenhaScooters.Domain.Drivers;
 [ValueObject<int>]
 public partial struct DriverRatingId;
 
+// Separate aggregate for rating history and calculations
 public class DriverRating
 {
     public DriverRatingId Id { get; private set; }
@@ -12,9 +13,6 @@ public class DriverRating
     public decimal AverageRating { get; private set; }
     public int TotalRatings { get; private set; }
     public DateTime LastUpdated { get; private set; }
-
-    // Navigation property
-    public Driver Driver { get; private set; } = null!;
 
     private DriverRating() { } // For EF Core
 

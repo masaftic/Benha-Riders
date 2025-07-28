@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Riders;
@@ -29,6 +30,9 @@ namespace BenhaScooters.Data;
 // Driver
 [EfCoreConverter<NationalId>]
 [EfCoreConverter<LicensePlate>]
+[EfCoreConverter<VIN>]
+[EfCoreConverter<DriverDocumentId>]
+[EfCoreConverter<DriverVehicleId>]
 [EfCoreConverter<DriverId>]
 [EfCoreConverter<DriverRatingId>]
 [EfCoreConverter<DriverLocationId>]

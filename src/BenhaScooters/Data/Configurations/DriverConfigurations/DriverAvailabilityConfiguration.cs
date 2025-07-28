@@ -15,11 +15,6 @@ public class DriverAvailabilityConfiguration : IEntityTypeConfiguration<DriverAv
         builder.Property(da => da.Status)
             .HasConversion<string>();
 
-        builder.HasOne(da => da.Driver)
-            .WithOne()
-            .HasForeignKey<DriverAvailability>(da => da.DriverId)
-            .OnDelete(DeleteBehavior.Cascade);
-        
         builder.HasOne<Trip>()
             .WithMany()
             .HasForeignKey(da => da.CurrentTripId)

@@ -25,40 +25,28 @@ public record UpdatePersonalInfoCommand(
 
 public class UpdatePersonalInfoCommandValidator : AbstractValidator<UpdatePersonalInfoCommand>
 {
-    public UpdatePersonalInfoCommandValidator()
+    private readonly AppDbContext _db;
+
+    public UpdatePersonalInfoCommandValidator(AppDbContext db)
     {
-        RuleFor(x => x.FullName)
-            .NotEmpty().WithMessage("الاسم الكامل مطلوب.")
-            .MaximumLength(100).WithMessage("الاسم الكامل يجب ألا يتجاوز 100 حرف.");
-
+        _db = db;
+        
+        // Only business logic validations here, not basic input validation
         RuleFor(x => x.NationalId)
-            .NotEmpty().WithMessage("رقم الهوية الوطنية مطلوب.")
-            .Matches(ValidationRegex.NationalId).WithMessage("رقم الهوية الوطنية يجب أن يكون 14 رقم.");
+            .MustAsync(BeUniqueNationalId)
+            .WithMessage("هذا الرقم القومي مسجل مع سائق آخر.")
+            .When(x => !string.IsNullOrEmpty(x.NationalId));
+    }
 
-        RuleFor(x => x.DateOfBirth)
-            .NotEmpty().WithMessage("تاريخ الميلاد مطلوب.")
-            .LessThan(DateOnly.FromDateTime(DateTime.Now.AddYears(-18))).WithMessage("يجب أن يكون عمر السائق 18 سنة على الأقل.")
-            .GreaterThan(DateOnly.FromDateTime(DateTime.Now.AddYears(-100))).WithMessage("تاريخ ميلاد غير صحيح.");
-
-        RuleFor(x => x.Address)
-            .NotEmpty().WithMessage("العنوان مطلوب.")
-            .MaximumLength(500).WithMessage("العنوان يجب ألا يتجاوز 500 حرف.");
-
-        RuleFor(x => x.City)
-            .NotEmpty().WithMessage("المدينة مطلوبة.")
-            .MaximumLength(100).WithMessage("المدينة يجب ألا تتجاوز 100 حرف.");
-
-        RuleFor(x => x.EmergencyContactName)
-            .NotEmpty().WithMessage("اسم جهة الاتصال الطارئ مطلوب.")
-            .MaximumLength(100).WithMessage("اسم جهة الاتصال الطارئ يجب ألا يتجاوز 100 حرف.");
-
-        RuleFor(x => x.EmergencyContactPhone)
-            .NotEmpty().WithMessage("رقم هاتف جهة الاتصال الطارئ مطلوب.")
-            .Matches(ValidationRegex.PhoneNumber).WithMessage("تنسيق رقم الهاتف غير صحيح.");
+    private async Task<bool> BeUniqueNationalId(UpdatePersonalInfoCommand command, string nationalId, CancellationToken cancellationToken)
+    {
+        return !await _db.Drivers
+            .AnyAsync(x => x.Info!.NationalId == NationalId.From(nationalId) && x.Id != command.DriverId, 
+                cancellationToken);
     }
 }
 
-public record UpdatePersonalInfoResponse(string Message, OnboardingStep NextStep);
+public record UpdatePersonalInfoResponse(string Message, BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep NextStep);
 
 public class UpdatePersonalInfoCommandHandler : IRequestHandler<UpdatePersonalInfoCommand, ErrorOr<UpdatePersonalInfoResponse>>
 {
@@ -79,7 +67,8 @@ public class UpdatePersonalInfoCommandHandler : IRequestHandler<UpdatePersonalIn
             return DriverErrors.DriverNotFound;
         }
 
-        if (await _db.Drivers.AnyAsync(x => x.PersonalInfo!.NationalId == NationalId.From(request.NationalId) && x.Id != driver.Id, cancellationToken: cancellationToken))
+        // Check for duplicate national ID across all drivers
+        if (await _db.Drivers.AnyAsync(x => x.Info!.NationalId == NationalId.From(request.NationalId) && x.Id != driver.Id, cancellationToken: cancellationToken))
         {
             return DriverErrors.DuplicateNationalId;
         }
@@ -102,6 +91,6 @@ public class UpdatePersonalInfoCommandHandler : IRequestHandler<UpdatePersonalIn
 
         return new UpdatePersonalInfoResponse(
             "Personal information updated successfully.",
-            driver.CurrentStep);
+            driver.OnboardingState.CurrentStep);
     }
 }

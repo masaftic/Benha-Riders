@@ -1,6 +1,7 @@
 using BenhaScooters.Application.Features.DriverOnboarding.Queries;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using MediatR;
@@ -56,6 +57,6 @@ public partial class GetOnboardingStatusEndpointMapper
 {
     public partial GetOnboardingStatusEndpoint.GetOnboardingStatusResponseDto MapToResponse(GetOnboardingStatusResponse response);
 
-    private static string OnboardingStatusToString(OnboardingStatus status) => status.ToString();
-    private static string OnboardingStepToString(OnboardingStep step) => step.ToString();
+    private static string OnboardingStatusToString(BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStatus status) => status.ToString();
+    private static string OnboardingStepToString(BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep step) => step.ToString();
 }

@@ -1,4 +1,5 @@
 using BenhaScooters.Application.Features.DriverOnboarding.Queries;
+using BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Presentation.Endpoints.DriverOnboarding.Common;
 using MediatR;

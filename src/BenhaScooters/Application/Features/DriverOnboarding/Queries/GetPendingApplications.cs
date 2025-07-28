@@ -2,6 +2,7 @@ using BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Infrastructure.S3;
@@ -36,44 +37,49 @@ public class GetPendingApplicationsQueryHandler : IRequestHandler<GetPendingAppl
     public async Task<ErrorOr<GetPendingApplicationsResponse>> Handle(GetPendingApplicationsQuery request, CancellationToken cancellationToken)
     {
         var pendingApplications = await _db.Drivers
+            .Include(d => d.Vehicles)
+            .Include(d => d.Documents)
             .Where(dp =>
-                dp.OnboardingStatus == OnboardingStatus.InProgress &&
-                dp.CurrentStep == OnboardingStep.Review)
-            .OrderBy(dp => dp.CreatedAt)
+                dp.OnboardingState.Status == OnboardingStatus.InProgress &&
+                dp.OnboardingState.CurrentStep == OnboardingStep.Review)
+            .OrderBy(dp => dp.OnboardingState.CreatedAt)
             .ToListAsync(cancellationToken);
 
         var response = new List<PendingDriverApplicationDto>();
 
         foreach (var driver in pendingApplications)
         {
-            var personalInfo = driver.PersonalInfo != null ? new PersonalInfoDto(
-                driver.PersonalInfo.FullName,
-                driver.PersonalInfo.NationalId.Value,
-                driver.PersonalInfo.DateOfBirth,
-                driver.PersonalInfo.Address,
-                driver.PersonalInfo.City,
-                driver.PersonalInfo.EmergencyContactName,
-                driver.PersonalInfo.EmergencyContactPhone.Value) : null;
+            var personalInfo = driver.Info != null ? new PersonalInfoDto(
+                driver.Info.FullName,
+                driver.Info.NationalId.Value,
+                driver.Info.DateOfBirth,
+                driver.Info.Address,
+                driver.Info.City,
+                driver.Info.EmergencyContactName,
+                driver.Info.EmergencyContactPhone.Value) : null;
 
-            var vehicleInfo = driver.VehicleInfo != null ? new VehicleInfoDto(
-                driver.VehicleInfo.VehicleType,
-                driver.VehicleInfo.Brand,
-                driver.VehicleInfo.Model,
-                driver.VehicleInfo.Color,
-                driver.VehicleInfo.LicensePlate.Value,
-                driver.VehicleInfo.Year) : null;
+            var vehicleInfo = new VehicleInfoDto(
+                driver.Vehicles.First().VehicleType,
+                driver.Vehicles.First().Brand,
+                driver.Vehicles.First().Model,
+                driver.Vehicles.First().Color,
+                driver.Vehicles.First().LicensePlate.Value,
+                driver.Vehicles.First().Year,
+                driver.Vehicles.First().VIN.Value,
+                driver.Vehicles.First().IsActive,
+                driver.Vehicles.First().CreatedAt);
 
-            var documents = driver.Documents != null ? new DocumentsDto(
-                await _s3.GetPreSignedUrlAsync(driver.Documents.LicenseImageUrl, TimeSpan.FromMinutes(15), cancellationToken),
-                await _s3.GetPreSignedUrlAsync(driver.Documents.VehicleRegistrationImageUrl, TimeSpan.FromMinutes(15), cancellationToken),
-                await _s3.GetPreSignedUrlAsync(driver.Documents.ImageUrl, TimeSpan.FromMinutes(15), cancellationToken)) : null;
+            var documents = new DocumentsDto(
+                await driver.Documents.FirstOrDefault(d => d.Type == DocumentType.DrivingLicense)?.ToDto(_s3),
+                await driver.Documents.FirstOrDefault(d => d.Type == DocumentType.VehicleRegistration)?.ToDto(_s3),
+                await driver.Documents.FirstOrDefault(d => d.Type == DocumentType.DriverPhoto)?.ToDto(_s3));
 
             response.Add(new PendingDriverApplicationDto(
                 driver.UserId.Value,
                 personalInfo,
                 vehicleInfo,
                 documents,
-                driver.CreatedAt));
+                driver.OnboardingState.CreatedAt));
         }
 
         return new GetPendingApplicationsResponse(response);

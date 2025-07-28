@@ -2,7 +2,7 @@ using BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
-using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Infrastructure.S3;
 using ErrorOr;
 using MediatR;
@@ -14,15 +14,10 @@ namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 public record GetOnboardingDetailsQuery(UserId UserId) : IRequest<ErrorOr<GetOnboardingDetailsResponse>>;
 
 public record GetOnboardingDetailsResponse(
-    OnboardingStatus Status,
-    OnboardingStep CurrentStep,
-    int Progress,
-    string? RejectionReason,
-    DateTime CreatedAt,
-    DateTime? CompletedAt,
+    OnboardingStateDto OnboardingState,
     PersonalInfoDto? PersonalInfo,
     VehicleInfoDto? VehicleInfo,
-    DocumentsDto? Documents);
+    DocumentsDto Documents);
 
 
 
@@ -40,6 +35,8 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
     public async Task<ErrorOr<GetOnboardingDetailsResponse>> Handle(GetOnboardingDetailsQuery request, CancellationToken cancellationToken)
     {
         var driver = await _db.Drivers
+            .Include(d => d.Documents)
+            .Include(d => d.Vehicles)
             .FirstOrDefaultAsync(dp => dp.UserId == request.UserId, cancellationToken);
 
         if (driver == null)
@@ -47,35 +44,73 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
             return DriverErrors.DriverNotFound;
         }
 
-        var personalInfo = driver.PersonalInfo != null ? new PersonalInfoDto(
-            driver.PersonalInfo.FullName,
-            driver.PersonalInfo.NationalId.Value,
-            driver.PersonalInfo.DateOfBirth,
-            driver.PersonalInfo.Address,
-            driver.PersonalInfo.City,
-            driver.PersonalInfo.EmergencyContactName,
-            driver.PersonalInfo.EmergencyContactPhone.Value) : null;
+        var personalInfo = driver.Info != null ? new PersonalInfoDto(
+            driver.Info.FullName,
+            driver.Info.NationalId.Value,
+            driver.Info.DateOfBirth,
+            driver.Info.Address,
+            driver.Info.City,
+            driver.Info.EmergencyContactName,
+            driver.Info.EmergencyContactPhone.Value) : null;
 
-        var vehicleInfo = driver.VehicleInfo != null ? new VehicleInfoDto(
-            driver.VehicleInfo.VehicleType,
-            driver.VehicleInfo.Brand,
-            driver.VehicleInfo.Model,
-            driver.VehicleInfo.Color,
-            driver.VehicleInfo.LicensePlate.Value,
-            driver.VehicleInfo.Year) : null;
+        var activeVehicle = driver.ActiveVehicle;
+        var vehicleInfo = activeVehicle != null ? new VehicleInfoDto(
+            activeVehicle.VehicleType,
+            activeVehicle.Brand,
+            activeVehicle.Model,
+            activeVehicle.Color,
+            activeVehicle.LicensePlate.Value,
+            activeVehicle.Year,
+            activeVehicle.VIN.Value,
+            activeVehicle.IsActive,
+            activeVehicle.CreatedAt) : null;
 
-        var documents = driver.Documents != null ? new DocumentsDto(
-            await _s3.GetPreSignedUrlAsync(driver.Documents.LicenseImageUrl, TimeSpan.FromMinutes(10), cancellationToken),
-            await _s3.GetPreSignedUrlAsync(driver.Documents.VehicleRegistrationImageUrl, TimeSpan.FromMinutes(10), cancellationToken),
-            await _s3.GetPreSignedUrlAsync(driver.Documents.ImageUrl, TimeSpan.FromMinutes(10), cancellationToken)) : null;
+        // Create document DTOs with enhanced information
+        var licenseDoc = driver.Documents.FirstOrDefault(d => d.Type == BenhaScooters.Domain.Drivers.Entities.DocumentType.DrivingLicense);
+        var registrationDoc = driver.Documents.FirstOrDefault(d => d.Type == BenhaScooters.Domain.Drivers.Entities.DocumentType.VehicleRegistration);
+        var photoDoc = driver.Documents.FirstOrDefault(d => d.Type == BenhaScooters.Domain.Drivers.Entities.DocumentType.DriverPhoto);
+
+        var documents = new DocumentsDto(
+            licenseDoc != null ? new DocumentDto(
+                licenseDoc.Type.ToString(),
+                licenseDoc.Status.ToString(),
+                await _s3.GetPreSignedUrlAsync(licenseDoc.ImageUrl, TimeSpan.FromMinutes(10), cancellationToken),
+                licenseDoc.UploadedAt,
+                licenseDoc.ExpiryDate,
+                licenseDoc.RejectionReason,
+                licenseDoc.IsValid,
+                licenseDoc.IsExpired) : null,
+            registrationDoc != null ? new DocumentDto(
+                registrationDoc.Type.ToString(),
+                registrationDoc.Status.ToString(),
+                await _s3.GetPreSignedUrlAsync(registrationDoc.ImageUrl, TimeSpan.FromMinutes(10), cancellationToken),
+                registrationDoc.UploadedAt,
+                registrationDoc.ExpiryDate,
+                registrationDoc.RejectionReason,
+                registrationDoc.IsValid,
+                registrationDoc.IsExpired) : null,
+            photoDoc != null ? new DocumentDto(
+                photoDoc.Type.ToString(),
+                photoDoc.Status.ToString(),
+                await _s3.GetPreSignedUrlAsync(photoDoc.ImageUrl, TimeSpan.FromMinutes(10), cancellationToken),
+                photoDoc.UploadedAt,
+                photoDoc.ExpiryDate,
+                photoDoc.RejectionReason,
+                photoDoc.IsValid,
+                photoDoc.IsExpired) : null);
+
+        var onboardingState = new OnboardingStateDto(
+            driver.OnboardingState.Status.ToString(),
+            driver.OnboardingState.CurrentStep.ToString(),
+            driver.OnboardingProgress,
+            driver.OnboardingState.RejectionReason,
+            driver.OnboardingState.CreatedAt,
+            driver.OnboardingState.CompletedAt,
+            driver.OnboardingState.IsCompleted,
+            driver.OnboardingState.CurrentStep != BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep.Completed);
 
         var response = new GetOnboardingDetailsResponse(
-            driver.OnboardingStatus,
-            driver.CurrentStep,
-            driver.OnboardingProgress,
-            driver.RejectionReason,
-            driver.CreatedAt,
-            driver.CompletedAt,
+            onboardingState,
             personalInfo,
             vehicleInfo,
             documents);

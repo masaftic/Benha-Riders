@@ -1,10 +1,11 @@
-using System.Text.RegularExpressions;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Users;
 using ErrorOr;
 using Vogen;
+using static BenhaScooters.Domain.Drivers.Entities.DocumentType;
 
 namespace BenhaScooters.Domain.Drivers;
 
@@ -17,95 +18,123 @@ public class Driver
     public DriverId Id { get; private set; }
     public UserId UserId { get; private set; }
     
-    public PersonalInfo? PersonalInfo { get; private set; }
-    public VehicleInfo? VehicleInfo { get; private set; }
-    public DriverDocuments? Documents { get; private set; }
+    // Core driver information
+    public DriverInfo? Info { get; private set; }
     
-    // Onboarding Status
-    public OnboardingStatus OnboardingStatus { get; private set; }
-    public OnboardingStep CurrentStep { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public DateTime? CompletedAt { get; private set; }
-    public string? RejectionReason { get; private set; }
+    // Onboarding state
+    public OnboardingState OnboardingState { get; private set; }
     
-    // Driver Status
+    // Driver status
     public bool IsActive { get; private set; }
 
-    // Navigation Properties
-    public DriverRating Rating { get; private set; } = null!;
+    // Child entities within the aggregate
+    private readonly List<DriverDocument> _documents = new();
+    private readonly List<DriverVehicle> _vehicles = new();
+    
+    public IReadOnlyList<DriverDocument> Documents => _documents.AsReadOnly();
+    public IReadOnlyList<DriverVehicle> Vehicles => _vehicles.AsReadOnly();
 
+    private Driver() // For EF Core
+    { 
+        OnboardingState = null!; // Will be set by EF Core
+    }
 
-    private Driver() { } // For EF Core
-
-    public Driver(Users.UserId userId)
+    public Driver(UserId userId)
     {
         UserId = userId;
-        OnboardingStatus = OnboardingStatus.NotStarted;
-        CurrentStep = OnboardingStep.PersonalInfo;
-        CreatedAt = DateTime.UtcNow;
+        OnboardingState = OnboardingState.CreateNew();
         IsActive = false;
     }
 
     public ErrorOr<Success> UpdatePersonalInfo(string fullName, NationalId nationalId, DateOnly dateOfBirth, 
-        string address, string city, string emergencyContactName, Users.PhoneNumber emergencyContactPhone)
+        string address, string city, string emergencyContactName, PhoneNumber emergencyContactPhone)
     {
-        if (OnboardingStatus == OnboardingStatus.Completed)
+        if (OnboardingState.IsCompleted)
             return DriverErrors.OnboardingAlreadyCompleted;
 
-        PersonalInfo = new PersonalInfo(fullName, nationalId, dateOfBirth, address, city, emergencyContactName, emergencyContactPhone);
-
-        if (OnboardingStatus == OnboardingStatus.NotStarted)
-            OnboardingStatus = OnboardingStatus.InProgress;
-
-        if (CurrentStep == OnboardingStep.PersonalInfo)
-            CurrentStep = OnboardingStep.VehicleInfo;
-
-        return Result.Success;
-    }
-
-    public ErrorOr<Success> UpdateVehicleInfo(VehicleType vehicleType, string vehicleBrand, string vehicleModel, 
-        string vehicleColor, LicensePlate licensePlate, int vehicleYear)
-    {
-        if (OnboardingStatus == OnboardingStatus.Completed)
-            return DriverErrors.OnboardingAlreadyCompleted;
-
-        if (CurrentStep < OnboardingStep.VehicleInfo)
-            return DriverErrors.PersonalInfoRequired;
-
-        VehicleInfo = new VehicleInfo(vehicleType, vehicleBrand, vehicleModel, vehicleColor, licensePlate, vehicleYear);
-
-        if (CurrentStep == OnboardingStep.VehicleInfo)
-            CurrentStep = OnboardingStep.Documents;
-
-        return Result.Success;
-    }
-
-    public ErrorOr<Success> UpdateDocuments(string licenseImageUrl, string vehicleRegistrationImageUrl, string ImageUrl)
-    {
-        if (OnboardingStatus == OnboardingStatus.Completed)
-            return DriverErrors.OnboardingAlreadyCompleted;
-
-        if (CurrentStep < OnboardingStep.Documents)
+        if (!OnboardingState.CanAdvanceFrom(OnboardingStep.PersonalInfo))
             return DriverErrors.PreviousStepsRequired;
 
-        Documents = new DriverDocuments(licenseImageUrl, vehicleRegistrationImageUrl, ImageUrl);
+        Info = new DriverInfo(fullName, nationalId, dateOfBirth, address, city, emergencyContactName, emergencyContactPhone);
+        OnboardingState = OnboardingState.AdvanceToNextStep();
 
-        if (CurrentStep == OnboardingStep.Documents)
-            CurrentStep = OnboardingStep.Review;
+        return Result.Success;
+    }
+
+    public ErrorOr<Success> AddVehicle(VehicleType vehicleType, string vehicleBrand, string vehicleModel, 
+        string vehicleColor, LicensePlate licensePlate, int vehicleYear, VIN vin)
+    {
+        if (OnboardingState.IsCompleted)
+            return DriverErrors.OnboardingAlreadyCompleted;
+
+        if (!OnboardingState.CanAdvanceFrom(OnboardingStep.VehicleInfo))
+            return DriverErrors.PersonalInfoRequired;
+
+        // Deactivate existing vehicles
+        foreach (var vehicle in _vehicles)
+        {
+            vehicle.Deactivate();
+        }
+
+        var newVehicle = new DriverVehicle(Id, vehicleType, vehicleBrand, vehicleModel, vehicleColor, licensePlate, vehicleYear, vin);
+        _vehicles.Add(newVehicle);
+        
+        OnboardingState = OnboardingState.AdvanceToNextStep();
+
+        return Result.Success;
+    }
+
+    public ErrorOr<Success> AddDocument(DocumentType documentType, string imageUrl, DateTime? expiryDate = null)
+    {
+        if (OnboardingState.IsCompleted)
+            return DriverErrors.OnboardingAlreadyCompleted;
+
+        if (!OnboardingState.CanAdvanceFrom(OnboardingStep.Documents))
+            return DriverErrors.PreviousStepsRequired;
+
+        // Remove existing document of same type
+        var existingDoc = _documents.FirstOrDefault(d => d.Type == documentType);
+        if (existingDoc != null)
+        {
+            _documents.Remove(existingDoc);
+        }
+
+        var document = new DriverDocument(Id, documentType, imageUrl, expiryDate);
+        _documents.Add(document);
+        ApproveDocument(documentType); // Automatically approve new document
+
+        // Check if all required documents are uploaded
+        var requiredDocs = new[] { DocumentType.DrivingLicense, DocumentType.VehicleRegistration, DocumentType.DriverPhoto };
+        var hasAllDocs = requiredDocs.All(type => _documents.Any(d => d.Type == type));
+
+        if (hasAllDocs)
+        {
+            OnboardingState = OnboardingState.AdvanceToNextStep();
+        }
 
         return Result.Success;
     }
 
     public ErrorOr<Success> CompleteOnboarding()
     {
-        if (CurrentStep != OnboardingStep.Review)
+        if (!OnboardingState.CanComplete)
             return DriverErrors.OnboardingIncomplete;
 
-        OnboardingStatus = OnboardingStatus.Completed;
-        CurrentStep = OnboardingStep.Completed;
-        CompletedAt = DateTime.UtcNow;
+        // Validate all required data is present
+        if (Info == null)
+            return DriverErrors.PersonalInfoRequired;
+
+        if (!_vehicles.Any(v => v.IsActive))
+            return DriverErrors.VehicleInfoRequired;
+
+        var requiredDocs = new[] { DocumentType.DrivingLicense, DocumentType.VehicleRegistration, DocumentType.DriverPhoto };
+        var missingDocs = requiredDocs.Where(type => !_documents.Any(d => d.Type == type && d.IsValid)).ToList();
+        
+        if (missingDocs.Any())
+            return DriverErrors.DocumentsRequired;
+
+        OnboardingState = OnboardingState.Complete();
         IsActive = true;
-        RejectionReason = null;
 
         return Result.Success;
     }
@@ -115,19 +144,37 @@ public class Driver
         if (string.IsNullOrWhiteSpace(reason))
             return DriverErrors.RejectionReasonRequired;
 
-        OnboardingStatus = OnboardingStatus.Rejected;
-        RejectionReason = reason;
+        OnboardingState = OnboardingState.Reject(reason);
         IsActive = false;
 
         return Result.Success;
     }
 
-    public void AddRating(decimal newRating)
+    public ErrorOr<Success> ApproveDocument(DocumentType documentType)
     {
-        Rating.AddRating(newRating);
+        var document = _documents.FirstOrDefault(d => d.Type == documentType);
+        if (document == null)
+            return DriverErrors.DocumentNotFound;
+
+        document.Approve();
+        return Result.Success;
     }
 
-    public bool IsOnboardingComplete => OnboardingStatus == OnboardingStatus.Completed;
-    public bool CanGoOnline => IsOnboardingComplete && IsActive;
-    public int OnboardingProgress => (int)CurrentStep * 20; // 20% per step
+    public ErrorOr<Success> RejectDocument(DocumentType documentType, string reason)
+    {
+        var document = _documents.FirstOrDefault(d => d.Type == documentType);
+        if (document == null)
+            return DriverErrors.DocumentNotFound;
+
+        document.Reject(reason);
+        return Result.Success;
+    }
+
+    // Properties for compatibility and convenience
+    public bool IsOnboardingComplete => OnboardingState.IsCompleted;
+    public bool CanGoOnline => IsOnboardingComplete && IsActive && AllDocumentsValid;
+    public int OnboardingProgress => OnboardingState.ProgressPercentage;
+    public DriverVehicle? ActiveVehicle => _vehicles.FirstOrDefault(v => v.IsActive);
+    
+    private bool AllDocumentsValid => _documents.All(d => d.IsValid);
 }

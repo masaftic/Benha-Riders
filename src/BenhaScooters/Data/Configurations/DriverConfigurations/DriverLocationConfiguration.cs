@@ -21,10 +21,6 @@ public class DriverLocationConfiguration : IEntityTypeConfiguration<DriverLocati
         builder.Property(dl => dl.Speed)
             .HasPrecision(5, 2);
 
-        builder.HasOne(dl => dl.Driver)
-            .WithOne()
-            .HasForeignKey<DriverLocation>(dl => dl.DriverId)
-            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(dl => dl.Location).HasMethod("GIST");
         builder.HasIndex(dl => dl.Timestamp);

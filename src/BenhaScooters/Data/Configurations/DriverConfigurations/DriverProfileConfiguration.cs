@@ -22,9 +22,9 @@ public class DriverConfiguration : IEntityTypeConfiguration<Driver>
             .WithOne()
             .HasForeignKey<Driver>(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-            
-        // Configure PersonalInfo as owned entity
-        builder.OwnsOne(x => x.PersonalInfo, personalInfo =>
+
+        // Configure Info as owned entity
+        builder.OwnsOne(x => x.Info, personalInfo =>
         {
             personalInfo.Property(p => p.FullName)
                 .HasMaxLength(100)
@@ -55,68 +55,25 @@ public class DriverConfiguration : IEntityTypeConfiguration<Driver>
                 .IsUnique();
         });
 
-        // Configure VehicleInfo as owned entity
-        builder.OwnsOne(x => x.VehicleInfo, vehicleInfo =>
+        // Onboarding State
+        builder.OwnsOne(x => x.OnboardingState, onboardingState =>
         {
-            vehicleInfo.Property(v => v.VehicleType)
+            onboardingState.Property(os => os.Status)
                 .HasConversion<string>()
                 .IsRequired();
 
-            vehicleInfo.Property(v => v.Brand)
-                .HasMaxLength(50)
+            onboardingState.Property(os => os.CurrentStep)
+                .HasConversion<string>()
                 .IsRequired();
 
-            vehicleInfo.Property(v => v.Model)
-                .HasMaxLength(50)
+            onboardingState.Property(os => os.RejectionReason)
+                .HasMaxLength(500);
+
+            onboardingState.Property(os => os.CreatedAt)
                 .IsRequired();
 
-            vehicleInfo.Property(v => v.Color)
-                .HasMaxLength(30)
-                .IsRequired();
-
-            vehicleInfo.Property(v => v.LicensePlate)
-                .HasMaxLength(30)
-                .IsRequired();
-
-            vehicleInfo.Property(v => v.Year)
-                .IsRequired();
-            
-            vehicleInfo.HasIndex(v => v.LicensePlate)
-                .IsUnique();
+            onboardingState.Property(os => os.CompletedAt);
         });
-
-        // Configure DriverDocuments as owned entity
-        builder.OwnsOne(x => x.Documents, documents =>
-        {
-            documents.Property(d => d.LicenseImageUrl)
-                .HasMaxLength(500)
-                .IsRequired();
-
-            documents.Property(d => d.VehicleRegistrationImageUrl)
-                .HasMaxLength(500)
-                .IsRequired();
-
-            documents.Property(d => d.ImageUrl)
-                .HasMaxLength(500)
-                .IsRequired();
-        });
-
-        // Onboarding Status
-        builder.Property(x => x.OnboardingStatus)
-            .HasConversion<string>()
-            .IsRequired();
-
-        builder.Property(x => x.CurrentStep)
-            .HasConversion<string>()
-            .IsRequired();
-
-        builder.Property(x => x.CreatedAt)
-            .IsRequired();
-
-        builder.Property(x => x.CompletedAt);
-
-        builder.Property(x => x.RejectionReason)
-            .HasMaxLength(1000);
 
         // Driver Status
         builder.Property(x => x.IsActive)
@@ -126,7 +83,6 @@ public class DriverConfiguration : IEntityTypeConfiguration<Driver>
         builder.HasIndex(x => x.UserId)
             .IsUnique();
 
-        builder.HasIndex(x => x.OnboardingStatus);
         builder.HasIndex(x => x.IsActive);
     }
 }

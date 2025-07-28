@@ -53,7 +53,7 @@ public class JwtService : IJwtService
         if (driver is not null)
         {
             claims.Add(new Claim(JwtClaims.DriverId, driver.Id.ToString()));
-            claims.Add(new Claim(JwtClaims.DriverOnboardingStatus, driver.OnboardingStatus.ToString()));
+            claims.Add(new Claim(JwtClaims.DriverOnboardingStatus, driver.OnboardingState.Status.ToString()));
         }
 
         if (rider is not null)

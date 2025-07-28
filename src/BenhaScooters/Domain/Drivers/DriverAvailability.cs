@@ -17,6 +17,7 @@ public enum DriverStatus
     Busy
 }
 
+// Separate aggregate for hot path operations with minimal invariants
 public class DriverAvailability
 {
     public DriverAvailabilityId Id { get; private set; }
@@ -30,9 +31,6 @@ public class DriverAvailability
     // Session tracking
     public DateTime? OnlineSessionStart { get; private set; }
     public TimeSpan TotalOnlineTime { get; private set; }
-
-    // Navigation Properties
-    public Driver Driver { get; private set; } = null!;
 
     private DriverAvailability() { } // For EF Core
 

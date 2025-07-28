@@ -2,7 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Domain.Drivers.ValueObjects;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -43,12 +43,12 @@ public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingStat
         }
 
         var response = new GetOnboardingStatusResponse(
-            driver.OnboardingStatus,
-            driver.CurrentStep,
+            driver.OnboardingState.Status,
+            driver.OnboardingState.CurrentStep,
             driver.OnboardingProgress,
-            driver.RejectionReason,
-            driver.CreatedAt,
-            driver.CompletedAt);
+            driver.OnboardingState.RejectionReason,
+            driver.OnboardingState.CreatedAt,
+            driver.OnboardingState.CompletedAt);
 
         return response;
     }

@@ -13,13 +13,36 @@ public record PersonalInfoDto(
 
 public record VehicleInfoDto(
     VehicleType VehicleType,
-    string VehicleBrand,
-    string VehicleModel,
-    string VehicleColor,
+    string Brand,
+    string Model,
+    string Color,
     string LicensePlate,
-    int VehicleYear);
+    int Year,
+    string VIN,
+    bool IsActive,
+    DateTime CreatedAt);
+
+public record DocumentDto(
+    string Type,
+    string Status,
+    string ImageUrl,
+    DateTime UploadedAt,
+    DateTime? ExpiryDate,
+    string? RejectionReason,
+    bool IsValid,
+    bool IsExpired);
 
 public record DocumentsDto(
-    string LicenseImageUrl,
-    string VehicleRegistrationImageUrl,
-    string ImageUrl);
+    DocumentDto? DrivingLicense,
+    DocumentDto? VehicleRegistration,
+    DocumentDto? DriverPhoto);
+
+public record OnboardingStateDto(
+    string Status,
+    string CurrentStep,
+    int Progress,
+    string? RejectionReason,
+    DateTime CreatedAt,
+    DateTime? CompletedAt,
+    bool IsCompleted,
+    bool CanAdvance);

@@ -52,7 +52,7 @@ public class GetTripStatusQueryHandler(AppDbContext db) : IRequestHandler<GetTri
             {
                 tr.Id,
                 tr.Status,
-                MatchedDriverName = tr.MatchedDriver != null ? tr.MatchedDriver.PersonalInfo!.FullName : null,
+                MatchedDriverName = tr.MatchedDriver != null ? tr.MatchedDriver.Info!.FullName : null,
                 tr.RequestedAt,
                 tr.MatchedAt,
                 tr.ExpiresAt,

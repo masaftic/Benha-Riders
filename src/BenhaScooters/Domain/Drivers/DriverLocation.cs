@@ -6,13 +6,12 @@ namespace BenhaScooters.Domain.Drivers;
 [ValueObject<int>]
 public partial struct DriverLocationId;
 
-// Represents the current location of a driver
-// This is used for real-time tracking and updates during trips
+// Separate aggregate for hot path operations with minimal invariants
+// Represents the current location of a driver for real-time tracking
 public class DriverLocation
 {
     public DriverLocationId Id { get; private set; }
     public DriverId DriverId { get; private set; }
-    public Driver Driver { get; private set; } = null!; // Navigation property for EF Core
     public Point Location { get; private set; } = null!; // PostGIS geography point
     public double Heading { get; private set; } = 0; // Direction in degrees
     public double Speed { get; private set; } = 0; // Speed in km/h

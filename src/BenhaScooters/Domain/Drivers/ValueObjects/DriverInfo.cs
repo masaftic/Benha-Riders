@@ -1,8 +1,8 @@
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Users;
 using Vogen;
 
 namespace BenhaScooters.Domain.Drivers.ValueObjects;
-
 
 [ValueObject<string>]
 public partial struct NationalId
@@ -20,8 +20,7 @@ public partial struct NationalId
     }
 }
 
-
-public class PersonalInfo : ValueObject
+public class DriverInfo : ValueObject
 {
     public string FullName { get; private set; } = null!;
     public NationalId NationalId { get; private set; }
@@ -29,12 +28,12 @@ public class PersonalInfo : ValueObject
     public string Address { get; private set; } = null!;
     public string City { get; private set; } = null!;
     public string EmergencyContactName { get; private set; } = null!;
-    public Users.PhoneNumber EmergencyContactPhone { get; private set; }
+    public PhoneNumber EmergencyContactPhone { get; private set; }
 
-    private PersonalInfo() { } // For EF Core
+    private DriverInfo() { } // For EF Core
 
-    public PersonalInfo(string fullName, NationalId nationalId, DateOnly dateOfBirth,
-        string address, string city, string emergencyContactName, Users.PhoneNumber emergencyContactPhone)
+    public DriverInfo(string fullName, NationalId nationalId, DateOnly dateOfBirth,
+        string address, string city, string emergencyContactName, PhoneNumber emergencyContactPhone)
     {
         if (string.IsNullOrWhiteSpace(fullName))
             throw new ArgumentException("Full name is required.", nameof(fullName));

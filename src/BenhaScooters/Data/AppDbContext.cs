@@ -22,6 +22,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Driver> Drivers => Set<Driver>();
     public DbSet<DriverLocation> DriverLocations => Set<DriverLocation>();
     public DbSet<DriverAvailability> DriverAvailabilities => Set<DriverAvailability>();
+    public DbSet<DriverRating> DriverRatings => Set<DriverRating>();
 
     public DbSet<Trip> Trips => Set<Trip>();
     public DbSet<TripGpsPoint> TripGpsPoints => Set<TripGpsPoint>();

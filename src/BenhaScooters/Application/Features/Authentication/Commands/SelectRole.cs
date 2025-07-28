@@ -63,31 +63,44 @@ public class SelectRoleCommandHandler : IRequestHandler<SelectRoleCommand, Error
         {
             return UserErrors.PhoneNumberNotVerified;
         }
-        
-        var role = Enum.Parse<RoleName>(request.Role, ignoreCase: true);
-        user.AddRole(new UserRole(role));
 
-        Driver? driver = null;
-        Rider? rider = null;
-
-        if (role == RoleName.Rider)
+        var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+        try
         {
-            rider = new Rider(user.Id, user.Name);
-            _db.Riders.Add(rider);
+            var role = Enum.Parse<RoleName>(request.Role, ignoreCase: true);
+            user.AddRole(new UserRole(role));
+
+            Driver? driver = null;
+            Rider? rider = null;
+
+            if (role == RoleName.Rider)
+            {
+                rider = new Rider(user.Id, user.Name);
+                _db.Riders.Add(rider);
+            }
+            else if (role == RoleName.Driver)
+            {
+                driver = new Driver(user.Id);
+                _db.Drivers.Add(driver);
+            }
+
+            await _db.SaveChangesAsync(cancellationToken);
+
+            // Use state machine to get new status after completing role selection
+            var newStatusResult = UserOnboardingStateMachine.GetNewStatusAfterStep(user.Status, OnboardingSteps.SelectRole);
+            if (newStatusResult.IsError) return newStatusResult.Errors;
+
+            var result = user.UpdateStatus(newStatusResult.Value);
+            if (result.IsError) return result.Errors;
+
+            var authResult = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driver, rider, cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return authResult;
         }
-        else if (role == RoleName.Driver)
+        catch (Exception)
         {
-            driver = new Driver(user.Id);
-            _db.Drivers.Add(driver);
+            await transaction.RollbackAsync(cancellationToken);
+            return Error.Failure("SELECT_ROLE_ERROR", "An error occurred while selecting the role. Please try again.");
         }
-
-        // Use state machine to get new status after completing role selection
-        var newStatusResult = UserOnboardingStateMachine.GetNewStatusAfterStep(user.Status, OnboardingSteps.SelectRole);
-        if (newStatusResult.IsError) return newStatusResult.Errors;
-
-        var result = user.UpdateStatus(newStatusResult.Value);
-        if (result.IsError) return result.Errors;
-
-        return await _authenticationService.GenerateAuthenticatedResponseAsync(user, driver, rider, cancellationToken);
     }
 }

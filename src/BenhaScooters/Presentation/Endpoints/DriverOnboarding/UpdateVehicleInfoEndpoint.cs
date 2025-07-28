@@ -2,8 +2,10 @@ using BenhaScooters.Application.Features.DriverOnboarding.Commands;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -19,13 +21,65 @@ public class UpdateVehicleInfoEndpoint : IEndpoint
         string VehicleModel,
         string VehicleColor,
         string LicensePlate,
-        int VehicleYear);
+        int VehicleYear,
+        string VIN);
+
+    public class UpdateVehicleInfoRequestValidator : AbstractValidator<UpdateVehicleInfoRequestDto>
+    {
+        public UpdateVehicleInfoRequestValidator()
+        {
+            RuleFor(x => x.VehicleType)
+                .IsInEnum()
+                .WithMessage("Valid vehicle type is required.");
+
+            RuleFor(x => x.VehicleBrand)
+                .NotEmpty()
+                .WithMessage("Vehicle brand is required.")
+                .MinimumLength(2)
+                .WithMessage("Vehicle brand must be at least 2 characters long.")
+                .MaximumLength(50)
+                .WithMessage("Vehicle brand cannot exceed 50 characters.");
+
+            RuleFor(x => x.VehicleModel)
+                .NotEmpty()
+                .WithMessage("Vehicle model is required.")
+                .MinimumLength(1)
+                .WithMessage("Vehicle model must be at least 1 character long.")
+                .MaximumLength(50)
+                .WithMessage("Vehicle model cannot exceed 50 characters.");
+
+            RuleFor(x => x.VehicleColor)
+                .NotEmpty()
+                .WithMessage("Vehicle color is required.")
+                .MinimumLength(2)
+                .WithMessage("Vehicle color must be at least 2 characters long.")
+                .MaximumLength(30)
+                .WithMessage("Vehicle color cannot exceed 30 characters.");
+
+            RuleFor(x => x.LicensePlate)
+                .NotEmpty()
+                .WithMessage("License plate is required.")
+                .Length(3, 10)
+                .WithMessage("License plate must be between 3 and 10 characters.");
+
+            RuleFor(x => x.VehicleYear)
+                .InclusiveBetween(1980, DateTime.Now.Year + 1)
+                .WithMessage($"Vehicle year must be between 1980 and {DateTime.Now.Year + 1}.");
+
+            RuleFor(x => x.VIN)
+                .NotEmpty()
+                .WithMessage("VIN is required.")
+                .Length(17)
+                .WithMessage("VIN must be exactly 17 characters.");
+        }
+    }
 
     public record UpdateVehicleInfoResponseDto(string Message, string NextStep);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/driver/onboarding/vehicle-info", UpdateVehicleInfo)
+            .AddEndpointFilter<ValidationFilter<UpdateVehicleInfoRequestDto>>()
             .WithName("UpdateDriverVehicleInfo")
             .WithTags("Driver Onboarding")
             .WithSummary("Update driver vehicle information")
@@ -69,10 +123,11 @@ public partial class UpdateVehicleInfoEndpointMapper
             request.VehicleModel,
             request.VehicleColor,
             request.LicensePlate,
-            request.VehicleYear);
+            request.VehicleYear,
+            request.VIN);
     }
 
     public partial UpdateVehicleInfoEndpoint.UpdateVehicleInfoResponseDto MapToResponse(UpdateVehicleInfoResponse response);
 
-    private static string OnboardingStepToString(OnboardingStep step) => step.ToString();
+    private static string OnboardingStepToString(BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep step) => step.ToString();
 }

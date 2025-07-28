@@ -19,7 +19,7 @@ public interface IDriverRankingService
     /// Find the best driver for PUSH mode (single driver)
     /// </summary>
     Task<DriverCandidate?> FindBestDriverAsync(Point pickupLocation, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Find the top N drivers for BROADCAST mode
     /// </summary>
@@ -55,20 +55,17 @@ public class DriverRankingService : IDriverRankingService
     {
         // Query available drivers within search radius by joining with their locations
         var availableDrivers = await (from da in _dbContext.DriverAvailabilities
-                                     join dl in _dbContext.DriverLocations on da.DriverId equals dl.DriverId
-                                     where da.Status == DriverStatus.Online
-                                     where dl.Location.Distance(pickupLocation) <= MaxSearchRadius
-                                     select new
-                                     {
-                                         da.DriverId,
-                                         CurrentLocation = dl.Location,
-                                         DistanceToPickup = dl.Location.Distance(pickupLocation),
-                                         // Get driver rating from their profile
-                                         Rating = _dbContext.Drivers
-                                             .Where(d => d.Id == da.DriverId)
-                                             .Select(d => d.Rating.AverageRating)
-                                             .FirstOrDefault()
-                                     })
+                                      join dl in _dbContext.DriverLocations on da.DriverId equals dl.DriverId
+                                      join dr in _dbContext.DriverRatings on da.DriverId equals dr.DriverId
+                                      where da.Status == DriverStatus.Online
+                                      where dl.Location.Distance(pickupLocation) <= MaxSearchRadius
+                                      select new
+                                      {
+                                          da.DriverId,
+                                          CurrentLocation = dl.Location,
+                                          DistanceToPickup = dl.Location.Distance(pickupLocation),
+                                          Rating = dr.AverageRating
+                                      })
                                      .ToListAsync(cancellationToken);
 
         // Calculate scores and rank drivers
@@ -91,14 +88,14 @@ public class DriverRankingService : IDriverRankingService
         // Normalize distance score (closer = higher score)
         // Use exponential decay for distance penalty
         var distanceScore = Math.Exp(-distanceMeters / 2000.0); // 2km decay factor
-        
+
         // Normalize rating score (higher rating = higher score)
         var actualRating = rating ?? DefaultRating;
         var ratingScore = (double)(actualRating / 5.0m); // Normalize to 0-1 scale
-        
+
         // Calculate weighted score
         var finalScore = (DistanceWeight * distanceScore) + (RatingWeight * ratingScore);
-        
+
         return (decimal)finalScore;
     }
 }
