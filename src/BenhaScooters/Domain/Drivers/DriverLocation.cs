@@ -19,20 +19,16 @@ public class DriverLocation
 
     private DriverLocation() { } // For EF Core
 
-    public DriverLocation(DriverId driverId, Point location, double heading, double speed, DateTime timestamp)
+    public DriverLocation(DriverId driverId, Point location, DateTime timestamp)
     {
         DriverId = driverId;
         Location = location;
-        Heading = heading;
-        Speed = speed;
         Timestamp = timestamp;
     }
 
-    public void UpdateLocation(Point newLocation, double newHeading, double newSpeed)
+    public void UpdateLocation(Point newLocation)
     {
         Location = newLocation;
-        Heading = newHeading;
-        Speed = newSpeed;
         Timestamp = DateTime.UtcNow;
     }
 }

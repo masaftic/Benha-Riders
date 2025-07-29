@@ -7,9 +7,22 @@ using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Infrastructure.Trips.Services;
 using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Infrastructure.Matching.Services;
-using BenhaScooters.Infrastructure.Matching.BackgroundServices;
+// using BenhaScooters.Infrastructure.Matching.BackgroundServices;
 using BenhaScooters.Application.Services;
 using BenhaScooters.Infrastructure.Interceptors;
+using Hangfire;
+using Hangfire.PostgreSql;
+using BenhaScooters.Data;
+using Microsoft.EntityFrameworkCore;
+using BenhaScooters.Services;
+using BenhaScooters.Infrastructure.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using BenhaScooters.Shared.Security;
+using BenhaScooters.Domain.Users;
+using Microsoft.AspNetCore.Authorization;
+using BenhaScooters.Presentation.Security;
 
 namespace BenhaScooters.Infrastructure;
 
@@ -22,7 +35,7 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(S3Options.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        
+
         // Configure FareEstimation options
         services.AddOptions<FareEstimationOptions>()
             .Bind(configuration.GetSection(FareEstimationOptions.SectionName))
@@ -36,7 +49,20 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(TripFareConfiguration.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        
+
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"), o => o.UseNetTopologySuite()));
+
+        services.AddHangfire(config =>
+        {
+            config.UsePostgreSqlStorage(o =>
+            {
+                o.UseNpgsqlConnection(configuration.GetConnectionString("DefaultConnection"));
+            });
+        });
+
+        services.AddHangfireServer();
+
         // Register S3 client
         services.AddScoped<IAmazonS3>(sp =>
         {
@@ -53,10 +79,10 @@ public static class DependencyInjection
 
             return new AmazonS3Client(credentials, config);
         });
-        
+
         // Register S3 service
         services.AddScoped<IS3Service, S3Service>();
-        
+
         // Register MinIO initialization service
         services.AddScoped<IMinioInitializationService, MinioInitializationService>();
 
@@ -65,12 +91,73 @@ public static class DependencyInjection
 
         // Register matching services
         services.AddScoped<IDriverRankingService, DriverRankingService>();
-        
-        // Register background services
-        services.AddHostedService<MatchTimeoutBackgroundService>();
 
+        // Register background services
+        // services.AddHostedService<MatchTimeoutBackgroundService>();
+
+        services.AddScoped<DataSeeder>();
+        services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
+        services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<ISmsService, DevSmsService>();
+        services.AddScoped<IFareEstimator, FareEstimator>();
+
+        // Add the token cleanup background service
+        services.AddHostedService<TokenCleanupService>();
 
         services.AddScoped<PublishDomainEventsInterceptor>();
+
+
+
+        var jwtOptions = new JwtOptions();
+        configuration.Bind(JwtOptions.SectionName, jwtOptions);
+
+        services
+            .AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new()
+                {
+                    ValidateAudience = false,
+                    ValidateIssuer = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey))
+                };
+            });
+
+        services.AddAuthorization(opt =>
+        {
+            opt.AddPolicy("OnboardedDriver", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireRole("Driver");
+                policy.RequireClaim(JwtClaims.DriverOnboardingStatus, "Completed");
+            });
+
+            opt.AddPolicy("RiderPolicy", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireRole("Rider");
+                policy.RequireClaim(JwtClaims.RiderId);
+                policy.RequireClaim(JwtClaims.Status, UserStatus.Active.ToString());
+            });
+
+            opt.AddPolicy("DriverPolicy", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireRole("Driver");
+                policy.RequireClaim(JwtClaims.DriverId);
+                policy.RequireClaim(JwtClaims.Status, UserStatus.Active.ToString());
+            });
+        });
+
+        services.AddSingleton<IAuthorizationHandler, UserOnboardingRequirementHandler>();
 
         return services;
     }

@@ -15,15 +15,7 @@ public record DriverCandidate(
 
 public interface IDriverRankingService
 {
-    /// <summary>
-    /// Find the best driver for PUSH mode (single driver)
-    /// </summary>
-    Task<DriverCandidate?> FindBestDriverAsync(Point pickupLocation, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Find the top N drivers for BROADCAST mode
-    /// </summary>
-    Task<List<DriverCandidate>> FindTopDriversAsync(Point pickupLocation, int count = 5, CancellationToken cancellationToken = default);
+    Task<List<DriverCandidate>> FindTopNDriversAsync(Point pickupLocation, int count = 5, List<DriverId>? excludedDrivers = null, CancellationToken cancellationToken = default);
 }
 
 public class DriverRankingService : IDriverRankingService
@@ -37,50 +29,6 @@ public class DriverRankingService : IDriverRankingService
     public DriverRankingService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
-    }
-
-    public async Task<DriverCandidate?> FindBestDriverAsync(Point pickupLocation, CancellationToken cancellationToken = default)
-    {
-        var candidates = await FindAvailableDriversAsync(pickupLocation, cancellationToken);
-        return candidates.FirstOrDefault();
-    }
-
-    public async Task<List<DriverCandidate>> FindTopDriversAsync(Point pickupLocation, int count = 5, CancellationToken cancellationToken = default)
-    {
-        var candidates = await FindAvailableDriversAsync(pickupLocation, cancellationToken);
-        return candidates.Take(count).ToList();
-    }
-
-    private async Task<List<DriverCandidate>> FindAvailableDriversAsync(Point pickupLocation, CancellationToken cancellationToken)
-    {
-        // Query available drivers within search radius by joining with their locations
-        var availableDrivers = await (from da in _dbContext.DriverAvailabilities
-                                      join dl in _dbContext.DriverLocations on da.DriverId equals dl.DriverId
-                                      join dr in _dbContext.DriverRatings on da.DriverId equals dr.DriverId
-                                      where da.Status == DriverStatus.Online
-                                      where dl.Location.Distance(pickupLocation) <= MaxSearchRadius
-                                      select new
-                                      {
-                                          da.DriverId,
-                                          CurrentLocation = dl.Location,
-                                          DistanceToPickup = dl.Location.Distance(pickupLocation),
-                                          Rating = dr.AverageRating
-                                      })
-                                     .ToListAsync(cancellationToken);
-
-        // Calculate scores and rank drivers
-        var candidates = availableDrivers
-            .Select(driver => new DriverCandidate(
-                driver.DriverId,
-                driver.CurrentLocation,
-                driver.DistanceToPickup,
-                driver.Rating,
-                CalculateDriverScore(driver.DistanceToPickup, driver.Rating)
-            ))
-            .OrderByDescending(c => c.Score) // Higher score is better
-            .ToList();
-
-        return candidates;
     }
 
     private decimal CalculateDriverScore(double distanceMeters, decimal? rating)
@@ -98,4 +46,39 @@ public class DriverRankingService : IDriverRankingService
 
         return (decimal)finalScore;
     }
+
+    public async Task<List<DriverCandidate>> FindTopNDriversAsync(Point pickupLocation, int count = 5, List<DriverId>? excludedDrivers = null, CancellationToken cancellationToken = default)
+    {
+        var availableDrivers = await (from da in _dbContext.DriverAvailabilities
+                                      join dl in _dbContext.DriverLocations on da.DriverId equals dl.DriverId
+                                      join dr in _dbContext.DriverRatings on da.DriverId equals dr.DriverId
+                                      where da.Status == DriverStatus.Online
+                                      where dl.Location.Distance(pickupLocation) <= MaxSearchRadius
+                                      where excludedDrivers == null || !excludedDrivers.Contains(da.DriverId)
+                                      select new
+                                      {
+                                          da.DriverId,
+                                          CurrentLocation = dl.Location,
+                                          DistanceToPickup = dl.Location.Distance(pickupLocation),
+                                          Rating = dr.AverageRating
+                                      })
+                                      .ToListAsync(cancellationToken);
+
+        // Calculate scores and rank drivers
+        var candidates = availableDrivers
+            .Select(driver => new DriverCandidate(
+                driver.DriverId,
+                driver.CurrentLocation,
+                driver.DistanceToPickup,
+                driver.Rating,
+                CalculateDriverScore(driver.DistanceToPickup, driver.Rating)
+            ))
+            .OrderByDescending(c => c.Score) // Higher score is better
+            .ToList();
+
+        return candidates.Take(count).ToList();
+    }
 }
+
+
+

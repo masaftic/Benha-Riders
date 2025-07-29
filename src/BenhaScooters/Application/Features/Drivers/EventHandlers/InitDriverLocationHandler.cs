@@ -2,6 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Events;
 using MediatR;
+using NetTopologySuite;
 using NetTopologySuite.Geometries;
 
 namespace BenhaScooters.Application.Features.Drivers.EventHandlers;
@@ -17,12 +18,13 @@ public class InitDriverLocationHandler : INotificationHandler<DriverOnboardingCo
 
     public async Task Handle(DriverOnboardingCompletedEvent notification, CancellationToken cancellationToken)
     {
+        var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
+        var location = geometryFactory.CreatePoint(new Coordinate(0, 0));
+
         var driverLocation = new DriverLocation(
             notification.DriverId,
-            new Point(0, 0), // Initial location can be set to a default value
-            0, // Initial heading
-            0, // Initial speed
-            DateTime.UtcNow // Current timestamp
+            location,
+            DateTime.UtcNow
         );
 
         _db.DriverLocations.Add(driverLocation);

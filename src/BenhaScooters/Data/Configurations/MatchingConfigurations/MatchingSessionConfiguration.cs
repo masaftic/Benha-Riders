@@ -11,9 +11,6 @@ public class MatchingSessionConfiguration : IEntityTypeConfiguration<MatchingSes
         builder.HasKey(ms => ms.Id);
         builder.Property(ms => ms.Id).ValueGeneratedOnAdd();
 
-        builder.Property(ms => ms.CurrentMode)
-            .HasConversion<string>();
-
         builder.Property(ms => ms.Status)
             .HasConversion<string>();
 
@@ -21,6 +18,15 @@ public class MatchingSessionConfiguration : IEntityTypeConfiguration<MatchingSes
             .WithMany()
             .HasForeignKey(ms => ms.TripRequestId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(ms => ms.NumberOfRounds)
+            .IsRequired();
+
+        builder.Property(ms => ms.OffersPerRound)
+            .IsRequired()
+            .HasConversion(value => string.Join(',', value), 
+                           value => value.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                         .Select(int.Parse).ToList());
 
         builder.HasMany(ms => ms.MatchAttempts)
             .WithOne(ma => ma.MatchingSession)

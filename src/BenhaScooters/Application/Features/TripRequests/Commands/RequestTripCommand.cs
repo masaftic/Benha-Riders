@@ -4,15 +4,13 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.TripRequests.Enums;
-using BenhaScooters.Domain.Trips;
-using BenhaScooters.Infrastructure.Trips.Services;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 
-namespace BenhaScooters.Application.Features.RequestTrips.Commands;
+namespace BenhaScooters.Application.Features.TripRequests.Commands;
 
 public record RequestTripCommand(
     RiderId RiderId,

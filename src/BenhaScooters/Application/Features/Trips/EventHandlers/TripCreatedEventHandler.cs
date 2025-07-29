@@ -1,12 +1,10 @@
+using BenhaScooters.Data;
+using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Events;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace BenhaScooters.Application.Features.Trips.EventHandlers;
 
-/// <summary>
-/// Handles the TripCreatedEvent for notifications and tracking
-/// </summary>
 public class TripCreatedEventHandler : INotificationHandler<TripCreatedEvent>
 {
     private readonly ILogger<TripCreatedEventHandler> _logger;
@@ -18,16 +16,13 @@ public class TripCreatedEventHandler : INotificationHandler<TripCreatedEvent>
 
     public Task Handle(TripCreatedEvent notification, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Driver {DriverId} accepted trip {TripId} for rider {RiderId} at {CreatedAt}",
-            notification.DriverId.Value,
+        _logger.LogInformation("Trip created: {TripId} for Driver {DriverId} and Rider {RiderId}",
             notification.TripId.Value,
-            notification.RiderId.Value,
-            notification.OccurredAt);
+            notification.DriverId.Value,
+            notification.RiderId.Value);
 
-        // TODO: In later phases, this will:
-        // - Notify the rider
-        // - Start driver tracking
-        
+        // Additional logic can be added here, e.g., notifying other services or updating caches
+
         return Task.CompletedTask;
     }
 }

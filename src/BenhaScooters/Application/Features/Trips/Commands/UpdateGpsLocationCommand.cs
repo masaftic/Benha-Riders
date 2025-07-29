@@ -16,9 +16,7 @@ public record UpdateGpsLocationCommand(
     DriverId DriverId,
     TripId TripId,
     double Latitude,
-    double Longitude,
-    double Heading,
-    double Speed) : IRequest<ErrorOr<UpdateGpsLocationResult>>;
+    double Longitude) : IRequest<ErrorOr<UpdateGpsLocationResult>>;
 
 public record UpdateGpsLocationResult(
     TripId TripId,
@@ -44,14 +42,6 @@ public class UpdateGpsLocationCommandValidator : AbstractValidator<UpdateGpsLoca
         RuleFor(x => x.Longitude)
             .InclusiveBetween(-180, 180)
             .WithMessage("Longitude must be between -180 and 180");
-
-        RuleFor(x => x.Heading)
-            .InclusiveBetween(0, 360)
-            .WithMessage("Heading must be between 0 and 360 degrees");
-
-        RuleFor(x => x.Speed)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage("Speed cannot be negative");
     }
 }
 
@@ -83,8 +73,6 @@ public class UpdateGpsLocationCommandHandler(AppDbContext db) : IRequestHandler<
             tripRouteId,
             request.DriverId,
             location,
-            request.Heading,
-            request.Speed,
             DateTime.UtcNow
         );
 

@@ -14,12 +14,6 @@ public class TripGpsPointConfiguration : IEntityTypeConfiguration<TripGpsPoint>
         builder.Property(lp => lp.Location)
             .HasColumnType("geography (point)");
 
-        builder.Property(lp => lp.Heading)
-            .HasPrecision(5, 2);
-            
-        builder.Property(lp => lp.Speed)
-            .HasPrecision(5, 2);
-
         builder.HasOne(lp => lp.Driver)
             .WithMany()
             .HasForeignKey(lp => lp.DriverId)

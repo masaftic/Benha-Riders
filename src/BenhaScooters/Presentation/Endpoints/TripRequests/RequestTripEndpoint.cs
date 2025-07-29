@@ -1,4 +1,4 @@
-using BenhaScooters.Application.Features.RequestTrips.Commands;
+using BenhaScooters.Application.Features.TripRequests.Commands;
 using BenhaScooters.Application.Features.Trips.Commands;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.TripRequests;

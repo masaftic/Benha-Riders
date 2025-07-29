@@ -73,12 +73,6 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
             .HasForeignKey(t => t.RiderId)
             .OnDelete(DeleteBehavior.Cascade);
 
-
-        // builder.HasOne(t => t.Rating)
-        //     .WithOne()
-        //     .HasForeignKey<TripRating>(tr => tr.TripId)
-        //     .OnDelete(DeleteBehavior.Cascade);
-
         builder.HasIndex(t => t.Status);
     }
 }

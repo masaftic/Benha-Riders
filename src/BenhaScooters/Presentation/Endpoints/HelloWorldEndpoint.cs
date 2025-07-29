@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using FluentValidation;
+using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 using Riok.Mapperly.Abstractions;
 
@@ -45,6 +46,8 @@ public static class HelloWorldEndpoint
         public IResult Handler([FromBody] Request request)
         {
             var message = $"Hello, {request.Name}!";
+            BackgroundJob.Enqueue(() => Console.WriteLine(message));
+            BackgroundJob.Schedule(() => Console.WriteLine(message), TimeSpan.FromSeconds(2));
             var response = new Response(message);
             return Results.Ok(response);
         }

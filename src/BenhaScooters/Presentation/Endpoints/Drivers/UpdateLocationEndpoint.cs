@@ -12,18 +12,9 @@ namespace BenhaScooters.Presentation.Endpoints.Drivers;
 
 public class UpdateLocationEndpoint : IEndpoint
 {
-    public record UpdateLocationRequestDto(
-        double Latitude,
-        double Longitude,
-        double Heading,
-        double Speed);
-
-    public record UpdateLocationResponseDto(
-        double Latitude,
-        double Longitude,
-        double Heading,
-        double Speed);
-
+    public record UpdateLocationRequestDto(double Latitude, double Longitude);
+    
+    public record UpdateLocationResponseDto(double Latitude, double Longitude);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -64,12 +55,7 @@ public partial class UpdateLocationEndpointMapper
 {
     public UpdateLocationCommand MapToCommand(UpdateLocationEndpoint.UpdateLocationRequestDto request, DriverId driverId)
     {
-        return new UpdateLocationCommand(
-            driverId,
-            request.Latitude,
-            request.Longitude,
-            request.Heading,
-            request.Speed);
+        return new UpdateLocationCommand(driverId, request.Latitude, request.Longitude);
     }
 
     public partial UpdateLocationEndpoint.UpdateLocationResponseDto MapToResponse(UpdateLocationResponse response);

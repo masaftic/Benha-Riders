@@ -12,9 +12,7 @@ public class UpdateGpsLocationEndpoint : IEndpoint
 {
     public record UpdateGpsLocationRequestDto(
         double Latitude,
-        double Longitude,
-        double Heading,
-        double Speed);
+        double Longitude);
 
     public record UpdateGpsLocationResponseDto(
         int TripId,
@@ -62,9 +60,7 @@ public partial class UpdateGpsLocationEndpointMapper
             driverId,
             TripId.From(tripId),
             request.Latitude,
-            request.Longitude,
-            request.Heading,
-            request.Speed);
+            request.Longitude);
     }
 
     public UpdateGpsLocationEndpoint.UpdateGpsLocationResponseDto MapToResponse(UpdateGpsLocationResult result)

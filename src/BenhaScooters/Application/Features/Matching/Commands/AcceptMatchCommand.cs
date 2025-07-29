@@ -75,6 +75,9 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher) : 
                 tripRequest.EstimatedFare
             );
 
+            db.Trips.Add(trip);
+
+            // Save to get the id
             await db.SaveChangesAsync(cancellationToken);
 
             var result = driverAvailability.StartTrip(trip.Id);
@@ -83,6 +86,9 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher) : 
                 errors = result.Errors;
                 throw new Exception();
             }
+
+            var tripRoute = new TripRoute(trip.Id);
+            db.TripRoutes.Add(tripRoute);
 
             result = tripRequest.MarkAsMatched(driverAvailability.DriverId);
             if (result.IsError)

@@ -9,47 +9,69 @@ using Vogen;
 
 namespace BenhaScooters.Domain.Matching;
 
+
+/*
+
+n rounds
+Ni round: make Mi offers to drivers
+
+no phases, just rounds
+
+input
+- TripRequestId
+- Number of Rounds
+- Number of Offers for each round
+
+
+state
+- MatchingSessionId
+- TripRequestId
+- CurrentRound
+- CurrentOffers
+- Status (Active, Completed, Cancelled, Expired)
+
+
+algorithm:
+- 
+
+process session
+create Mi offers for round Ni
+
+
+handle timeout
+after sending match offers
+schedule a HandleTimeOut function that looks at the session
+if session is still active and no driver has accepted the match
+then advance to next phase
+- if current round is the last round, cancel the session, raise SessionCanceledEvent
+
+*/
+
+
 [ValueObject<int>]
 public partial struct MatchingSessionId;
-
-
-public enum MatchingMode
-{
-    Push = 1,    // Send offer to one driver at a time
-    Broadcast = 2 // Send offer to multiple drivers simultaneously
-}
-
-public enum MatchingPhase
-{
-    Phase1_Push = 1,        // Phase 1: Push mode with best driver
-    Phase2_Broadcast = 2,   // Phase 2: Broadcast mode with N best drivers
-    Phase3_Broadcast = 3    // Phase 3: Broadcast mode with next N best drivers
-}
 
 public enum MatchingSessionStatus
 {
     Active = 1,
     Completed = 2,
-    Cancelled = 3,
-    Expired = 4
+    Cancelled = 3
 }
 
 public class MatchingSession : AggregateRoot
 {
     public MatchingSessionId Id { get; private set; }
     public TripRequestId TripRequestId { get; private set; }
-    public MatchingMode CurrentMode { get; private set; }
-    public MatchingPhase CurrentPhase { get; private set; }
+
+    public int NumberOfRounds { get; private set; }
+    public IReadOnlyList<int> OffersPerRound { get; private set; } = [];
+    public int CurrentRound { get; private set; } = 1;
+
     public MatchingSessionStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
     public DateTime ExpiresAt { get; private set; }
     
-    // Matching statistics
-    public int TotalAttempts { get; private set; } = 0;
-    public int RejectionCount { get; private set; } = 0;
-    public int TimeoutCount { get; private set; } = 0;
-    public int CurrentPhaseAttempts { get; private set; } = 0;
 
     private readonly List<DriverMatchAttempt> _matchAttempts = [];
     public IReadOnlyCollection<DriverMatchAttempt> MatchAttempts => _matchAttempts.AsReadOnly();
@@ -59,88 +81,48 @@ public class MatchingSession : AggregateRoot
 
     private MatchingSession() { } // For EF Core
 
-    public MatchingSession(TripRequestId tripRequestId)
+    public MatchingSession(TripRequestId tripRequestId, int numberOfRounds, List<int> offersPerRound)
     {
         TripRequestId = tripRequestId;
-        CurrentMode = MatchingMode.Push;
-        CurrentPhase = MatchingPhase.Phase1_Push;
+
+        NumberOfRounds = numberOfRounds;
+        OffersPerRound = offersPerRound;
+
         Status = MatchingSessionStatus.Active;
         CreatedAt = DateTime.UtcNow;
         ExpiresAt = DateTime.UtcNow.AddMinutes(10); // 10-minute session timeout
     }
 
-    public ErrorOr<Success> AdvanceToNextPhase()
+    public bool ShouldAdvanceToNextRound()
+    {
+        // Check if we have more rounds and if the current round is complete
+        return CurrentRound < NumberOfRounds && _matchAttempts.All(ma => ma.Status != MatchAttemptStatus.Pending);
+    }
+
+    public ErrorOr<Success> AdvanceToNextRound()
     {
         if (Status != MatchingSessionStatus.Active)
             return MatchingErrors.Session.NotActive;
 
-        switch (CurrentPhase)
+        CurrentRound++;
+        if (CurrentRound > NumberOfRounds)
         {
-            case MatchingPhase.Phase1_Push:
-                CurrentPhase = MatchingPhase.Phase2_Broadcast;
-                CurrentMode = MatchingMode.Broadcast;
-                CurrentPhaseAttempts = 0;
-                break;
-            
-            case MatchingPhase.Phase2_Broadcast:
-                CurrentPhase = MatchingPhase.Phase3_Broadcast;
-                CurrentMode = MatchingMode.Broadcast; // Still broadcast
-                CurrentPhaseAttempts = 0;
-                break;
-            
-            case MatchingPhase.Phase3_Broadcast:
-                // No more phases, session should be cancelled
-                return Error.Validation("NO_MORE_PHASES", "No more matching phases available");
-            
-            default:
-                return Error.Validation("INVALID_PHASE", "Invalid matching phase");
+            Status = MatchingSessionStatus.Cancelled;
+            CompletedAt = DateTime.UtcNow;
         }
 
         return Result.Success;
     }
 
-    public bool ShouldAdvanceToNextPhase()
+    public List<DriverId> GetRejectedOrExpiredDrivers()
     {
-        return CurrentPhase switch
-        {
-            MatchingPhase.Phase1_Push => true, // Always advance after Phase 1 failure
-            MatchingPhase.Phase2_Broadcast => HasAllCurrentPhaseAttemptsFinished(),
-            MatchingPhase.Phase3_Broadcast => false, // No next phase
-            _ => false
-        };
-    }
-
-    private bool HasAllCurrentPhaseAttemptsFinished()
-    {
-        var currentPhaseAttempts = _matchAttempts
-            .Where(ma => IsAttemptFromCurrentPhase(ma))
+        return _matchAttempts
+            .Where(ma => ma.Status == MatchAttemptStatus.Rejected || ma.Status == MatchAttemptStatus.Expired)
+            .Select(ma => ma.DriverId)
+            .Distinct()
             .ToList();
-
-        if (!currentPhaseAttempts.Any())
-            return false;
-
-        // All attempts must be finished (not pending)
-        return currentPhaseAttempts.All(ma => ma.Status != MatchAttemptStatus.Pending);
     }
 
-    private bool IsAttemptFromCurrentPhase(DriverMatchAttempt attempt)
-    {
-        // Simple approach: group attempts by creation time proximity
-        // In a more sophisticated implementation, you might track phase explicitly on each attempt
-        var phaseStartTime = GetCurrentPhaseStartTime();
-        return attempt.CreatedAt >= phaseStartTime;
-    }
-
-    private DateTime GetCurrentPhaseStartTime()
-    {
-        // For simplicity, we'll use the creation time of the most recent mode/phase change
-        // In a more robust implementation, you'd track phase transitions explicitly
-        return CurrentPhase switch
-        {
-            MatchingPhase.Phase1_Push => CreatedAt,
-            _ => _matchAttempts.LastOrDefault()?.CreatedAt ?? CreatedAt
-        };
-    }
 
     public ErrorOr<Success> Complete()
     {
@@ -159,16 +141,13 @@ public class MatchingSession : AggregateRoot
 
         Status = MatchingSessionStatus.Cancelled;
         CompletedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(new MatchingSessionCancelledEvent(
+            Id,
+            TripRequestId,
+            reason));
+
         return Result.Success;
-    }
-
-    public void Expire()
-    {
-        if (Status != MatchingSessionStatus.Active)
-            return;
-
-        Status = MatchingSessionStatus.Expired;
-        CompletedAt = DateTime.UtcNow;
     }
 
     public ErrorOr<DriverMatchAttempt> CreateDriverMatchAttempt(
@@ -192,8 +171,6 @@ public class MatchingSession : AggregateRoot
             driverScore);
 
         _matchAttempts.Add(matchAttempt);
-        TotalAttempts++;
-        CurrentPhaseAttempts++;
 
         // Publish domain event for trip assignment offer
         RaiseDomainEvent(new DriverMatchOfferCreatedEvent(
@@ -207,16 +184,10 @@ public class MatchingSession : AggregateRoot
         return matchAttempt;
     }
 
-    public void RecordRejection()
-    {
-        RejectionCount++;
-        // Phase advancement is now handled by the service layer
-    }
-
     public void RecordTimeout()
     {
-        TimeoutCount++;
-        // Phase advancement is now handled by the service layer
+        CurrentRound++;
+        // TODO: raise domain event for timeout
     }
 
     public ErrorOr<Success> AcceptMatch(DriverId driverId)
@@ -277,7 +248,6 @@ public class MatchingSession : AggregateRoot
 
         // Reject the match attempt
         matchAttempt.Reject(reason);
-        RecordRejection();
 
         // Raise domain event for rejection
         RaiseDomainEvent(new TripMatchRejectedEvent(
@@ -285,6 +255,29 @@ public class MatchingSession : AggregateRoot
             driverId,
             reason,
             DateTime.UtcNow));
+
+        return Result.Success;
+    }
+
+    public ErrorOr<Success> ExpireMatch(DriverId driverId)
+    {
+        if (Status != MatchingSessionStatus.Active)
+            return MatchingErrors.Session.NotActive;
+
+        // Find the pending match attempt for this driver
+        var matchAttempt = _matchAttempts.FirstOrDefault(ma => 
+            ma.DriverId == driverId && ma.Status == MatchAttemptStatus.Pending);
+
+        if (matchAttempt == null)
+            return MatchingErrors.MatchAttempt.NotFound;
+
+        // Expire the match attempt
+        matchAttempt.Expire();
+
+        // Raise domain event for expiration
+        RaiseDomainEvent(new TripMatchExpiredEvent(
+            TripRequestId,
+            driverId));
 
         return Result.Success;
     }

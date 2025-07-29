@@ -67,13 +67,7 @@ public class Trip : AggregateRoot
     /// <summary>
     /// Call this method after the entity is saved to the database to publish the domain event
     /// </summary>
-    public DomainEvent CreateTripCreatedEvent()
-    {
-        return (new TripCreatedEvent(
-            Id,
-            DriverId,
-            RiderId));
-    }
+    public DomainEvent CreateTripCreatedEvent() => new TripCreatedEvent(Id, DriverId, RiderId);
 
     public ErrorOr<Success> DriverArrived()
     {

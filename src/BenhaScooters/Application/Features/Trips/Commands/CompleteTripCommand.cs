@@ -62,6 +62,7 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
         }
 
         var tripRoute = await db.TripRoutes
+            .Include(tr => tr.TripGpsPoints)
             .FirstOrDefaultAsync(tr => tr.TripId == request.TripId, cancellationToken);
 
         if (tripRoute is null)
@@ -77,12 +78,11 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
             tripRoute.Id,
             request.DriverId,
             location,
-            0,
-            0,
             DateTime.UtcNow
         );
 
         tripRoute.AddPoint(gpsPoint);
+        tripRoute.ConstructPath();
 
         // Complete the trip
         var completeTripResult = trip.CompleteTrip();

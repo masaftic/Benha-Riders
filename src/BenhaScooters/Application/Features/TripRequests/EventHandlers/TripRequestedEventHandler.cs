@@ -5,12 +5,9 @@ using BenhaScooters.Domain.Trips.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace BenhaScooters.Application.Features.Trips.EventHandlers;
+namespace BenhaScooters.Application.Features.TripRequests.EventHandlers;
 
-/// <summary>
-/// Handles the TripRequestedEvent to initiate the matching process asynchronously
-/// This handler runs after the command completes, so it won't block the user response
-/// </summary>
+
 public class TripRequestedEventHandler : INotificationHandler<TripRequestedEvent>
 {
     private readonly ILogger<TripRequestedEventHandler> _logger;
@@ -30,7 +27,7 @@ public class TripRequestedEventHandler : INotificationHandler<TripRequestedEvent
     public async Task Handle(TripRequestedEvent notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation(
-            "Trip requested: {TripRequestId} by rider {RiderId} from {PickupAddress} to {DropoffAddress}. Starting async matching process...",
+            "Trip requested: {TripRequestId} by rider {RiderId} from {PickupAddress} to {DropoffAddress}. Starting matching process...",
             notification.TripRequestId.Value,
             notification.RiderId.Value,
             notification.PickupAddress ?? "Unknown location",
@@ -49,26 +46,22 @@ public class TripRequestedEventHandler : INotificationHandler<TripRequestedEvent
                 return;
             }
 
-            _logger.LogInformation("Matching session {MatchingSessionId} created for trip request {TripRequestId} in {Mode} mode",
+            _logger.LogInformation("Matching session {MatchingSessionId} created for trip request {TripRequestId}",
                 sessionResult.Value.MatchingSessionId.Value,
-                notification.TripRequestId.Value,
-                sessionResult.Value.Mode);
+                notification.TripRequestId.Value);
 
             // Start the actual driver matching process
-            var matchingResult = await _driverMatchingService.StartMatchingAsync(
+            var matchingResult = await _driverMatchingService.ProcessMatchingAsync(
                 sessionResult.Value.MatchingSessionId,
                 cancellationToken);
 
             if (matchingResult.IsError)
             {
-                _logger.LogError("Failed to start driver matching for session {MatchingSessionId}: {Errors}",
+                _logger.LogError("Failed to process driver matching for session {MatchingSessionId}: {Errors}",
                     sessionResult.Value.MatchingSessionId.Value,
                     string.Join(", ", matchingResult.Errors.Select(e => e.Description)));
                 return;
             }
-
-            _logger.LogInformation("Driver matching started successfully for session {MatchingSessionId}",
-                sessionResult.Value.MatchingSessionId.Value);
         }
         catch (Exception ex)
         {

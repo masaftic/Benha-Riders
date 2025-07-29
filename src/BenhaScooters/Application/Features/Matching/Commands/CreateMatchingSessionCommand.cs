@@ -15,7 +15,6 @@ public record CreateMatchingSessionCommand(
 
 public record CreateMatchingSessionResult(
     MatchingSessionId MatchingSessionId,
-    MatchingMode Mode,
     DateTime CreatedAt);
 
 public class CreateMatchingSessionCommandValidator : AbstractValidator<CreateMatchingSessionCommand>
@@ -58,7 +57,6 @@ public class CreateMatchingSessionCommandHandler(AppDbContext db)
             {
                 return new CreateMatchingSessionResult(
                     existingSession.Id,
-                    existingSession.CurrentMode,
                     existingSession.CreatedAt);
             }
             
@@ -67,14 +65,13 @@ public class CreateMatchingSessionCommandHandler(AppDbContext db)
         }
 
         // Create new matching session
-        var matchingSession = new MatchingSession(request.TripRequestId);
+        var matchingSession = new MatchingSession(request.TripRequestId, 3, [1, 3, 5]); // TODO: get values from config or something
 
         db.MatchingSessions.Add(matchingSession);
         await db.SaveChangesAsync(cancellationToken);
 
         return new CreateMatchingSessionResult(
             matchingSession.Id,
-            matchingSession.CurrentMode,
             matchingSession.CreatedAt);
     }
 }
