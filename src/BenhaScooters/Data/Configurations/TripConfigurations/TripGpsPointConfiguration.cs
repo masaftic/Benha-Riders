@@ -14,11 +14,11 @@ public class TripGpsPointConfiguration : IEntityTypeConfiguration<TripGpsPoint>
         builder.Property(lp => lp.Location)
             .HasColumnType("geography (point)");
 
-        builder.HasOne(lp => lp.Driver)
-            .WithMany()
-            .HasForeignKey(lp => lp.DriverId)
+        builder.HasOne(lp => lp.TripRoute)
+            .WithMany(tr => tr.TripGpsPoints)
+            .HasForeignKey(lp => lp.TripId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         builder.HasIndex(lp => lp.Timestamp);
         builder.HasIndex(lp => lp.Location).HasMethod("GIST");
     }

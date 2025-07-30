@@ -10,12 +10,11 @@ public partial struct DriverLocationId;
 // Represents the current location of a driver for real-time tracking
 public class DriverLocation
 {
-    public DriverLocationId Id { get; private set; }
     public DriverId DriverId { get; private set; }
     public Point Location { get; private set; } = null!; // PostGIS geography point
-    public double Heading { get; private set; } = 0; // Direction in degrees
-    public double Speed { get; private set; } = 0; // Speed in km/h
     public DateTime Timestamp { get; private set; } = DateTime.UtcNow; // Last update time
+
+    public Driver Driver { get; private set; } = null!; 
 
     private DriverLocation() { } // For EF Core
 

@@ -86,31 +86,17 @@ namespace BenhaScooters.Data.Migrations
 
             modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverLocation", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<int>("DriverId")
                         .HasColumnType("integer");
-
-                    b.Property<double>("Heading")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("double precision");
 
                     b.Property<Point>("Location")
                         .IsRequired()
                         .HasColumnType("geography (point)");
 
-                    b.Property<double>("Speed")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("double precision");
-
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("DriverId");
 
                     b.HasIndex("Location");
 
@@ -123,18 +109,12 @@ namespace BenhaScooters.Data.Migrations
 
             modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverRating", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("DriverId")
                         .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("AverageRating")
                         .HasPrecision(3, 2)
                         .HasColumnType("numeric(3,2)");
-
-                    b.Property<int>("DriverId")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("timestamp with time zone");
@@ -142,7 +122,7 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<int>("TotalRatings")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("DriverId");
 
                     b.ToTable("DriverRatings");
                 });
@@ -506,9 +486,6 @@ namespace BenhaScooters.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DriverId")
-                        .HasColumnType("integer");
-
                     b.Property<Point>("Location")
                         .IsRequired()
                         .HasColumnType("geography (point)");
@@ -516,12 +493,10 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("TripRouteId")
+                    b.Property<int>("TripId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DriverId");
 
                     b.HasIndex("Location");
 
@@ -529,30 +504,21 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasIndex("Timestamp");
 
-                    b.HasIndex("TripRouteId");
+                    b.HasIndex("TripId");
 
                     b.ToTable("TripGpsPoints");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Trips.TripRoute", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("Id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<int>("TripId")
+                        .HasColumnType("integer");
 
                     b.Property<LineString>("Path")
                         .IsRequired()
                         .HasColumnType("geometry (LineString, 4326)");
 
-                    b.Property<int>("TripId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TripId");
+                    b.HasKey("TripId");
 
                     b.ToTable("TripRoutes", (string)null);
                 });
@@ -840,6 +806,28 @@ namespace BenhaScooters.Data.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 
+            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverLocation", b =>
+                {
+                    b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
+                        .WithOne()
+                        .HasForeignKey("BenhaScooters.Domain.Drivers.DriverLocation", "DriverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Driver");
+                });
+
+            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverRating", b =>
+                {
+                    b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
+                        .WithOne()
+                        .HasForeignKey("BenhaScooters.Domain.Drivers.DriverRating", "DriverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Driver");
+                });
+
             modelBuilder.Entity("BenhaScooters.Domain.Drivers.Entities.DriverDocument", b =>
                 {
                     b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
@@ -1081,19 +1069,11 @@ namespace BenhaScooters.Data.Migrations
 
             modelBuilder.Entity("BenhaScooters.Domain.Trips.TripGpsPoint", b =>
                 {
-                    b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
-                        .WithMany()
-                        .HasForeignKey("DriverId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("BenhaScooters.Domain.Trips.TripRoute", "TripRoute")
                         .WithMany("TripGpsPoints")
-                        .HasForeignKey("TripRouteId")
+                        .HasForeignKey("TripId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Driver");
 
                     b.Navigation("TripRoute");
                 });
@@ -1101,8 +1081,8 @@ namespace BenhaScooters.Data.Migrations
             modelBuilder.Entity("BenhaScooters.Domain.Trips.TripRoute", b =>
                 {
                     b.HasOne("BenhaScooters.Domain.Trips.Trip", "Trip")
-                        .WithMany()
-                        .HasForeignKey("TripId")
+                        .WithOne()
+                        .HasForeignKey("BenhaScooters.Domain.Trips.TripRoute", "TripId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

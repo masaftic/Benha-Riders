@@ -10,12 +10,7 @@ public class TripRouteConfiguration : IEntityTypeConfiguration<TripRoute>
     public void Configure(EntityTypeBuilder<TripRoute> builder)
     {
         builder.ToTable("TripRoutes");
-
-        builder.HasKey(tr => tr.Id);
-
-        builder.Property(tr => tr.Id)
-            .HasColumnName("Id")
-            .ValueGeneratedOnAdd();
+        builder.HasKey(tr => tr.TripId);
 
         builder.Property(tr => tr.TripId)
             .IsRequired();
@@ -24,9 +19,13 @@ public class TripRouteConfiguration : IEntityTypeConfiguration<TripRoute>
             .IsRequired()
             .HasColumnType("geometry (LineString, 4326)");
 
+        builder.HasOne(r => r.Trip)
+            .WithOne()
+            .HasForeignKey<TripRoute>(r => r.TripId);
+
         builder.HasMany(tr => tr.TripGpsPoints)
-            .WithOne(gp => gp.TripRoute)
-            .HasForeignKey(gp => gp.TripRouteId)
+            .WithOne(tgp => tgp.TripRoute)
+            .HasForeignKey(gp => gp.TripId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

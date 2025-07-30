@@ -43,7 +43,6 @@ namespace BenhaScooters.Data;
 [EfCoreConverter<TripId>]
 [EfCoreConverter<TripGpsPointId>]
 [EfCoreConverter<TripRatingId>]
-[EfCoreConverter<TripRouteId>]
 
 [EfCoreConverter<DriverMatchAttemptId>]
 [EfCoreConverter<MatchingSessionId>]

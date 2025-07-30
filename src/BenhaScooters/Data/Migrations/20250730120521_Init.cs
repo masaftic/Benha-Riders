@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BenhaScooters.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Init_Migration : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,11 +26,12 @@ namespace BenhaScooters.Data.Migrations
                     Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     EmailNormalized = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     EmailVerified = table.Column<bool>(type: "boolean", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    PhoneNumberNormalized = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    PhoneNumberNormalized = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     PhoneNumberVerified = table.Column<bool>(type: "boolean", nullable: false),
-                    PasswordHash = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    PasswordHash = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -44,27 +45,18 @@ namespace BenhaScooters.Data.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    PersonalInfo_FullName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    PersonalInfo_NationalId = table.Column<string>(type: "text", nullable: true),
-                    PersonalInfo_DateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
-                    PersonalInfo_Address = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    PersonalInfo_City = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    PersonalInfo_EmergencyContactName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    PersonalInfo_EmergencyContactPhone = table.Column<string>(type: "text", nullable: true),
-                    VehicleInfo_VehicleType = table.Column<string>(type: "text", nullable: true),
-                    VehicleInfo_Brand = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    VehicleInfo_Model = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    VehicleInfo_Color = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: true),
-                    VehicleInfo_LicensePlate = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: true),
-                    VehicleInfo_Year = table.Column<int>(type: "integer", nullable: true),
-                    Documents_LicenseImageUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    Documents_VehicleRegistrationImageUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    Documents_ImageUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    OnboardingStatus = table.Column<string>(type: "text", nullable: false),
-                    CurrentStep = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    RejectionReason = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    Info_FullName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Info_NationalId = table.Column<string>(type: "text", nullable: true),
+                    Info_DateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
+                    Info_Address = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    Info_City = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Info_EmergencyContactName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Info_EmergencyContactPhone = table.Column<string>(type: "text", nullable: true),
+                    OnboardingState_Status = table.Column<string>(type: "text", nullable: false),
+                    OnboardingState_CurrentStep = table.Column<string>(type: "text", nullable: false),
+                    OnboardingState_CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    OnboardingState_CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    OnboardingState_RejectionReason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -72,6 +64,25 @@ namespace BenhaScooters.Data.Migrations
                     table.PrimaryKey("PK_Drivers", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Drivers_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ExternalAuths",
+                columns: table => new
+                {
+                    Provider = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    ProviderUserId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExternalAuths", x => new { x.Provider, x.ProviderUserId });
+                    table.ForeignKey(
+                        name: "FK_ExternalAuths_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -176,20 +187,41 @@ namespace BenhaScooters.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DriverLocations",
+                name: "DriverDocument",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     DriverId = table.Column<int>(type: "integer", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    ImageUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    UploadedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    RejectionReason = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DriverDocument", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DriverDocument_Drivers_DriverId",
+                        column: x => x.DriverId,
+                        principalTable: "Drivers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DriverLocations",
+                columns: table => new
+                {
+                    DriverId = table.Column<int>(type: "integer", nullable: false),
                     Location = table.Column<Point>(type: "geography (point)", nullable: false),
-                    Heading = table.Column<double>(type: "double precision", precision: 5, scale: 2, nullable: false),
-                    Speed = table.Column<double>(type: "double precision", precision: 5, scale: 2, nullable: false),
                     Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DriverLocations", x => x.Id);
+                    table.PrimaryKey("PK_DriverLocations", x => x.DriverId);
                     table.ForeignKey(
                         name: "FK_DriverLocations_Drivers_DriverId",
                         column: x => x.DriverId,
@@ -199,11 +231,9 @@ namespace BenhaScooters.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DriverRating",
+                name: "DriverRatings",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     DriverId = table.Column<int>(type: "integer", nullable: false),
                     AverageRating = table.Column<decimal>(type: "numeric(3,2)", precision: 3, scale: 2, nullable: false),
                     TotalRatings = table.Column<int>(type: "integer", nullable: false),
@@ -211,9 +241,38 @@ namespace BenhaScooters.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DriverRating", x => x.Id);
+                    table.PrimaryKey("PK_DriverRatings", x => x.DriverId);
                     table.ForeignKey(
-                        name: "FK_DriverRating_Drivers_DriverId",
+                        name: "FK_DriverRatings_Drivers_DriverId",
+                        column: x => x.DriverId,
+                        principalTable: "Drivers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DriverVehicle",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    DriverId = table.Column<int>(type: "integer", nullable: false),
+                    VehicleType = table.Column<string>(type: "text", nullable: false),
+                    Brand = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Model = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Color = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    LicensePlate = table.Column<string>(type: "text", nullable: false),
+                    Year = table.Column<int>(type: "integer", nullable: false),
+                    VIN = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeactivatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DriverVehicle", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DriverVehicle_Drivers_DriverId",
                         column: x => x.DriverId,
                         principalTable: "Drivers",
                         principalColumn: "Id",
@@ -232,22 +291,21 @@ namespace BenhaScooters.Data.Migrations
                     PickupAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     DropoffAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     RequestedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EstimatedFare_Amount = table.Column<decimal>(type: "numeric", nullable: false),
                     EstimatedFare_Distance = table.Column<double>(type: "double precision", nullable: false),
                     EstimatedFare_Time = table.Column<double>(type: "double precision", nullable: false),
-                    AssignedDriverId = table.Column<int>(type: "integer", nullable: true),
-                    AssignedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    AttemptCount = table.Column<int>(type: "integer", nullable: false),
+                    MatchedDriverId = table.Column<int>(type: "integer", nullable: true),
+                    MatchedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CancellationReason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TripRequests", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TripRequests_Drivers_AssignedDriverId",
-                        column: x => x.AssignedDriverId,
+                        name: "FK_TripRequests_Drivers_MatchedDriverId",
+                        column: x => x.MatchedDriverId,
                         principalTable: "Drivers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
@@ -260,6 +318,134 @@ namespace BenhaScooters.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Trips",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    DriverId = table.Column<int>(type: "integer", nullable: false),
+                    RiderId = table.Column<int>(type: "integer", nullable: false),
+                    PickupLocation = table.Column<Point>(type: "geography (point)", nullable: false),
+                    DropoffLocation = table.Column<Point>(type: "geography (point)", nullable: false),
+                    PickupAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    DropoffAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    EstimatedFare_Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    EstimatedFare_Distance = table.Column<double>(type: "double precision", nullable: false),
+                    EstimatedFare_Time = table.Column<double>(type: "double precision", nullable: false),
+                    TripFare_BaseFare = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
+                    TripFare_DistanceFare = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
+                    TripFare_DurationFare = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
+                    TripFare_SurgeMultiplier = table.Column<decimal>(type: "numeric", nullable: true),
+                    TotalFare = table.Column<decimal>(type: "numeric(18,2)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Trips", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Trips_Drivers_DriverId",
+                        column: x => x.DriverId,
+                        principalTable: "Drivers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Trips_Riders_RiderId",
+                        column: x => x.RiderId,
+                        principalTable: "Riders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MatchingSessions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TripRequestId = table.Column<int>(type: "integer", nullable: false),
+                    NumberOfRounds = table.Column<int>(type: "integer", nullable: false),
+                    OffersPerRound = table.Column<string>(type: "text", nullable: false),
+                    CurrentRound = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MatchingSessions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MatchingSessions_TripRequests_TripRequestId",
+                        column: x => x.TripRequestId,
+                        principalTable: "TripRequests",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DriverAvailabilities",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    DriverId = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    LastStatusChange = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CurrentTripId = table.Column<int>(type: "integer", nullable: true),
+                    OnlineSessionStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TotalOnlineTime = table.Column<TimeSpan>(type: "interval", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DriverAvailabilities", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DriverAvailabilities_Trips_CurrentTripId",
+                        column: x => x.CurrentTripId,
+                        principalTable: "Trips",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TripEvent",
+                columns: table => new
+                {
+                    TripId = table.Column<int>(type: "integer", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TripEvent", x => new { x.TripId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_TripEvent_Trips_TripId",
+                        column: x => x.TripId,
+                        principalTable: "Trips",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TripRoutes",
+                columns: table => new
+                {
+                    TripId = table.Column<int>(type: "integer", nullable: false),
+                    Path = table.Column<LineString>(type: "geometry (LineString, 4326)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TripRoutes", x => x.TripId);
+                    table.ForeignKey(
+                        name: "FK_TripRoutes_Trips_TripId",
+                        column: x => x.TripId,
+                        principalTable: "Trips",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DriverMatchAttempts",
                 columns: table => new
                 {
@@ -267,7 +453,8 @@ namespace BenhaScooters.Data.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     TripRequestId = table.Column<int>(type: "integer", nullable: false),
                     DriverId = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
+                    MatchingSessionId = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     RespondedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -286,108 +473,15 @@ namespace BenhaScooters.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
+                        name: "FK_DriverMatchAttempts_MatchingSessions_MatchingSessionId",
+                        column: x => x.MatchingSessionId,
+                        principalTable: "MatchingSessions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_DriverMatchAttempts_TripRequests_TripRequestId",
                         column: x => x.TripRequestId,
                         principalTable: "TripRequests",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Trips",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    DriverId = table.Column<int>(type: "integer", nullable: false),
-                    RiderId = table.Column<int>(type: "integer", nullable: false),
-                    TripRequestId = table.Column<int>(type: "integer", nullable: true),
-                    PickupLocation = table.Column<Point>(type: "geography (point)", nullable: false),
-                    DropoffLocation = table.Column<Point>(type: "geography (point)", nullable: false),
-                    PickupAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    DropoffAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    DriverArrivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    EstimatedFare_Amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    EstimatedFare_Distance = table.Column<double>(type: "double precision", nullable: false),
-                    EstimatedFare_Time = table.Column<double>(type: "double precision", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Trips", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Trips_Drivers_DriverId",
-                        column: x => x.DriverId,
-                        principalTable: "Drivers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Trips_Riders_RiderId",
-                        column: x => x.RiderId,
-                        principalTable: "Riders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Trips_TripRequests_TripRequestId",
-                        column: x => x.TripRequestId,
-                        principalTable: "TripRequests",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DriverAvailabilities",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    DriverId = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    LastStatusChange = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    LastLocationUpdate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CurrentTripId = table.Column<int>(type: "integer", nullable: true),
-                    OnlineSessionStart = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    TotalOnlineTime = table.Column<TimeSpan>(type: "interval", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DriverAvailabilities", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DriverAvailabilities_Drivers_DriverId",
-                        column: x => x.DriverId,
-                        principalTable: "Drivers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DriverAvailabilities_Trips_CurrentTripId",
-                        column: x => x.CurrentTripId,
-                        principalTable: "Trips",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TripFare",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false),
-                    TripId = table.Column<int>(type: "integer", nullable: false),
-                    BaseFare = table.Column<decimal>(type: "numeric", nullable: false),
-                    DistanceFare = table.Column<decimal>(type: "numeric", nullable: false),
-                    TimeFare = table.Column<decimal>(type: "numeric", nullable: false),
-                    SurgeMultiplier = table.Column<decimal>(type: "numeric", nullable: false),
-                    TotalFare = table.Column<decimal>(type: "numeric", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TripFare", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_TripFare_Trips_TripId",
-                        column: x => x.TripId,
-                        principalTable: "Trips",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -398,49 +492,18 @@ namespace BenhaScooters.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    DriverId = table.Column<int>(type: "integer", nullable: false),
+                    TripId = table.Column<int>(type: "integer", nullable: false),
                     Location = table.Column<Point>(type: "geography (point)", nullable: false),
-                    Heading = table.Column<double>(type: "double precision", precision: 5, scale: 2, nullable: false),
-                    Speed = table.Column<double>(type: "double precision", precision: 5, scale: 2, nullable: false),
-                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TripId = table.Column<int>(type: "integer", nullable: false)
+                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TripGpsPoints", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TripGpsPoints_Drivers_DriverId",
-                        column: x => x.DriverId,
-                        principalTable: "Drivers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TripGpsPoints_Trips_TripId",
+                        name: "FK_TripGpsPoints_TripRoutes_TripId",
                         column: x => x.TripId,
-                        principalTable: "Trips",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TripRoutes",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    TripId = table.Column<int>(type: "integer", nullable: false),
-                    Path = table.Column<LineString>(type: "geometry (LineString, 4326)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Duration = table.Column<TimeSpan>(type: "interval", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TripRoutes", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_TripRoutes_Trips_TripId",
-                        column: x => x.TripId,
-                        principalTable: "Trips",
-                        principalColumn: "Id",
+                        principalTable: "TripRoutes",
+                        principalColumn: "TripId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -450,26 +513,14 @@ namespace BenhaScooters.Data.Migrations
                 column: "CurrentTripId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DriverAvailabilities_DriverId",
-                table: "DriverAvailabilities",
-                column: "DriverId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DriverAvailabilities_LastLocationUpdate",
-                table: "DriverAvailabilities",
-                column: "LastLocationUpdate");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_DriverAvailabilities_Status",
                 table: "DriverAvailabilities",
                 column: "Status");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DriverLocations_DriverId",
-                table: "DriverLocations",
-                column: "DriverId",
-                unique: true);
+                name: "IX_DriverDocument_DriverId",
+                table: "DriverDocument",
+                column: "DriverId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DriverLocations_Location",
@@ -493,6 +544,11 @@ namespace BenhaScooters.Data.Migrations
                 column: "DriverId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DriverMatchAttempts_MatchingSessionId",
+                table: "DriverMatchAttempts",
+                column: "MatchingSessionId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DriverMatchAttempts_Status",
                 table: "DriverMatchAttempts",
                 column: "Status");
@@ -503,9 +559,9 @@ namespace BenhaScooters.Data.Migrations
                 column: "TripRequestId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DriverRating_DriverId",
-                table: "DriverRating",
-                column: "DriverId",
+                name: "IX_Drivers_Info_NationalId",
+                table: "Drivers",
+                column: "Info_NationalId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -514,26 +570,35 @@ namespace BenhaScooters.Data.Migrations
                 column: "IsActive");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Drivers_OnboardingStatus",
-                table: "Drivers",
-                column: "OnboardingStatus");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Drivers_PersonalInfo_NationalId",
-                table: "Drivers",
-                column: "PersonalInfo_NationalId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Drivers_UserId",
                 table: "Drivers",
                 column: "UserId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Drivers_VehicleInfo_LicensePlate",
-                table: "Drivers",
-                column: "VehicleInfo_LicensePlate",
+                name: "IX_DriverVehicle_DriverId",
+                table: "DriverVehicle",
+                column: "DriverId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExternalAuths_UserId",
+                table: "ExternalAuths",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchingSessions_CreatedAt",
+                table: "MatchingSessions",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchingSessions_Status",
+                table: "MatchingSessions",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MatchingSessions_TripRequestId",
+                table: "MatchingSessions",
+                column: "TripRequestId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -569,17 +634,6 @@ namespace BenhaScooters.Data.Migrations
                 columns: new[] { "UserId", "PhoneNumber", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_TripFare_TripId",
-                table: "TripFare",
-                column: "TripId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TripGpsPoints_DriverId",
-                table: "TripGpsPoints",
-                column: "DriverId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_TripGpsPoints_Location",
                 table: "TripGpsPoints",
                 column: "Location")
@@ -596,9 +650,9 @@ namespace BenhaScooters.Data.Migrations
                 column: "TripId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TripRequests_AssignedDriverId",
+                name: "IX_TripRequests_MatchedDriverId",
                 table: "TripRequests",
-                column: "AssignedDriverId");
+                column: "MatchedDriverId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TripRequests_RequestedAt",
@@ -616,17 +670,6 @@ namespace BenhaScooters.Data.Migrations
                 column: "Status");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TripRoutes_TripId",
-                table: "TripRoutes",
-                column: "TripId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Trips_CreatedAt",
-                table: "Trips",
-                column: "CreatedAt");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Trips_DriverId",
                 table: "Trips",
                 column: "DriverId");
@@ -640,12 +683,6 @@ namespace BenhaScooters.Data.Migrations
                 name: "IX_Trips_Status",
                 table: "Trips",
                 column: "Status");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Trips_TripRequestId",
-                table: "Trips",
-                column: "TripRequestId",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRoles_UserId",
@@ -670,13 +707,22 @@ namespace BenhaScooters.Data.Migrations
                 name: "DriverAvailabilities");
 
             migrationBuilder.DropTable(
+                name: "DriverDocument");
+
+            migrationBuilder.DropTable(
                 name: "DriverLocations");
 
             migrationBuilder.DropTable(
                 name: "DriverMatchAttempts");
 
             migrationBuilder.DropTable(
-                name: "DriverRating");
+                name: "DriverRatings");
+
+            migrationBuilder.DropTable(
+                name: "DriverVehicle");
+
+            migrationBuilder.DropTable(
+                name: "ExternalAuths");
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
@@ -685,22 +731,25 @@ namespace BenhaScooters.Data.Migrations
                 name: "SmsVerificationCodes");
 
             migrationBuilder.DropTable(
-                name: "TripFare");
+                name: "TripEvent");
 
             migrationBuilder.DropTable(
                 name: "TripGpsPoints");
 
             migrationBuilder.DropTable(
-                name: "TripRoutes");
-
-            migrationBuilder.DropTable(
                 name: "UserRoles");
 
             migrationBuilder.DropTable(
-                name: "Trips");
+                name: "MatchingSessions");
+
+            migrationBuilder.DropTable(
+                name: "TripRoutes");
 
             migrationBuilder.DropTable(
                 name: "TripRequests");
+
+            migrationBuilder.DropTable(
+                name: "Trips");
 
             migrationBuilder.DropTable(
                 name: "Drivers");

@@ -11,21 +11,20 @@ public partial struct TripGpsPointId;
 public class TripGpsPoint
 {
     public TripGpsPointId Id { get; private set; }
-    public DriverId DriverId { get; private set; }
+    public TripId TripId { get; private set; }
     public Point Location { get; private set; } = null!;
     public DateTime Timestamp { get; private set; }
-    public TripRouteId TripRouteId { get; private set; }
 
-    // Navigational properties
+
+    // Navigation properties
     public TripRoute TripRoute { get; private set; } = null!;
-    public Driver Driver { get; private set; } = null!;
+
 
     private TripGpsPoint() { } // For EF Core
 
-    public TripGpsPoint(TripRouteId tripRouteId, DriverId driverId, Point location, DateTime timestamp)
+    public TripGpsPoint(TripId tripId, Point location, DateTime timestamp)
     {
-        TripRouteId = tripRouteId;
-        DriverId = driverId;
+        TripId = tripId;
         Location = location;
         Timestamp = timestamp;
     }

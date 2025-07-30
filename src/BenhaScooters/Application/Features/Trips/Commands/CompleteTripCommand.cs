@@ -15,9 +15,7 @@ namespace BenhaScooters.Application.Features.Trips.Commands;
 
 public record CompleteTripCommand(
     DriverId DriverId,
-    TripId TripId,
-    double FinalLatitude,
-    double FinalLongitude) : IRequest<ErrorOr<CompleteTripResult>>;
+    TripId TripId) : IRequest<ErrorOr<CompleteTripResult>>;
 
 public record CompleteTripResult(
     TripId TripId,
@@ -37,14 +35,6 @@ public class CompleteTripCommandValidator : AbstractValidator<CompleteTripComman
         RuleFor(x => x.TripId.Value)
             .NotEmpty()
             .WithMessage("Trip ID is required");
-
-        RuleFor(x => x.FinalLatitude)
-            .InclusiveBetween(-90, 90)
-            .WithMessage("Final latitude must be between -90 and 90");
-
-        RuleFor(x => x.FinalLongitude)
-            .InclusiveBetween(-180, 180)
-            .WithMessage("Final longitude must be between -180 and 180");
     }
 }
 
@@ -70,18 +60,6 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
             return TripErrors.Trip.NotFound;
         }
 
-        // Create GPS point
-        var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
-        var location = geometryFactory.CreatePoint(new Coordinate(request.FinalLongitude, request.FinalLatitude));
-
-        var gpsPoint = new TripGpsPoint(
-            tripRoute.Id,
-            request.DriverId,
-            location,
-            DateTime.UtcNow
-        );
-
-        tripRoute.AddPoint(gpsPoint);
         tripRoute.ConstructPath();
 
         // Complete the trip

@@ -9,18 +9,15 @@ public class DriverLocationConfiguration : IEntityTypeConfiguration<DriverLocati
 {
     public void Configure(EntityTypeBuilder<DriverLocation> builder)
     {
-        builder.HasKey(dl => dl.Id);
-        builder.Property(dl => dl.Id).ValueGeneratedOnAdd();
+        builder.HasKey(dl => dl.DriverId);
 
         builder.Property(dl => dl.Location)
             .HasColumnType("geography (point)");
 
-        builder.Property(dl => dl.Heading)
-            .HasPrecision(5, 2);
-
-        builder.Property(dl => dl.Speed)
-            .HasPrecision(5, 2);
-
+        builder.HasOne(dl => dl.Driver)
+            .WithOne()
+            .HasForeignKey<DriverLocation>(dl => dl.DriverId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(dl => dl.Location).HasMethod("GIST");
         builder.HasIndex(dl => dl.Timestamp);

@@ -2,6 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Trips;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -52,6 +53,21 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
             DateTime.UtcNow);
 
         _db.DriverLocations.Update(driverLocation);
+
+        var tripId = await _db.DriverAvailabilities
+            .Where(da => da.DriverId == request.DriverId && da.Status == DriverStatus.OnTrip)
+            .Select(da => da.CurrentTripId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (tripId.HasValue)
+        {
+            var gpsPoint = new TripGpsPoint(
+                tripId.Value,
+                location,
+                DateTime.UtcNow);
+
+            _db.TripGpsPoints.Add(gpsPoint);
+        }
 
         await _db.SaveChangesAsync(cancellationToken);
 

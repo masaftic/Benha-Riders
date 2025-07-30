@@ -10,10 +10,6 @@ namespace BenhaScooters.Presentation.Endpoints.Trips;
 
 public class CompleteTripEndpoint : IEndpoint
 {
-    public record CompleteTripRequestDto(
-        double FinalLatitude,
-        double FinalLongitude);
-
     public record CompleteTripResponseDto(
         int TripId,
         string Message,
@@ -36,11 +32,11 @@ public class CompleteTripEndpoint : IEndpoint
             .WithOpenApi();
     }
 
-    public async Task<IResult> CompleteTrip([FromServices] ISender sender, [FromRoute] int tripId, [FromBody] CompleteTripRequestDto request, HttpContext ctx)
+    public async Task<IResult> CompleteTrip([FromServices] ISender sender, [FromRoute] int tripId, HttpContext ctx)
     {
         var driverId = ctx.GetDriverId();
         var mapper = new CompleteTripEndpointMapper();
-        var command = mapper.MapToCommand(request, tripId, driverId);
+        var command = mapper.MapToCommand(tripId, driverId);
         var result = await sender.Send(command);
 
         if (result.IsError)
@@ -56,13 +52,9 @@ public class CompleteTripEndpoint : IEndpoint
 [Mapper]
 public partial class CompleteTripEndpointMapper
 {
-    public CompleteTripCommand MapToCommand(CompleteTripEndpoint.CompleteTripRequestDto request, int tripId, Domain.Drivers.DriverId driverId)
+    public CompleteTripCommand MapToCommand(int tripId, Domain.Drivers.DriverId driverId)
     {
-        return new CompleteTripCommand(
-            driverId,
-            TripId.From(tripId),
-            request.FinalLatitude,
-            request.FinalLongitude);
+        return new CompleteTripCommand(driverId, TripId.From(tripId));
     }
 
     public CompleteTripEndpoint.CompleteTripResponseDto MapToResponse(CompleteTripResult result)
