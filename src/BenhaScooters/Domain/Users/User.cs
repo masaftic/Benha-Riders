@@ -104,12 +104,16 @@ public class User
         return Email.From(email.Value.ToLowerInvariant().Trim());
     }
 
-    public void AddRole(UserRole role)
+    public ErrorOr<Success> AddRole(UserRole role)
     {
         if (_roles.Any(r => r.Name == role.Name))
-            throw new InvalidOperationException($"User already has the role {role.Name}.");
+            return Error.Conflict("USER_ALREADY_HAS_ROLE", $"User already has the role {role.Name}.");
 
         _roles.Add(role);
+        var result = UserOnboardingStateMachine.GetNewStatusAfterStep(Status, OnboardingSteps.SelectRole);
+        if (result.IsError) return result.Errors;
+        Status = result.Value;
+        return Result.Success;
     }
 
     public void RemoveRole(UserRole role)
@@ -177,24 +181,11 @@ public class User
         RevokeAllRefreshTokens();
     }
 
-    public ErrorOr<Success> UpdateStatus(UserStatus newStatus)
-    {
-        // Use the state machine to validate status transitions
-        return newStatus switch
-        {
-            UserStatus.Active when !UserOnboardingStateMachine.CanPerformStep(Status, OnboardingSteps.SelectRole) =>
-                Error.Forbidden("USER_NOT_READY_FOR_ACTIVATION",
-                    "User must complete phone verification before selecting a role."),
-            _ => UpdateStatusInternal(newStatus)
-        };
-    }
-
     private ErrorOr<Success> UpdateStatusInternal(UserStatus newStatus)
     {
         Status = newStatus;
         return Result.Success;
     }
-
 
     public void AddExternalAuth(ExternalAuth externalAuth)
     {

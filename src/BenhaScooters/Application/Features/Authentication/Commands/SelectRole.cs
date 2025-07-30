@@ -86,13 +86,6 @@ public class SelectRoleCommandHandler : IRequestHandler<SelectRoleCommand, Error
 
             await _db.SaveChangesAsync(cancellationToken);
 
-            // Use state machine to get new status after completing role selection
-            var newStatusResult = UserOnboardingStateMachine.GetNewStatusAfterStep(user.Status, OnboardingSteps.SelectRole);
-            if (newStatusResult.IsError) return newStatusResult.Errors;
-
-            var result = user.UpdateStatus(newStatusResult.Value);
-            if (result.IsError) return result.Errors;
-
             var authResult = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driver, rider, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return authResult;

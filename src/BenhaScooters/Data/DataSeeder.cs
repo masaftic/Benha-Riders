@@ -25,16 +25,9 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                     PhoneNumber.From("01234567890"),
                     passwordHasher.Hash("password"));
 
-                user.AddRole(new UserRole(RoleName.Admin));
-
                 user.VerifyPhoneNumber();
-                user.UpdateStatus(UserStatus.Active).Else(e =>
-                {
-                    throw new Exception("Failed to update user status: " + e.First().Description);
-#pragma warning disable CS0162 // Unreachable code
-                    return e.First();
-#pragma warning restore CS0162 // Unreachable code
-                });
+
+                user.AddRole(new UserRole(RoleName.Admin));
 
                 db.Users.Add(user);
 
@@ -50,15 +43,9 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                     PhoneNumber.From("01234567891"),
                     passwordHasher.Hash("password"));
 
-                user.AddRole(new UserRole(RoleName.Driver));
                 user.VerifyPhoneNumber();
-                user.UpdateStatus(UserStatus.Active).Else(e =>
-                {
-                    throw new Exception("Failed to update user status: " + e.First().Description);
-#pragma warning disable CS0162 // Unreachable code
-                    return e.First();
-#pragma warning restore CS0162 // Unreachable code
-                });
+
+                user.AddRole(new UserRole(RoleName.Driver));
 
                 db.Users.Add(user);
                 await db.SaveChangesAsync();
@@ -92,15 +79,9 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                     PhoneNumber.From("01234567893"),
                     passwordHasher.Hash("password"));
 
-                user.AddRole(new UserRole(RoleName.Rider));
                 user.VerifyPhoneNumber();
-                user.UpdateStatus(UserStatus.Active).Else(e =>
-                {
-                    throw new Exception("Failed to update user status: " + e.First().Description);
-#pragma warning disable CS0162 // Unreachable code
-                    return e.First();
-#pragma warning restore CS0162 // Unreachable code
-                });
+
+                user.AddRole(new UserRole(RoleName.Rider));
 
                 db.Users.Add(user);
 
