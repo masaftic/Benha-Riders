@@ -34,6 +34,7 @@ public class Trip : AggregateRoot
     public FareEstimate EstimatedFare { get; private set; } = null!;
 
     public TripFare? TripFare { get; private set; } // Represents fare details for the trip
+    public TripPayment? TripPayment { get; private set; } // Represents payment details for the trip
 
 
     // Navigation Properties
@@ -125,6 +126,20 @@ public class Trip : AggregateRoot
         return Result.Success;
     }
 
+    public ErrorOr<Success> SetTripPayment(TripPayment payment)
+    {
+        if (payment == null)
+            throw new ArgumentNullException(nameof(payment), "Trip payment cannot be null");
+
+        if (Status != TripStatus.Completed)
+            return TripErrors.Trip.InvalidStatus;
+
+        if (TripPayment != null)
+            return TripErrors.Trip.PaymentAlreadySet;
+
+        TripPayment = payment;
+        return Result.Success;        
+    }
 
     // Calculated properties
     public TimeSpan? TotalDuration => GetEventTimestamp(TripStatus.Completed) - GetEventTimestamp(TripStatus.Assigned);

@@ -4,12 +4,11 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
+using BenhaScooters.Domain.Trips.ValueObjects;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NetTopologySuite;
-using NetTopologySuite.Geometries;
 
 namespace BenhaScooters.Application.Features.Trips.Commands;
 
@@ -87,15 +86,20 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
             return setFareResult.Errors;
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        var payment = TripPayment.Cash(tripFare.TotalFare);
+        var setPaymentResult = trip.SetTripPayment(payment);
+        if (setPaymentResult.IsError)
+        {
+            return setPaymentResult.Errors;
+        }
 
-        var totalDuration = trip.TotalDuration;
+        await db.SaveChangesAsync(cancellationToken);
 
         return new CompleteTripResult(
             trip.Id,
             "Trip completed successfully",
             trip.GetEventTimestamp(TripStatus.Completed),
-            totalDuration,
+            trip.TotalDuration,
             trip.TripFare?.TotalFare ?? trip.EstimatedFare.Amount);
     }
 }

@@ -63,6 +63,28 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
                 .IsRequired();
         });
 
+        builder.OwnsOne(t => t.TripPayment, tp =>
+        {
+            tp.Property(p => p.Method)
+                .HasConversion<string>()
+                .IsRequired();
+
+            tp.Property(p => p.Status)
+                .HasConversion<string>()
+                .IsRequired();
+
+            tp.Property(p => p.Amount)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            tp.Property(p => p.PaidAmount)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            tp.Property(p => p.ExternalReference)
+                .HasMaxLength(100);
+        });
+
         builder.HasOne(t => t.Driver)
             .WithMany()
             .HasForeignKey(t => t.DriverId)

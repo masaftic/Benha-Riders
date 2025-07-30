@@ -68,6 +68,14 @@ public static class TripErrors
         public static readonly Error FareAlreadySet = Error.Conflict(
             "TRIP_FARE_ALREADY_SET",
             "تم تحديد تكلفة الرحلة بالفعل");
+
+        public static readonly Error PaymentAlreadySet = Error.Conflict(
+            "TRIP_PAYMENT_ALREADY_SET",
+            "تم تحديد طريقة الدفع للرحلة بالفعل");
+        
+        public static readonly Error PaymentNotSet = Error.Conflict(
+            "TRIP_PAYMENT_NOT_SET",
+            "لم يتم تحديد طريقة الدفع للرحلة بعد");
     }
 
     public static class Driver
