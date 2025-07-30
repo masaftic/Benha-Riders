@@ -58,6 +58,6 @@ public class StartTripCommandHandler(AppDbContext db) : IRequestHandler<StartTri
         return new StartTripResult(
             trip.Id,
             "Trip started successfully",
-            trip.GetEventTimestamp(TripStatus.Assigned));
+            trip.AssignedAt);
     }
 }

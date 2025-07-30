@@ -27,9 +27,10 @@ public class Trip : AggregateRoot
 
     // Trip Status & Timing
     public TripStatus Status { get; private set; }
-    private List<TripEvent> _events = new();
-
-    public IReadOnlyList<TripEvent> Events => _events.AsReadOnly();
+    public DateTime AssignedAt { get; private set; }
+    public DateTime? DriverArrivedAt { get; private set; }
+    public DateTime? StartedAt { get; private set; }
+    public DateTime? CompletedAt { get; private set; }
 
     public FareEstimate EstimatedFare { get; private set; } = null!;
 
@@ -56,14 +57,9 @@ public class Trip : AggregateRoot
         DropoffAddress = dropoffAddress?.Trim();
         EstimatedFare = estimatedFare;
         Status = TripStatus.Assigned;
-
-        _events.Add(new TripEvent(TripStatus.Assigned, DateTime.UtcNow));
+        AssignedAt = DateTime.UtcNow;
     }
 
-    public DateTime GetEventTimestamp(TripStatus status)
-    {
-        return _events.FirstOrDefault(e => e.Status == status)?.Timestamp ?? DateTime.MinValue;
-    }
 
     /// <summary>
     /// Call this method after the entity is saved to the database to publish the domain event
@@ -76,7 +72,7 @@ public class Trip : AggregateRoot
             return TripErrors.Trip.InvalidStatus;
 
         Status = TripStatus.DriverArrived;
-        _events.Add(new TripEvent(TripStatus.DriverArrived, DateTime.UtcNow));
+        DriverArrivedAt = DateTime.UtcNow;
 
         // Publish domain event
         RaiseDomainEvent(new DriverArrivedEvent(Id, DriverId, RiderId));
@@ -90,7 +86,6 @@ public class Trip : AggregateRoot
             return TripErrors.Trip.InvalidStatus;
 
         Status = TripStatus.InProgress;
-        _events.Add(new TripEvent(TripStatus.InProgress, DateTime.UtcNow));
 
         // Publish domain event
         RaiseDomainEvent(new TripStartedEvent(Id, DriverId, RiderId));
@@ -104,7 +99,7 @@ public class Trip : AggregateRoot
             return TripErrors.Trip.InvalidStatus;
 
         Status = TripStatus.Completed;
-        _events.Add(new TripEvent(TripStatus.Completed, DateTime.UtcNow));
+        CompletedAt = DateTime.UtcNow;
 
         RaiseDomainEvent(new TripCompletedEvent(Id, DriverId, RiderId));
 
@@ -138,11 +133,11 @@ public class Trip : AggregateRoot
             return TripErrors.Trip.PaymentAlreadySet;
 
         TripPayment = payment;
-        return Result.Success;        
+        return Result.Success;
     }
 
     // Calculated properties
-    public TimeSpan? TotalDuration => GetEventTimestamp(TripStatus.Completed) - GetEventTimestamp(TripStatus.Assigned);
+    public TimeSpan? TotalDuration => CompletedAt - AssignedAt;
 
     public bool IsActive => Status == TripStatus.InProgress;
     public bool IsCompleted => Status == TripStatus.Completed;

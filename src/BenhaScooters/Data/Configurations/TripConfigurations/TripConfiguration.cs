@@ -46,15 +46,18 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
         builder.Property(t => t.Status)
             .HasConversion<string>();
 
-        builder.OwnsMany(t => t.Events, e =>
-        {
-            e.Property(ev => ev.Status)
-                .HasConversion<string>()
-                .IsRequired();
+        builder.Property(t => t.AssignedAt)
+            .IsRequired();
 
-            e.Property(ev => ev.Timestamp)
-                .IsRequired();
-        });
+        builder.Property(t => t.DriverArrivedAt)
+            .IsRequired();
+
+        builder.Property(t => t.StartedAt)
+            .IsRequired();
+
+        builder.Property(t => t.CompletedAt)
+            .IsRequired();
+
 
         builder.OwnsOne(t => t.EstimatedFare, ef =>
         {

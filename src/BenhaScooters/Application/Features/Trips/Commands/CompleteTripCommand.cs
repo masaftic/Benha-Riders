@@ -98,7 +98,7 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
         return new CompleteTripResult(
             trip.Id,
             "Trip completed successfully",
-            trip.GetEventTimestamp(TripStatus.Completed),
+            trip.CompletedAt!.Value,
             trip.TotalDuration,
             trip.TripFare?.TotalFare ?? trip.EstimatedFare.Amount);
     }

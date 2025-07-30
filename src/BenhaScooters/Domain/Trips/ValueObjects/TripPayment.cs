@@ -12,6 +12,8 @@ public class TripPayment : ValueObject
     public decimal PaidAmount { get; private set; }
     public string? ExternalReference { get; private set; } // null for cash
 
+    public bool IsPaid => Status == PaymentStatus.Paid;
+
     public static TripPayment Cash(decimal amount) =>
         new(PaymentMethod.Cash, amount, null);
 

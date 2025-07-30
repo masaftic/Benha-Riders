@@ -103,7 +103,7 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher) : 
 
             await transaction.CommitAsync(cancellationToken);
 
-            return new AcceptMatchResult(trip.Id, "Trip created successfully", trip.GetEventTimestamp(TripStatus.Assigned));
+            return new AcceptMatchResult(trip.Id, "Trip created successfully", trip.AssignedAt);
         }
         catch (Exception)
         {

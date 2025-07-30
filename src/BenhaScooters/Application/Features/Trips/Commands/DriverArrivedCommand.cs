@@ -58,6 +58,6 @@ public class DriverArrivedCommandHandler(AppDbContext db) : IRequestHandler<Driv
         return new DriverArrivedResult(
             trip.Id,
             "Driver marked as arrived successfully",
-            trip.GetEventTimestamp(TripStatus.DriverArrived));
+            trip.DriverArrivedAt!.Value);
     }
 }
