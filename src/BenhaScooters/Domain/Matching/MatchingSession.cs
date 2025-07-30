@@ -74,7 +74,7 @@ public class MatchingSession : AggregateRoot
     
 
     private readonly List<DriverMatchAttempt> _matchAttempts = [];
-    public IReadOnlyCollection<DriverMatchAttempt> MatchAttempts => _matchAttempts.AsReadOnly();
+    public IReadOnlyList<DriverMatchAttempt> MatchAttempts => _matchAttempts.AsReadOnly();
 
     // Navigation Properties
     public TripRequest TripRequest { get; private set; } = null!;
@@ -163,7 +163,6 @@ public class MatchingSession : AggregateRoot
             return MatchingErrors.Session.Expired;
 
         var matchAttempt = new DriverMatchAttempt(
-            TripRequestId,
             driverId,
             Id,
             distanceToPickup,

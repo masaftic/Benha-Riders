@@ -1,5 +1,6 @@
 using BenhaScooters.Application.Features.Matching.Commands;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Presentation.Endpoints;
@@ -12,7 +13,7 @@ namespace BenhaScooters.Presentation.Endpoints.Matching;
 
 public class AcceptMatchEndpoint : IEndpoint
 {
-    public record AcceptMatchRequestDto(int TripRequestId);
+    public record AcceptMatchRequestDto(int DriverMatchAttemptId);
 
     public record AcceptMatchResponseDto(int TripId, string Message, DateTime AcceptedAt);
 
@@ -52,7 +53,7 @@ public class AcceptMatchEndpoint : IEndpoint
 public partial class AcceptMatchEndpointMapper
 {
     public AcceptMatchCommand MapToCommand(AcceptMatchEndpoint.AcceptMatchRequestDto request, DriverId driverId) =>
-        new(driverId, TripRequestId.From(request.TripRequestId));
+        new(driverId, DriverMatchAttemptId.From(request.DriverMatchAttemptId));
 
     public partial AcceptMatchEndpoint.AcceptMatchResponseDto MapToResponse(AcceptMatchResult result);
 

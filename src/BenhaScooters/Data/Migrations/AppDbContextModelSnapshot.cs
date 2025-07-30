@@ -266,9 +266,6 @@ namespace BenhaScooters.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("TripRequestId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
@@ -278,8 +275,6 @@ namespace BenhaScooters.Data.Migrations
                     b.HasIndex("MatchingSessionId");
 
                     b.HasIndex("Status");
-
-                    b.HasIndex("TripRequestId");
 
                     b.ToTable("DriverMatchAttempts");
                 });
@@ -444,10 +439,10 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<DateTime>("AssignedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("CompletedAt")
+                    b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("DriverArrivedAt")
+                    b.Property<DateTime?>("DriverArrivedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("DriverId")
@@ -472,7 +467,7 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<int>("RiderId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("StartedAt")
+                    b.Property<DateTime?>("StartedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Status")
@@ -876,17 +871,9 @@ namespace BenhaScooters.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BenhaScooters.Domain.TripRequests.TripRequest", "TripRequest")
-                        .WithMany()
-                        .HasForeignKey("TripRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Driver");
 
                     b.Navigation("MatchingSession");
-
-                    b.Navigation("TripRequest");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Matching.MatchingSession", b =>

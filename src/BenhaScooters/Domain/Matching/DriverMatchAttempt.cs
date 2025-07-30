@@ -20,9 +20,8 @@ public enum MatchAttemptStatus
 public class DriverMatchAttempt
 {
     public DriverMatchAttemptId Id { get; private set; }
-    public TripRequestId TripRequestId { get; private set; }
-    public DriverId DriverId { get; private set; }
     public MatchingSessionId MatchingSessionId { get; private set; }
+    public DriverId DriverId { get; private set; }
     public MatchAttemptStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? RespondedAt { get; private set; }
@@ -35,16 +34,14 @@ public class DriverMatchAttempt
     public decimal DriverScore { get; private set; } // Matching algorithm score
 
     // Navigation Properties
-    public TripRequest TripRequest { get; private set; } = null!;
     public Driver Driver { get; private set; } = null!;
     public MatchingSession MatchingSession { get; private set; } = null!;
 
     private DriverMatchAttempt() { } // For EF Core
 
-    public DriverMatchAttempt(TripRequestId tripRequestId, DriverId driverId, MatchingSessionId matchingSessionId,
+    public DriverMatchAttempt(DriverId driverId, MatchingSessionId matchingSessionId,
         double distanceToPickup, double estimatedArrivalTime, decimal driverScore)
     {
-        TripRequestId = tripRequestId;
         DriverId = driverId;
         MatchingSessionId = matchingSessionId;
         DistanceToPickup = distanceToPickup;

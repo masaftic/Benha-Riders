@@ -17,8 +17,7 @@ public class GetDriverMatchOffersEndpoint : IEndpoint
         List<DriverMatchOfferResponseDto> MatchOffers);
 
     public record DriverMatchOfferResponseDto(
-        int TripRequestId,
-        int SessionId,
+        int DriverMatchAttemptId,
         double PickupLatitude,
         double PickupLongitude,
         double DropoffLatitude,
@@ -69,6 +68,5 @@ public partial class GetDriverMatchOffersEndpointMapper
 
     public partial GetDriverMatchOffersEndpoint.GetDriverMatchOffersResponseDto MapToResponse(GetDriverMatchOffersResult result);
 
-    private int MapTripRequestId(TripRequestId id) => id.Value;
-    private int MapMatchingSessionId(MatchingSessionId id) => id.Value;
+    private int MapMatchAttemptId(DriverMatchAttemptId id) => id.Value;
 }

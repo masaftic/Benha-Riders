@@ -49,14 +49,11 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
         builder.Property(t => t.AssignedAt)
             .IsRequired();
 
-        builder.Property(t => t.DriverArrivedAt)
-            .IsRequired();
+        builder.Property(t => t.DriverArrivedAt);
 
-        builder.Property(t => t.StartedAt)
-            .IsRequired();
+        builder.Property(t => t.StartedAt);
 
-        builder.Property(t => t.CompletedAt)
-            .IsRequired();
+        builder.Property(t => t.CompletedAt);
 
 
         builder.OwnsOne(t => t.EstimatedFare, ef =>

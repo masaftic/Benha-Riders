@@ -4,7 +4,6 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
-using BenhaScooters.Domain.Trips.Enums;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -14,7 +13,7 @@ namespace BenhaScooters.Application.Features.Matching.Commands;
 
 public record AcceptMatchCommand(
     DriverId DriverId,
-    TripRequestId TripRequestId) : IRequest<ErrorOr<AcceptMatchResult>>;
+    DriverMatchAttemptId DriverMatchAttemptId) : IRequest<ErrorOr<AcceptMatchResult>>;
 
 public record AcceptMatchResult(TripId TripId, string Message, DateTime AcceptedAt);
 
@@ -26,9 +25,9 @@ public class AcceptMatchCommandValidator : AbstractValidator<AcceptMatchCommand>
             .NotEmpty()
             .WithMessage("Driver ID is required");
 
-        RuleFor(x => x.TripRequestId.Value)
+        RuleFor(x => x.DriverMatchAttemptId.Value)
             .NotEmpty()
-            .WithMessage("Trip request ID is required");
+            .WithMessage("Driver Match Attempt ID is required");
     }
 }
 
@@ -40,11 +39,17 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher) : 
         List<Error> errors = [];
         try
         {
+            var matchAttempt = await db.DriverMatchAttempts
+                .Include(ma => ma.MatchingSession)
+                .ThenInclude(ms => ms.TripRequest)
+                .Where(ma => ma.Id == request.DriverMatchAttemptId
+                            && ma.ExpiresAt > DateTime.UtcNow
+                            && ma.DriverId == request.DriverId
+                            && ma.Status == MatchAttemptStatus.Pending)
+                .FirstOrDefaultAsync(cancellationToken);
+
             // Find the matching session for this trip request
-            var matchingSession = await db.MatchingSessions
-                .Include(ms => ms.MatchAttempts)
-                .Include(ms => ms.TripRequest)
-                .FirstOrDefaultAsync(ms => ms.TripRequestId == request.TripRequestId, cancellationToken);
+            var matchingSession = matchAttempt?.MatchingSession;
 
             if (matchingSession == null)
             {

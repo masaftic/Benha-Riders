@@ -330,6 +330,10 @@ namespace BenhaScooters.Data.Migrations
                     PickupAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     DropoffAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     Status = table.Column<string>(type: "text", nullable: false),
+                    AssignedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DriverArrivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     EstimatedFare_Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     EstimatedFare_Distance = table.Column<double>(type: "double precision", nullable: false),
                     EstimatedFare_Time = table.Column<double>(type: "double precision", nullable: false),
@@ -337,7 +341,12 @@ namespace BenhaScooters.Data.Migrations
                     TripFare_DistanceFare = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
                     TripFare_DurationFare = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
                     TripFare_SurgeMultiplier = table.Column<decimal>(type: "numeric", nullable: true),
-                    TotalFare = table.Column<decimal>(type: "numeric(18,2)", nullable: true)
+                    TotalFare = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
+                    TripPayment_Method = table.Column<string>(type: "text", nullable: true),
+                    TripPayment_Status = table.Column<string>(type: "text", nullable: true),
+                    TripPayment_Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
+                    TripPayment_PaidAmount = table.Column<decimal>(type: "numeric(18,2)", nullable: true),
+                    TripPayment_ExternalReference = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -407,27 +416,6 @@ namespace BenhaScooters.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TripEvent",
-                columns: table => new
-                {
-                    TripId = table.Column<int>(type: "integer", nullable: false),
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TripEvent", x => new { x.TripId, x.Id });
-                    table.ForeignKey(
-                        name: "FK_TripEvent_Trips_TripId",
-                        column: x => x.TripId,
-                        principalTable: "Trips",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "TripRoutes",
                 columns: table => new
                 {
@@ -451,9 +439,8 @@ namespace BenhaScooters.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    TripRequestId = table.Column<int>(type: "integer", nullable: false),
-                    DriverId = table.Column<int>(type: "integer", nullable: false),
                     MatchingSessionId = table.Column<int>(type: "integer", nullable: false),
+                    DriverId = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     RespondedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -476,12 +463,6 @@ namespace BenhaScooters.Data.Migrations
                         name: "FK_DriverMatchAttempts_MatchingSessions_MatchingSessionId",
                         column: x => x.MatchingSessionId,
                         principalTable: "MatchingSessions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DriverMatchAttempts_TripRequests_TripRequestId",
-                        column: x => x.TripRequestId,
-                        principalTable: "TripRequests",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -552,11 +533,6 @@ namespace BenhaScooters.Data.Migrations
                 name: "IX_DriverMatchAttempts_Status",
                 table: "DriverMatchAttempts",
                 column: "Status");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DriverMatchAttempts_TripRequestId",
-                table: "DriverMatchAttempts",
-                column: "TripRequestId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Drivers_Info_NationalId",
@@ -729,9 +705,6 @@ namespace BenhaScooters.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "SmsVerificationCodes");
-
-            migrationBuilder.DropTable(
-                name: "TripEvent");
 
             migrationBuilder.DropTable(
                 name: "TripGpsPoints");

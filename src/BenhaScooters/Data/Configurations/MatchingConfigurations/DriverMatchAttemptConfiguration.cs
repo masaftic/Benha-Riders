@@ -30,11 +30,6 @@ public class DriverMatchAttemptConfiguration : IEntityTypeConfiguration<DriverMa
             .WithMany()
             .HasForeignKey(dma => dma.DriverId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-        builder.HasOne(dma => dma.TripRequest)
-            .WithMany()
-            .HasForeignKey(dma => dma.TripRequestId)
-            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(dma => dma.Status);
         builder.HasIndex(dma => dma.CreatedAt);

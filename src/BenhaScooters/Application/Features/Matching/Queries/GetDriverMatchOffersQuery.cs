@@ -16,8 +16,7 @@ public record GetDriverMatchOffersResult(
     List<DriverMatchOfferDto> MatchOffers);
 
 public record DriverMatchOfferDto(
-    TripRequestId TripRequestId,
-    MatchingSessionId SessionId,
+    DriverMatchAttemptId DriverMatchAttemptId,
     double PickupLatitude,
     double PickupLongitude,
     double DropoffLatitude,
@@ -61,16 +60,14 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
 
         // Get pending match offers for this driver
         var matchOffers = await db.DriverMatchAttempts
-            .Include(ma => ma.MatchingSession)
-            .ThenInclude(ms => ms.TripRequest)
+            .AsNoTracking()
             .Where(ma => ma.DriverId == request.DriverId && 
                         ma.Status == MatchAttemptStatus.Pending && 
                         ma.ExpiresAt > DateTime.UtcNow)
             .OrderBy(ma => ma.CreatedAt)
             .Select(ma =>  new
             {
-                ma.MatchingSession.TripRequestId,
-                ma.MatchingSession.Id,
+                ma.Id,
                 ma.MatchingSession.TripRequest.PickupLocation,
                 ma.MatchingSession.TripRequest.DropoffLocation,
                 ma.MatchingSession.TripRequest.PickupAddress,
@@ -83,7 +80,6 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
 
 
         return new GetDriverMatchOffersResult(matchOffers.Select(x => new DriverMatchOfferDto(
-            x.TripRequestId,
             x.Id,
             x.PickupLocation.Y, // Latitude
             x.PickupLocation.X, // Longitude
