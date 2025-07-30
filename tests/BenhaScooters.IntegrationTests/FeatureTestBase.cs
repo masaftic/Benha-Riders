@@ -67,7 +67,8 @@ public abstract class FeatureTestBase : IClassFixture<DatabaseFixture>, IAsyncLi
         DbContext = Scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
         // Ensure database is created and migrated
-        await DbContext.Database.MigrateAsync();
+        // First ensure the database exists
+        await DbContext.Database.EnsureCreatedAsync();
         
         // Clean up any existing data
         await CleanupDatabaseAsync();
@@ -110,8 +111,31 @@ public abstract class FeatureTestBase : IClassFixture<DatabaseFixture>, IAsyncLi
     private async Task CleanupDatabaseAsync()
     {
         if (DbContext == null) return;
-
-        DbContext.Database.EnsureDeleted();
+        
+        // Remove all data from tables (order matters due to foreign key constraints)
+        if (DbContext.RefreshTokens.Any())
+            DbContext.RefreshTokens.RemoveRange(DbContext.RefreshTokens);
+            
+        if (DbContext.SmsVerificationCodes.Any())
+            DbContext.SmsVerificationCodes.RemoveRange(DbContext.SmsVerificationCodes);
+            
+        if (DbContext.Trips.Any())
+            DbContext.Trips.RemoveRange(DbContext.Trips);
+            
+        if (DbContext.TripRequests.Any())
+            DbContext.TripRequests.RemoveRange(DbContext.TripRequests);
+            
+        if (DbContext.Drivers.Any())
+            DbContext.Drivers.RemoveRange(DbContext.Drivers);
+            
+        if (DbContext.Riders.Any())
+            DbContext.Riders.RemoveRange(DbContext.Riders);
+            
+        if (DbContext.UserRoles.Any())
+            DbContext.UserRoles.RemoveRange(DbContext.UserRoles);
+            
+        if (DbContext.Users.Any())
+            DbContext.Users.RemoveRange(DbContext.Users);
 
         await DbContext.SaveChangesAsync();
     }
