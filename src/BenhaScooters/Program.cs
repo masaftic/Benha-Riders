@@ -23,6 +23,7 @@ builder.Services.AddApplication();
 
 var app = builder.Build();
 
+app.UseCors();
 
 app.UseRateLimiter();
 

@@ -90,6 +90,18 @@ public static class DependencyInjection
                 }
             };
         });
+
+
+        services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+        });
+
         return services;
     }
 }
