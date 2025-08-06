@@ -6,16 +6,17 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using BenhaScooters.Domain.Users;
+using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
-public record RejectDriverCommand(UserId DriverUserId, string Reason) : IRequest<ErrorOr<RejectDriverResponse>>;
+public record RejectDriverCommand(DriverId DriverId, string Reason) : IRequest<ErrorOr<Success>>;
 
 public class RejectDriverCommandValidator : AbstractValidator<RejectDriverCommand>
 {
     public RejectDriverCommandValidator()
     {
-        RuleFor(x => x.DriverUserId.Value)
+        RuleFor(x => x.DriverId.Value)
             .NotEmpty().WithMessage("Driver user ID is required.");
 
         RuleFor(x => x.Reason)
@@ -24,21 +25,15 @@ public class RejectDriverCommandValidator : AbstractValidator<RejectDriverComman
     }
 }
 
-public record RejectDriverResponse(string Message);
 
-public class RejectDriverCommandHandler : IRequestHandler<RejectDriverCommand, ErrorOr<RejectDriverResponse>>
+public class RejectDriverCommandHandler(AppDbContext db) : IRequestHandler<RejectDriverCommand, ErrorOr<Success>>
 {
-    private readonly AppDbContext _db;
+    private readonly AppDbContext _db = db;
 
-    public RejectDriverCommandHandler(AppDbContext db)
-    {
-        _db = db;
-    }
-
-    public async Task<ErrorOr<RejectDriverResponse>> Handle(RejectDriverCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Success>> Handle(RejectDriverCommand request, CancellationToken cancellationToken)
     {
         var driver = await _db.Drivers
-            .FirstOrDefaultAsync(dp => dp.UserId == request.DriverUserId, cancellationToken);
+            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
 
         if (driver == null)
         {
@@ -53,6 +48,6 @@ public class RejectDriverCommandHandler : IRequestHandler<RejectDriverCommand, E
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        return new RejectDriverResponse("Driver application rejected successfully.");
+        return Result.Success;
     }
 }

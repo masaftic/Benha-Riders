@@ -18,25 +18,24 @@ public class Driver : AggregateRoot
 {
     public DriverId Id { get; private set; }
     public UserId UserId { get; private set; }
-    
+
     // Core driver information
     public DriverInfo? Info { get; private set; }
-    
+
     // Onboarding state
     public OnboardingState OnboardingState { get; private set; }
-    
+
     // Driver status
     public bool IsActive { get; private set; }
 
     // Child entities within the aggregate
+
+    public DriverVehicle? Vehicle { get; private set; }
     private readonly List<DriverDocument> _documents = new();
-    private readonly List<DriverVehicle> _vehicles = new();
-    
     public IReadOnlyList<DriverDocument> Documents => _documents.AsReadOnly();
-    public IReadOnlyList<DriverVehicle> Vehicles => _vehicles.AsReadOnly();
 
     private Driver() // For EF Core
-    { 
+    {
         OnboardingState = null!; // Will be set by EF Core
     }
 
@@ -47,7 +46,7 @@ public class Driver : AggregateRoot
         IsActive = false;
     }
 
-    public ErrorOr<Success> UpdatePersonalInfo(string fullName, NationalId nationalId, DateOnly dateOfBirth, 
+    public ErrorOr<Success> UpdatePersonalInfo(string fullName, NationalId nationalId, DateOnly dateOfBirth,
         string address, string city, string emergencyContactName, PhoneNumber emergencyContactPhone)
     {
         if (OnboardingState.IsCompleted)
@@ -62,7 +61,7 @@ public class Driver : AggregateRoot
         return Result.Success;
     }
 
-    public ErrorOr<Success> AddVehicle(VehicleType vehicleType, string vehicleBrand, string vehicleModel, 
+    public ErrorOr<Success> EnrollVehicle(VehicleType vehicleType, string vehicleBrand, string vehicleModel,
         string vehicleColor, LicensePlate licensePlate, int vehicleYear, VIN vin)
     {
         if (OnboardingState.IsCompleted)
@@ -71,21 +70,23 @@ public class Driver : AggregateRoot
         if (!OnboardingState.CanAdvanceFrom(OnboardingStep.VehicleInfo))
             return DriverErrors.PersonalInfoRequired;
 
-        // Deactivate existing vehicles
-        foreach (var vehicle in _vehicles)
-        {
-            vehicle.Deactivate();
-        }
+        Vehicle = new DriverVehicle(Id, vehicleType, vehicleBrand, vehicleModel, vehicleColor, licensePlate, vehicleYear, vin);
 
-        var newVehicle = new DriverVehicle(Id, vehicleType, vehicleBrand, vehicleModel, vehicleColor, licensePlate, vehicleYear, vin);
-        _vehicles.Add(newVehicle);
-        
         OnboardingState = OnboardingState.AdvanceToNextStep();
 
         return Result.Success;
     }
 
-    public ErrorOr<Success> AddDocument(DocumentType documentType, string imageUrl, DateTime? expiryDate = null)
+    public static List<string> GetRequiredDocuments()
+    {
+        return [
+            DocumentType.DrivingLicense.ToString(),
+            DocumentType.VehicleRegistration.ToString(),
+            DocumentType.DriverPhoto.ToString()
+        ];
+    }
+
+    public ErrorOr<Success> AddDocument(DocumentType documentType, string imageUrl, DateOnly? expiryDate = null)
     {
         if (OnboardingState.IsCompleted)
             return DriverErrors.OnboardingAlreadyCompleted;
@@ -102,7 +103,6 @@ public class Driver : AggregateRoot
 
         var document = new DriverDocument(Id, documentType, imageUrl, expiryDate);
         _documents.Add(document);
-        ApproveDocument(documentType); // Automatically approve new document
 
         // Check if all required documents are uploaded
         var requiredDocs = new[] { DocumentType.DrivingLicense, DocumentType.VehicleRegistration, DocumentType.DriverPhoto };
@@ -116,6 +116,25 @@ public class Driver : AggregateRoot
         return Result.Success;
     }
 
+
+    /// <summary>
+    /// Removes a document from the driver's profile.
+    /// </summary>
+    /// <param name="documentType"></param>
+    /// <returns>Image url for the removed document</returns>
+    public ErrorOr<string> RemoveDocument(DocumentType documentType)
+    {
+        if (OnboardingState.IsCompleted)
+            return DriverErrors.OnboardingAlreadyCompleted;
+
+        var document = _documents.FirstOrDefault(d => d.Type == documentType);
+        if (document == null)
+            return DriverErrors.DocumentNotFound;
+
+        _documents.Remove(document);
+        return document.ImageUrl;
+    }
+
     public ErrorOr<Success> CompleteOnboarding()
     {
         if (!OnboardingState.CanComplete)
@@ -125,12 +144,12 @@ public class Driver : AggregateRoot
         if (Info == null)
             return DriverErrors.PersonalInfoRequired;
 
-        if (!_vehicles.Any(v => v.IsActive))
+        if (Vehicle is null)
             return DriverErrors.VehicleInfoRequired;
 
         var requiredDocs = new[] { DocumentType.DrivingLicense, DocumentType.VehicleRegistration, DocumentType.DriverPhoto };
         var missingDocs = requiredDocs.Where(type => !_documents.Any(d => d.Type == type && d.IsValid)).ToList();
-        
+
         if (missingDocs.Any())
             return DriverErrors.DocumentsRequired;
 
@@ -153,13 +172,13 @@ public class Driver : AggregateRoot
         return Result.Success;
     }
 
-    public ErrorOr<Success> ApproveDocument(DocumentType documentType)
+    public ErrorOr<Success> ApproveDocument(DocumentType documentType, DateOnly? expiryDate = null)
     {
         var document = _documents.FirstOrDefault(d => d.Type == documentType);
         if (document == null)
             return DriverErrors.DocumentNotFound;
 
-        document.Approve();
+        document.Approve(expiryDate);
         return Result.Success;
     }
 
@@ -170,6 +189,12 @@ public class Driver : AggregateRoot
             return DriverErrors.DocumentNotFound;
 
         document.Reject(reason);
+
+        if (OnboardingState.CurrentStep == OnboardingStep.Review)
+        {
+            OnboardingState = OnboardingState.MoveBackToDocuments();
+        }
+
         return Result.Success;
     }
 
@@ -177,7 +202,6 @@ public class Driver : AggregateRoot
     public bool IsOnboardingComplete => OnboardingState.IsCompleted;
     public bool CanGoOnline => IsOnboardingComplete && IsActive && AllDocumentsValid;
     public int OnboardingProgress => OnboardingState.ProgressPercentage;
-    public DriverVehicle? ActiveVehicle => _vehicles.FirstOrDefault(v => v.IsActive);
-    
+
     private bool AllDocumentsValid => _documents.All(d => d.IsValid);
 }

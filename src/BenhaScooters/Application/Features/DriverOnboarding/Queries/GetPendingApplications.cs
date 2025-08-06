@@ -2,6 +2,7 @@ using BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
@@ -17,10 +18,10 @@ public record GetPendingApplicationsQuery : IRequest<ErrorOr<GetPendingApplicati
 public record GetPendingApplicationsResponse(List<PendingDriverApplicationDto> Applications);
 
 public record PendingDriverApplicationDto(
-    int UserId,
+    DriverId DriverId,
     PersonalInfoDto? PersonalInfo,
     VehicleInfoDto? VehicleInfo,
-    DocumentsDto? Documents,
+    List<DocumentDto>? Documents,
     DateTime CreatedAt);
 
 public class GetPendingApplicationsQueryHandler : IRequestHandler<GetPendingApplicationsQuery, ErrorOr<GetPendingApplicationsResponse>>
@@ -37,7 +38,7 @@ public class GetPendingApplicationsQueryHandler : IRequestHandler<GetPendingAppl
     public async Task<ErrorOr<GetPendingApplicationsResponse>> Handle(GetPendingApplicationsQuery request, CancellationToken cancellationToken)
     {
         var pendingApplications = await _db.Drivers
-            .Include(d => d.Vehicles)
+            .Include(d => d.Vehicle)
             .Include(d => d.Documents)
             .Where(dp =>
                 dp.OnboardingState.Status == OnboardingStatus.InProgress &&
@@ -58,24 +59,22 @@ public class GetPendingApplicationsQueryHandler : IRequestHandler<GetPendingAppl
                 driver.Info.EmergencyContactName,
                 driver.Info.EmergencyContactPhone.Value) : null;
 
-            var vehicleInfo = new VehicleInfoDto(
-                driver.Vehicles.First().VehicleType,
-                driver.Vehicles.First().Brand,
-                driver.Vehicles.First().Model,
-                driver.Vehicles.First().Color,
-                driver.Vehicles.First().LicensePlate.Value,
-                driver.Vehicles.First().Year,
-                driver.Vehicles.First().VIN.Value,
-                driver.Vehicles.First().IsActive,
-                driver.Vehicles.First().CreatedAt);
+            var vehicleInfo = driver.Vehicle is not null ? new VehicleInfoDto(
+                driver.Vehicle.VehicleType,
+                driver.Vehicle.Brand,
+                driver.Vehicle.Model,
+                driver.Vehicle.Color,
+                driver.Vehicle.LicensePlate.Value,
+                driver.Vehicle.Year,
+                driver.Vehicle.VIN.Value,
+                driver.Vehicle.IsActive,
+                driver.Vehicle.CreatedAt) : null;
 
-            var documents = new DocumentsDto(
-                await driver.Documents.FirstOrDefault(d => d.Type == DocumentType.DrivingLicense)?.ToDto(_s3),
-                await driver.Documents.FirstOrDefault(d => d.Type == DocumentType.VehicleRegistration)?.ToDto(_s3),
-                await driver.Documents.FirstOrDefault(d => d.Type == DocumentType.DriverPhoto)?.ToDto(_s3));
+            var documentTasks = driver.Documents.Select(x => x.ToDto(_s3));
+            List<DocumentDto> documents = [.. await Task.WhenAll(documentTasks)];
 
             response.Add(new PendingDriverApplicationDto(
-                driver.UserId.Value,
+                driver.Id,
                 personalInfo,
                 vehicleInfo,
                 documents,

@@ -10,9 +10,9 @@ using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 
-public record GetOnboardingStatusQuery(UserId UserId) : IRequest<ErrorOr<GetOnboardingStatusResponse>>;
+public record GetOnboardingProgressQuery(DriverId DriverId) : IRequest<ErrorOr<GetOnboardingProgressResponse>>;
 
-public record GetOnboardingStatusResponse(
+public record GetOnboardingProgressResponse(
     OnboardingStatus Status,
     OnboardingStep CurrentStep,
     int Progress,
@@ -20,7 +20,7 @@ public record GetOnboardingStatusResponse(
     DateTime CreatedAt,
     DateTime? CompletedAt);
 
-public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingStatusQuery, ErrorOr<GetOnboardingStatusResponse>>
+public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingProgressQuery, ErrorOr<GetOnboardingProgressResponse>>
 {
     private readonly AppDbContext _db;
 
@@ -29,20 +29,17 @@ public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingStat
         _db = db;
     }
 
-    public async Task<ErrorOr<GetOnboardingStatusResponse>> Handle(GetOnboardingStatusQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GetOnboardingProgressResponse>> Handle(GetOnboardingProgressQuery request, CancellationToken cancellationToken)
     {
         var driver = await _db.Drivers
-            .FirstOrDefaultAsync(dp => dp.UserId == request.UserId, cancellationToken);
+            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
 
         if (driver == null)
         {
-            // Create new driver if it doesn't exist
-            driver = new Driver(request.UserId);
-            _db.Drivers.Add(driver);
-            await _db.SaveChangesAsync(cancellationToken);
+            return DriverErrors.DriverNotFound;
         }
 
-        var response = new GetOnboardingStatusResponse(
+        var response = new GetOnboardingProgressResponse(
             driver.OnboardingState.Status,
             driver.OnboardingState.CurrentStep,
             driver.OnboardingProgress,

@@ -31,7 +31,6 @@ public class UpdatePersonalInfoCommandValidator : AbstractValidator<UpdatePerson
     {
         _db = db;
         
-        // Only business logic validations here, not basic input validation
         RuleFor(x => x.NationalId)
             .MustAsync(BeUniqueNationalId)
             .WithMessage("هذا الرقم القومي مسجل مع سائق آخر.")
@@ -46,16 +45,11 @@ public class UpdatePersonalInfoCommandValidator : AbstractValidator<UpdatePerson
     }
 }
 
-public record UpdatePersonalInfoResponse(string Message, BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep NextStep);
+public record UpdatePersonalInfoResponse(string Message, OnboardingStep NextStep);
 
-public class UpdatePersonalInfoCommandHandler : IRequestHandler<UpdatePersonalInfoCommand, ErrorOr<UpdatePersonalInfoResponse>>
+public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler<UpdatePersonalInfoCommand, ErrorOr<UpdatePersonalInfoResponse>>
 {
-    private readonly AppDbContext _db;
-
-    public UpdatePersonalInfoCommandHandler(AppDbContext db)
-    {
-        _db = db;
-    }
+    private readonly AppDbContext _db = db;
 
     public async Task<ErrorOr<UpdatePersonalInfoResponse>> Handle(UpdatePersonalInfoCommand request, CancellationToken cancellationToken)
     {
@@ -65,12 +59,6 @@ public class UpdatePersonalInfoCommandHandler : IRequestHandler<UpdatePersonalIn
         if (driver == null)
         {
             return DriverErrors.DriverNotFound;
-        }
-
-        // Check for duplicate national ID across all drivers
-        if (await _db.Drivers.AnyAsync(x => x.Info!.NationalId == NationalId.From(request.NationalId) && x.Id != driver.Id, cancellationToken: cancellationToken))
-        {
-            return DriverErrors.DuplicateNationalId;
         }
 
         var updateResult = driver.UpdatePersonalInfo(

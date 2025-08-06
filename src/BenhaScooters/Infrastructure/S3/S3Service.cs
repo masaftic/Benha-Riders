@@ -5,7 +5,7 @@ namespace BenhaScooters.Infrastructure.S3;
 
 public interface IS3Service
 {
-    Task<string> UploadFileAsync(IFormFile file, string keyPrefix, CancellationToken cancellationToken = default);
+    Task<ErrorOr<string>> UploadFileAsync(IFormFile file, string keyPrefix, bool useKeyPrefixAsFullUrl = false, CancellationToken cancellationToken = default);
     Task<bool> DeleteFileAsync(string key, CancellationToken cancellationToken = default);
     Task<string> GetPreSignedUrlAsync(string key, TimeSpan expiry, CancellationToken cancellationToken = default);
 }
@@ -21,27 +21,37 @@ public class S3Service : IS3Service
         _s3Options = s3Options.Value;
     }
 
-    public async Task<string> UploadFileAsync(IFormFile file, string keyPrefix, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<string>> UploadFileAsync(IFormFile file, string keyPrefix, bool useKeyPrefixAsFullUrl = false, CancellationToken cancellationToken = default)
     {
         if (file == null || file.Length == 0)
             throw new ArgumentException("File is required and cannot be empty.");
 
         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        
+
         if (!allowedExtensions.Contains(extension))
-            throw new ArgumentException($"File type {extension} is not allowed. Allowed types: {string.Join(", ", allowedExtensions)}");
+            return Error.Validation("INVALID_FILE_TYPE", $"File type '{extension}' is not allowed. Allowed types are: {string.Join(", ", allowedExtensions)}.");
+        
+        if (extension == ".jpeg") extension = ".jpg"; // Normalize .jpeg to .jpg for consistency
 
         var maxFileSize = 10 * 1024 * 1024; // 10MB
         if (file.Length > maxFileSize)
-            throw new ArgumentException($"File size exceeds maximum allowed size of {maxFileSize / (1024 * 1024)}MB.");
+            return Error.Validation("INVALID_FILE_SIZE", $"File size exceeds maximum allowed size of {maxFileSize / (1024 * 1024)}MB.");
 
-        // Generate unique file key
-        var fileName = $"{Guid.NewGuid()}{extension}";
-        var key = string.IsNullOrEmpty(keyPrefix) ? fileName : $"{keyPrefix}/{fileName}";
+        string key;
+        if (useKeyPrefixAsFullUrl)
+        {
+            key = $"{keyPrefix}{extension}";
+        }
+        else
+        {
+            var fileName = $"{Guid.NewGuid()}{extension}";
+            key = string.IsNullOrEmpty(keyPrefix) ? fileName : $"{keyPrefix}/{fileName}";
+        }
+
 
         using var stream = file.OpenReadStream();
-        
+
         var request = new Amazon.S3.Model.PutObjectRequest
         {
             BucketName = _s3Options.BucketName,
@@ -52,9 +62,9 @@ public class S3Service : IS3Service
         };
 
         var response = await _s3Client.PutObjectAsync(request, cancellationToken);
-        
+
         if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
-            throw new InvalidOperationException($"Failed to upload file to S3. Status: {response.HttpStatusCode}");
+            return Error.Failure("FILE_UPLOAD_FAILED", "Failed to upload file to S3.");
 
         return key;
     }

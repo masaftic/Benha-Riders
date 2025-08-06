@@ -1,4 +1,5 @@
 using Amazon.Runtime.Documents;
+using BenhaScooters.Application.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
@@ -22,7 +23,7 @@ public record UpdateDocumentsCommand(
     IFormFile DriverImage) : IRequest<ErrorOr<UpdateDocumentsResponse>>;
 
 
-public record UpdateDocumentsResponse(string Message, BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep NextStep);
+public record UpdateDocumentsResponse(string Message, OnboardingStep NextStep);
 
 public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsCommand, ErrorOr<UpdateDocumentsResponse>>
 {
@@ -48,22 +49,35 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
         try
         {
             // Upload files to S3 and get their keys
-            var licenseImageKey = await _s3Service.UploadFileAsync(
+            string licenseImageKey, vehicleRegistrationImageKey, driverImageKey;
+
+            var uploadResult = await _s3Service.UploadFileAsync(
                 request.LicenseImage,
-                $"driver-documents/{request.DriverId}/license",
+                $"drivers/{driver.Id}/documents/{DocumentType.DrivingLicense.ToKebabCase()}",
+                useKeyPrefixAsFullUrl: true,
                 cancellationToken);
 
-            var vehicleRegistrationImageKey = await _s3Service.UploadFileAsync(
+            if (uploadResult.IsError) return uploadResult.Errors;
+            else licenseImageKey = uploadResult.Value;
+
+            uploadResult = await _s3Service.UploadFileAsync(
                 request.VehicleRegistrationImage,
-                $"driver-documents/{request.DriverId}/vehicle-registration",
+                $"drivers/{driver.Id}/documents/{DocumentType.VehicleRegistration.ToKebabCase()}",
+                useKeyPrefixAsFullUrl: true,
                 cancellationToken);
 
-            var driverImageKey = await _s3Service.UploadFileAsync(
+            if (uploadResult.IsError) return uploadResult.Errors;
+            else vehicleRegistrationImageKey = uploadResult.Value;
+
+            uploadResult = await _s3Service.UploadFileAsync(
                 request.DriverImage,
-                $"driver-documents/{request.DriverId}/photo",
+                $"drivers/{driver.Id}/documents/{DocumentType.DriverPhoto.ToKebabCase()}",
+                useKeyPrefixAsFullUrl: true,
                 cancellationToken);
 
-            // Update driver with S3 keys instead of URLs
+            if (uploadResult.IsError) return uploadResult.Errors;
+            else driverImageKey = uploadResult.Value;
+
             var result = driver.AddDocument(DocumentType.DrivingLicense, licenseImageKey)
                 .Then(res => driver.AddDocument(DocumentType.VehicleRegistration, vehicleRegistrationImageKey))
                 .Then(res => driver.AddDocument(DocumentType.DriverPhoto, driverImageKey));

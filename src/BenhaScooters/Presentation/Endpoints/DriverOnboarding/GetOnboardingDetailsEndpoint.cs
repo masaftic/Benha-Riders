@@ -16,7 +16,7 @@ public class GetOnboardingDetailsEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/driver/onboarding/details", GetOnboardingDetails)
+        app.MapGet("/drivers/me/onboarding/details", GetOnboardingDetails)
             .WithName("GetDriverOnboardingDetails")
             .WithTags("Driver Onboarding")
             .WithSummary("Get driver onboarding details")
@@ -32,8 +32,7 @@ public class GetOnboardingDetailsEndpoint : IEndpoint
 
     public async Task<IResult> GetOnboardingDetails([FromServices] ISender sender, HttpContext ctx)
     {
-        var userId = ctx.GetCurrentUserId();
-        var query = new GetOnboardingDetailsQuery(userId);
+        var query = new GetOnboardingDetailsQuery(ctx.GetDriverId());
         var result = await sender.Send(query);
 
         if (result.IsError)

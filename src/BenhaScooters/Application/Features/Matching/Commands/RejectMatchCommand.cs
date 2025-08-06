@@ -12,13 +12,9 @@ namespace BenhaScooters.Application.Features.Matching.Commands;
 
 public record RejectMatchCommand(
     DriverId DriverId,
-    TripRequestId TripRequestId,
-    string? Reason = null) : IRequest<ErrorOr<RejectMatchResult>>;
+    DriverMatchAttemptId DriverMatchAttemptId,
+    string? Reason = null) : IRequest<ErrorOr<Success>>;
 
-public record RejectMatchResult(
-    MatchingSessionId SessionId,
-    string Message,
-    DateTime RejectedAt);
 
 public class RejectMatchCommandValidator : AbstractValidator<RejectMatchCommand>
 {
@@ -28,20 +24,29 @@ public class RejectMatchCommandValidator : AbstractValidator<RejectMatchCommand>
             .NotEmpty()
             .WithMessage("Driver ID is required");
 
-        RuleFor(x => x.TripRequestId.Value)
+        RuleFor(x => x.DriverMatchAttemptId.Value)
             .NotEmpty()
-            .WithMessage("Trip request ID is required");
+            .WithMessage("Driver match attempt ID is required");
     }
 }
 
-public class RejectMatchCommandHandler(AppDbContext db) : IRequestHandler<RejectMatchCommand, ErrorOr<RejectMatchResult>>
+public class RejectMatchCommandHandler(AppDbContext db) : IRequestHandler<RejectMatchCommand, ErrorOr<Success>>
 {
-    public async Task<ErrorOr<RejectMatchResult>> Handle(RejectMatchCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Success>> Handle(RejectMatchCommand request, CancellationToken cancellationToken)
     {
         // Find the matching session for this trip request
-        var matchingSession = await db.MatchingSessions
-            .Include(ms => ms.MatchAttempts)
-            .FirstOrDefaultAsync(ms => ms.TripRequestId == request.TripRequestId, cancellationToken);
+        var matchAttempt = await db.DriverMatchAttempts
+            .Include(ma => ma.MatchingSession)
+            .Where(ma => ma.Id == request.DriverMatchAttemptId
+                        && ma.ExpiresAt > DateTime.UtcNow
+                        && ma.DriverId == request.DriverId
+                        && ma.Status == MatchAttemptStatus.Pending)
+            .FirstOrDefaultAsync(cancellationToken);
+        
+        if (matchAttempt == null)
+            return MatchingErrors.MatchAttempt.NotFound;
+        
+        var matchingSession = matchAttempt.MatchingSession;
 
         if (matchingSession == null)
         {
@@ -58,9 +63,6 @@ public class RejectMatchCommandHandler(AppDbContext db) : IRequestHandler<Reject
         // Save changes to persist the domain state and publish events
         await db.SaveChangesAsync(cancellationToken);
 
-        return new RejectMatchResult(
-            matchingSession.Id,
-            "Match rejected successfully",
-            DateTime.UtcNow);
+        return Result.Success;
     }
 }

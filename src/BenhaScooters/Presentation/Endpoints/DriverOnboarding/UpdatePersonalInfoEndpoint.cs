@@ -92,7 +92,7 @@ public class UpdatePersonalInfoEndpoint : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/driver/onboarding/personal-info", UpdatePersonalInfo)
+        app.MapPost("/drivers/me/onboarding/personal-info", UpdatePersonalInfo)
             .AddEndpointFilter<ValidationFilter<UpdatePersonalInfoRequestDto>>()
             .WithName("UpdateDriverPersonalInfo")
             .WithTags("Driver Onboarding")

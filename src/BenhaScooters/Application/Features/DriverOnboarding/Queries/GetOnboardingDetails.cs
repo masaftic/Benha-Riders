@@ -8,17 +8,18 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using BenhaScooters.Domain.Users;
+using BenhaScooters.Domain.Drivers.Entities;
+using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 
-public record GetOnboardingDetailsQuery(UserId UserId) : IRequest<ErrorOr<GetOnboardingDetailsResponse>>;
+public record GetOnboardingDetailsQuery(DriverId DriverId) : IRequest<ErrorOr<GetOnboardingDetailsResponse>>;
 
 public record GetOnboardingDetailsResponse(
     OnboardingStateDto OnboardingState,
     PersonalInfoDto? PersonalInfo,
     VehicleInfoDto? VehicleInfo,
-    DocumentsDto Documents);
-
+    List<DocumentDto> Documents);
 
 
 public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDetailsQuery, ErrorOr<GetOnboardingDetailsResponse>>
@@ -36,8 +37,8 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
     {
         var driver = await _db.Drivers
             .Include(d => d.Documents)
-            .Include(d => d.Vehicles)
-            .FirstOrDefaultAsync(dp => dp.UserId == request.UserId, cancellationToken);
+            .Include(d => d.Vehicle)
+            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
 
         if (driver == null)
         {
@@ -53,7 +54,7 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
             driver.Info.EmergencyContactName,
             driver.Info.EmergencyContactPhone.Value) : null;
 
-        var activeVehicle = driver.ActiveVehicle;
+        var activeVehicle = driver.Vehicle;
         var vehicleInfo = activeVehicle != null ? new VehicleInfoDto(
             activeVehicle.VehicleType,
             activeVehicle.Brand,
@@ -65,39 +66,9 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
             activeVehicle.IsActive,
             activeVehicle.CreatedAt) : null;
 
-        // Create document DTOs with enhanced information
-        var licenseDoc = driver.Documents.FirstOrDefault(d => d.Type == BenhaScooters.Domain.Drivers.Entities.DocumentType.DrivingLicense);
-        var registrationDoc = driver.Documents.FirstOrDefault(d => d.Type == BenhaScooters.Domain.Drivers.Entities.DocumentType.VehicleRegistration);
-        var photoDoc = driver.Documents.FirstOrDefault(d => d.Type == BenhaScooters.Domain.Drivers.Entities.DocumentType.DriverPhoto);
 
-        var documents = new DocumentsDto(
-            licenseDoc != null ? new DocumentDto(
-                licenseDoc.Type.ToString(),
-                licenseDoc.Status.ToString(),
-                await _s3.GetPreSignedUrlAsync(licenseDoc.ImageUrl, TimeSpan.FromMinutes(10), cancellationToken),
-                licenseDoc.UploadedAt,
-                licenseDoc.ExpiryDate,
-                licenseDoc.RejectionReason,
-                licenseDoc.IsValid,
-                licenseDoc.IsExpired) : null,
-            registrationDoc != null ? new DocumentDto(
-                registrationDoc.Type.ToString(),
-                registrationDoc.Status.ToString(),
-                await _s3.GetPreSignedUrlAsync(registrationDoc.ImageUrl, TimeSpan.FromMinutes(10), cancellationToken),
-                registrationDoc.UploadedAt,
-                registrationDoc.ExpiryDate,
-                registrationDoc.RejectionReason,
-                registrationDoc.IsValid,
-                registrationDoc.IsExpired) : null,
-            photoDoc != null ? new DocumentDto(
-                photoDoc.Type.ToString(),
-                photoDoc.Status.ToString(),
-                await _s3.GetPreSignedUrlAsync(photoDoc.ImageUrl, TimeSpan.FromMinutes(10), cancellationToken),
-                photoDoc.UploadedAt,
-                photoDoc.ExpiryDate,
-                photoDoc.RejectionReason,
-                photoDoc.IsValid,
-                photoDoc.IsExpired) : null);
+        var documentTasks = driver.Documents.Select(x => x.ToDto(_s3));
+        List<DocumentDto> documents = [.. await Task.WhenAll(documentTasks)];
 
         var onboardingState = new OnboardingStateDto(
             driver.OnboardingState.Status.ToString(),
@@ -107,7 +78,7 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
             driver.OnboardingState.CreatedAt,
             driver.OnboardingState.CompletedAt,
             driver.OnboardingState.IsCompleted,
-            driver.OnboardingState.CurrentStep != BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep.Completed);
+            driver.OnboardingState.CurrentStep != OnboardingStep.Completed);
 
         var response = new GetOnboardingDetailsResponse(
             onboardingState,

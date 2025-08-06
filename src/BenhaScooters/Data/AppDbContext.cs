@@ -1,6 +1,7 @@
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.TripRequests;
@@ -22,6 +23,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, PublishDomainE
     public DbSet<Rider> Riders => Set<Rider>();
 
     public DbSet<Driver> Drivers => Set<Driver>();
+    public DbSet<DriverVehicle> Vehicles => Set<DriverVehicle>();
     public DbSet<DriverLocation> DriverLocations => Set<DriverLocation>();
     public DbSet<DriverAvailability> DriverAvailabilities => Set<DriverAvailability>();
     public DbSet<DriverRating> DriverRatings => Set<DriverRating>();

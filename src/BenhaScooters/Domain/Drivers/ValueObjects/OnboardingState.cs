@@ -77,6 +77,22 @@ public class OnboardingState : ValueObject
         };
     }
 
+
+    public OnboardingState MoveBackToDocuments()
+    {
+        if (Status == OnboardingStatus.Completed)
+            throw new InvalidOperationException("Cannot move back from completed onboarding");
+
+        return new OnboardingState
+        {
+            Status = OnboardingStatus.InProgress,
+            CurrentStep = OnboardingStep.Documents,
+            CreatedAt = CreatedAt,
+            CompletedAt = null,
+            RejectionReason = null
+        };
+    }
+
     public OnboardingState Reject(string reason)
     {
         if (string.IsNullOrWhiteSpace(reason))

@@ -1,5 +1,6 @@
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,11 @@ public class DriverConfiguration : IEntityTypeConfiguration<Driver>
         builder.HasOne<User>()
             .WithOne()
             .HasForeignKey<Driver>(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(d => d.Vehicle)
+            .WithOne(v => v.Driver)
+            .HasForeignKey<DriverVehicle>(v => v.DriverId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Configure Info as owned entity
@@ -78,10 +84,6 @@ public class DriverConfiguration : IEntityTypeConfiguration<Driver>
         // Driver Status
         builder.Property(x => x.IsActive)
             .IsRequired();
-
-        // Indexes
-        builder.HasIndex(x => x.UserId)
-            .IsUnique();
 
         builder.HasIndex(x => x.IsActive);
     }

@@ -3,9 +3,6 @@ using BenhaScooters.Application.Common.Behaviors;
 using BenhaScooters.Application.Features.Matching.Services;
 using BenhaScooters.Application.Services;
 using FluentValidation;
-using MediatR;
-using MediatR.Registration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace BenhaScooters.Application;
 
@@ -17,7 +14,6 @@ public static class DependencyInjection
         {
             config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             config.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>));
-            // config.AddOpenBehavior(typeof(DomainEventDispatcherBehavior<,>));
             // config.AddOpenBehavior(typeof(LoggingBehavior<,>));
             // config.AddOpenBehavior(typeof(PerformanceBehavior<,>));
         });

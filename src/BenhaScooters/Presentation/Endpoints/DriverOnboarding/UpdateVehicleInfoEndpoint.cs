@@ -78,7 +78,7 @@ public class UpdateVehicleInfoEndpoint : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/driver/onboarding/vehicle-info", UpdateVehicleInfo)
+        app.MapPost("/drivers/me/onboarding/vehicle-info", UpdateVehicleInfo)
             .AddEndpointFilter<ValidationFilter<UpdateVehicleInfoRequestDto>>()
             .WithName("UpdateDriverVehicleInfo")
             .WithTags("Driver Onboarding")

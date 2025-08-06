@@ -6,23 +6,22 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using BenhaScooters.Domain.Users;
+using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
-public record ApproveDriverCommand(UserId DriverUserId) : IRequest<ErrorOr<ApproveDriverResponse>>;
+public record ApproveDriverCommand(DriverId DriverId) : IRequest<ErrorOr<Success>>;
 
 public class ApproveDriverCommandValidator : AbstractValidator<ApproveDriverCommand>
 {
     public ApproveDriverCommandValidator()
     {
-        RuleFor(x => x.DriverUserId.Value)
+        RuleFor(x => x.DriverId.Value)
             .NotEmpty().WithMessage("Driver user ID is required.");
     }
 }
 
-public record ApproveDriverResponse(string Message);
-
-public class ApproveDriverCommandHandler : IRequestHandler<ApproveDriverCommand, ErrorOr<ApproveDriverResponse>>
+public class ApproveDriverCommandHandler : IRequestHandler<ApproveDriverCommand, ErrorOr<Success>>
 {
     private readonly AppDbContext _db;
 
@@ -31,12 +30,12 @@ public class ApproveDriverCommandHandler : IRequestHandler<ApproveDriverCommand,
         _db = db;
     }
 
-    public async Task<ErrorOr<ApproveDriverResponse>> Handle(ApproveDriverCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Success>> Handle(ApproveDriverCommand request, CancellationToken cancellationToken)
     {
         var driver = await _db.Drivers
             .Include(dp => dp.Documents)
-            .Include(dp => dp.Vehicles)
-            .FirstOrDefaultAsync(dp => dp.UserId == request.DriverUserId, cancellationToken);
+            .Include(dp => dp.Vehicle)
+            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
 
         if (driver == null)
         {
@@ -51,6 +50,6 @@ public class ApproveDriverCommandHandler : IRequestHandler<ApproveDriverCommand,
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        return new ApproveDriverResponse("Driver application approved successfully.");
+        return Result.Success;
     }
 }

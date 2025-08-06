@@ -57,10 +57,10 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
 
                 var result = driver
                     .UpdatePersonalInfo("Sample Driver", NationalId.From("12345678901234"), new DateOnly(1990, 1, 1), "123 Street", "City", "Emergency Contact", PhoneNumber.From("09876543213"))
-                    .Then(res => driver.AddVehicle(VehicleType.Scooter, "Brand", "Model", "Color", LicensePlate.From("ABC1234"), 2020, VIN.From("12345678901234567")))
-                    .Then(res => driver.AddDocument(DocumentType.DrivingLicense, "url://image1", DateTime.UtcNow.AddYears(5))
-                    .Then(res => driver.AddDocument(DocumentType.VehicleRegistration, "url://image2", DateTime.UtcNow.AddYears(1)))
-                    .Then(res => driver.AddDocument(DocumentType.DriverPhoto, "url://image3", DateTime.UtcNow.AddYears(10)))
+                    .Then(res => driver.EnrollVehicle(VehicleType.Scooter, "Brand", "Model", "Color", LicensePlate.From("ABC1234"), 2020, VIN.From("12345678901234567")))
+                    .Then(res => driver.AddDocument(DocumentType.DrivingLicense, "url://image1", DateOnly.FromDateTime(DateTime.UtcNow.AddYears(5)))
+                    .Then(res => driver.AddDocument(DocumentType.VehicleRegistration, "url://image2"))
+                    .Then(res => driver.AddDocument(DocumentType.DriverPhoto, "url://image3"))
                     .Then(res => driver.CompleteOnboarding()));
 
                 if (result.IsError)

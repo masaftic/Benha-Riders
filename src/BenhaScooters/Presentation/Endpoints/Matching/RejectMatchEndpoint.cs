@@ -13,12 +13,8 @@ namespace BenhaScooters.Presentation.Endpoints.Matching;
 
 public class RejectMatchEndpoint : IEndpoint
 {
-    public record RejectMatchRequestDto(int TripRequestId, string? Reason = null);
+    public record RejectMatchRequestDto(int DriverMatchAttemptId, string? Reason = null);
 
-    public record RejectMatchResponseDto(
-        int SessionId,
-        string Message,
-        DateTime RejectedAt);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -27,7 +23,7 @@ public class RejectMatchEndpoint : IEndpoint
             .WithTags("Matching - Driver")
             .WithSummary("Reject a trip match offer")
             .WithDescription("Allows drivers to reject a trip match offer. This will continue the matching process with other drivers.")
-            .Produces<RejectMatchResponseDto>()
+            .Produces<NoContent>()
             .ProducesValidationProblem()
             .Produces(401)
             .Produces(404)
@@ -47,8 +43,7 @@ public class RejectMatchEndpoint : IEndpoint
             return ApiProblem.HandleProblems(result.Errors, ctx);
         }
 
-        var response = mapper.MapToResponse(result.Value);
-        return Results.Ok(response);
+        return Results.NoContent();
     }
 }
 
@@ -56,9 +51,6 @@ public class RejectMatchEndpoint : IEndpoint
 public partial class RejectMatchEndpointMapper
 {
     public RejectMatchCommand MapToCommand(RejectMatchEndpoint.RejectMatchRequestDto request, DriverId driverId) =>
-        new(driverId, TripRequestId.From(request.TripRequestId), request.Reason);
+        new(driverId, DriverMatchAttemptId.From(request.DriverMatchAttemptId), request.Reason);
 
-    public partial RejectMatchEndpoint.RejectMatchResponseDto MapToResponse(RejectMatchResult result);
-
-    private int MapSessionId(MatchingSessionId id) => id.Value;
 }

@@ -27,15 +27,9 @@ public record DocumentDto(
     string Status,
     string ImageUrl,
     DateTime UploadedAt,
-    DateTime? ExpiryDate,
-    string? RejectionReason,
-    bool IsValid,
-    bool IsExpired);
+    DateOnly? ExpiryDate,
+    string? RejectionReason);
 
-public record DocumentsDto(
-    DocumentDto? DrivingLicense,
-    DocumentDto? VehicleRegistration,
-    DocumentDto? DriverPhoto);
 
 public record OnboardingStateDto(
     string Status,

@@ -23,7 +23,7 @@ public class GetOnboardingStatusEndpoint : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/driver/onboarding/status", GetOnboardingStatus)
+        app.MapGet("/drivers/me/onboarding/status", GetOnboardingStatus)
             .WithName("GetDriverOnboardingStatus")
             .WithTags("Driver Onboarding")
             .WithSummary("Get driver onboarding status")
@@ -37,8 +37,7 @@ public class GetOnboardingStatusEndpoint : IEndpoint
 
     public async Task<IResult> GetOnboardingStatus([FromServices] ISender sender, HttpContext ctx)
     {
-        var userId = ctx.GetCurrentUserId();
-        var query = new GetOnboardingStatusQuery(userId);
+        var query = new GetOnboardingProgressQuery(ctx.GetDriverId());
         var result = await sender.Send(query);
 
         if (result.IsError)
@@ -55,8 +54,8 @@ public class GetOnboardingStatusEndpoint : IEndpoint
 [Mapper]
 public partial class GetOnboardingStatusEndpointMapper
 {
-    public partial GetOnboardingStatusEndpoint.GetOnboardingStatusResponseDto MapToResponse(GetOnboardingStatusResponse response);
+    public partial GetOnboardingStatusEndpoint.GetOnboardingStatusResponseDto MapToResponse(GetOnboardingProgressResponse response);
 
-    private static string OnboardingStatusToString(BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStatus status) => status.ToString();
-    private static string OnboardingStepToString(BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep step) => step.ToString();
+    private static string OnboardingStatusToString(OnboardingStatus status) => status.ToString();
+    private static string OnboardingStepToString(OnboardingStep step) => step.ToString();
 }

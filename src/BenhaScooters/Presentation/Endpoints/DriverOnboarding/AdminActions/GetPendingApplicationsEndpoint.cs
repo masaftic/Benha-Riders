@@ -1,5 +1,6 @@
 using BenhaScooters.Application.Features.DriverOnboarding.Queries;
 using BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Presentation.Endpoints.DriverOnboarding.Common;
 using MediatR;
@@ -14,16 +15,16 @@ public class GetPendingApplicationsEndpoint : IEndpoint
     public record GetPendingApplicationsResponseDto(List<PendingDriverApplicationDto> Applications);
 
     public record PendingDriverApplicationDto(
-        int UserId,
+        int DriverId,
         PersonalInfoDto? PersonalInfo,
         VehicleInfoDto? VehicleInfo,
-        DocumentsDto? Documents,
+        List<DocumentDto>? Documents,
         DateTime CreatedAt);
 
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/admin/driver/pending-applications", GetPendingApplications)
+        app.MapGet("/admin/drivers/pending-applications", GetPendingApplications)
             .WithName("GetPendingDriverApplications")
             .WithTags("Admin - Driver Management")
             .WithSummary("Get pending driver applications for review")
@@ -55,4 +56,5 @@ public class GetPendingApplicationsEndpoint : IEndpoint
 public partial class GetPendingApplicationsEndpointMapper
 {
     public partial GetPendingApplicationsEndpoint.GetPendingApplicationsResponseDto MapToResponse(GetPendingApplicationsResponse response);
+    public int MapId(DriverId id) => id.Value;
 }

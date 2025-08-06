@@ -56,7 +56,7 @@ public class UpdateDocumentsEndpoint : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/driver/onboarding/documents", UpdateDocuments)
+        app.MapPost("/drivers/me/onboarding/documents", UpdateDocuments)
             .AddEndpointFilter<ValidationFilter<UpdateDocumentsRequestDto>>()
             .WithName("UpdateDriverDocuments")
             .WithTags("Driver Onboarding")

@@ -45,31 +45,24 @@ public class UpdateVehicleInfoCommandValidator : AbstractValidator<UpdateVehicle
 
     private async Task<bool> BeUniqueVIN(UpdateVehicleInfoCommand command, string vin, CancellationToken cancellationToken)
     {
-        return !await _db.Drivers
-            .SelectMany(d => d.Vehicles)
+        return !await _db.Vehicles
             .AnyAsync(v => v.VIN == VIN.From(vin) && v.DriverId != command.DriverId && v.IsActive, 
                 cancellationToken);
     }
 
     private async Task<bool> BeUniqueLicensePlate(UpdateVehicleInfoCommand command, string licensePlate, CancellationToken cancellationToken)
     {
-        return !await _db.Drivers
-            .SelectMany(d => d.Vehicles)
+        return !await _db.Vehicles
             .AnyAsync(v => v.LicensePlate == LicensePlate.From(licensePlate) && v.DriverId != command.DriverId && v.IsActive, 
                 cancellationToken);
     }
 }
 
-public record UpdateVehicleInfoResponse(string Message, BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep NextStep);
+public record UpdateVehicleInfoResponse(string Message, OnboardingStep NextStep);
 
-public class UpdateVehicleInfoCommandHandler : IRequestHandler<UpdateVehicleInfoCommand, ErrorOr<UpdateVehicleInfoResponse>>
+public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<UpdateVehicleInfoCommand, ErrorOr<UpdateVehicleInfoResponse>>
 {
-    private readonly AppDbContext _db;
-
-    public UpdateVehicleInfoCommandHandler(AppDbContext db)
-    {
-        _db = db;
-    }
+    private readonly AppDbContext _db = db;
 
     public async Task<ErrorOr<UpdateVehicleInfoResponse>> Handle(UpdateVehicleInfoCommand request, CancellationToken cancellationToken)
     {
@@ -81,7 +74,7 @@ public class UpdateVehicleInfoCommandHandler : IRequestHandler<UpdateVehicleInfo
             return DriverErrors.DriverNotFound;
         }
 
-        var updateResult = driver.AddVehicle(
+        var updateResult = driver.EnrollVehicle(
             request.VehicleType,
             request.VehicleBrand,
             request.VehicleModel,

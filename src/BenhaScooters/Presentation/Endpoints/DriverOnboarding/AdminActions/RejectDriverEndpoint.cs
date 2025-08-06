@@ -6,23 +6,33 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Riok.Mapperly.Abstractions;
 using BenhaScooters.Domain.Users;
+using BenhaScooters.Domain.Drivers;
+using FluentValidation;
 
 namespace BenhaScooters.Presentation.Endpoints.DriverOnboarding.AdminActions;
 
 public class RejectDriverEndpoint : IEndpoint
 {
-    public record RejectDriverRequestDto(int UserId, string Reason);
-
-    public record RejectDriverResponseDto(string Message);
+    public record RejectDriverRequestDto(string Reason);
+    public class Validator : AbstractValidator<RejectDriverRequestDto>
+    {
+        public Validator()
+        {
+            RuleFor(x => x.Reason)
+                .NotEmpty().WithMessage("Rejection reason is required.")
+                .MaximumLength(500).WithMessage("Rejection reason must not exceed 500 characters.");
+        }
+    }
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/admin/driver/reject", RejectDriver)
+        app.MapPost("/admin/drivers/{driverId}/reject", RejectDriver)
+            .AddEndpointFilter<ValidationFilter<RejectDriverRequestDto>>()
             .WithName("RejectDriverApplication")
             .WithTags("Admin - Driver Management")
             .WithSummary("Reject driver onboarding application")
             .WithDescription("Rejects a driver's onboarding application with a specific reason. The driver can resubmit their application after addressing the rejection reason. Rejection reason is required and will be visible to the driver.")
-            .Produces<RejectDriverResponseDto>()
+            .Produces<NoContent>()
             .ProducesValidationProblem()
             .Produces(400)
             .Produces(401)
@@ -32,10 +42,9 @@ public class RejectDriverEndpoint : IEndpoint
             .WithOpenApi();
     }
 
-    public async Task<IResult> RejectDriver([FromServices] ISender sender, [FromBody] RejectDriverRequestDto rejectRequest, HttpContext ctx)
+    public async Task<IResult> RejectDriver([FromServices] ISender sender, [FromRoute] int driverId, [FromBody] RejectDriverRequestDto rejectRequest, HttpContext ctx)
     {
-        var mapper = new RejectDriverEndpointMapper();
-        var command = mapper.MapToCommand(rejectRequest);
+        var command = new RejectDriverCommand(DriverId.From(driverId), rejectRequest.Reason); 
         var result = await sender.Send(command);
 
         if (result.IsError)
@@ -43,18 +52,7 @@ public class RejectDriverEndpoint : IEndpoint
             return ApiProblem.HandleProblems(result.Errors, ctx);
         }
 
-        var response = mapper.MapToResponse(result.Value);
-        return Results.Ok(response);
+        return Results.NoContent();
     }
 }
 
-[Mapper]
-public partial class RejectDriverEndpointMapper
-{
-    public RejectDriverCommand MapToCommand(RejectDriverEndpoint.RejectDriverRequestDto request)
-    {
-        return new RejectDriverCommand(UserId.From(request.UserId), request.Reason);
-    }
-
-    public partial RejectDriverEndpoint.RejectDriverResponseDto MapToResponse(RejectDriverResponse response);
-}
