@@ -1,6 +1,20 @@
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Domain.Drivers.ValueObjects;
+using Humanizer;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
+
+public record DriverSummaryDto(
+    DriverId Id, 
+    string FullName, 
+    NationalId NationalId, 
+    string VehicleBrand,
+    int VehicleYear,
+    OnboardingStatus Status,
+    OnboardingStep CurrentStep,
+    int Progress,
+    DateTime CreatedAt);
 
 public record PersonalInfoDto(
     string FullName,

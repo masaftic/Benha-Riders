@@ -12,6 +12,10 @@ public static class AdminErrors
             {"Detail", "السائق المحدد غير موجود في النظام."}
         });
 
+    public static Error DocumentNotFound => Error.NotFound(
+        "ADMIN_DOCUMENT_NOT_FOUND",
+        "المستند غير موجود.");
+
     public static Error ValidationError(string message) => Error.Validation(
         "ADMIN_VALIDATION_ERROR",
         message);

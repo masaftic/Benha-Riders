@@ -37,6 +37,8 @@ public static class DependencyInjection
         {
             options.SwaggerDoc("v1", new() { Title = "BenhaScooters API", Version = "v1" });
 
+            options.MapVogenTypesInBenhaScooters();
+
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",

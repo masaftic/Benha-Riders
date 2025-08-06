@@ -5,6 +5,11 @@ using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Presentation;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
+using Vogen;
+
+[assembly: VogenDefaults(
+ openApiSchemaCustomizations: OpenApiSchemaCustomizations.GenerateSwashbuckleMappingExtensionMethod)]
+
 
 var builder = WebApplication.CreateBuilder(args);
 
