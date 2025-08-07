@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 
 public record ListDriversWithFilters(
-    OnboardingStatus OnboardingStatus,
-    OnboardingStep OnboardingStep,
+    OnboardingStatus? OnboardingStatus,
+    OnboardingStep? OnboardingStep,
     int Page,
     int PageSize) : IRequest<PaginatedList<DriverSummaryDto>>;
 
@@ -20,10 +20,19 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
     public async Task<PaginatedList<DriverSummaryDto>> Handle(ListDriversWithFilters request, CancellationToken cancellationToken)
     {
         var query = _db.Drivers
-            .AsNoTracking()
-            .Where(d => d.OnboardingState.Status == request.OnboardingStatus &&
-                        d.OnboardingState.CurrentStep == request.OnboardingStep)
-            .OrderBy(d => d.OnboardingState.CreatedAt);
+            .AsNoTracking();
+
+        if (request.OnboardingStatus.HasValue)
+        {
+            query = query.Where(d => d.OnboardingState.Status == request.OnboardingStatus.Value);
+        }
+
+        if (request.OnboardingStep.HasValue)
+        {
+            query = query.Where(d => d.OnboardingState.CurrentStep == request.OnboardingStep.Value);
+        }
+
+        query = query.OrderBy(d => d.OnboardingState.CreatedAt);
 
         var count = await query.CountAsync(cancellationToken);
 

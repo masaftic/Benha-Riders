@@ -15,19 +15,21 @@ namespace BenhaScooters.Presentation.Endpoints.DriverOnboarding.AdminActions;
 
 public class GetFilteredDriversEndpoint : IEndpoint
 {
-    public record QueryParams(string OnboardingStatus, string OnboardingStep, int Page = 1, int PageCount = 10);
+    public record QueryParams(string? OnboardingStatus, string? OnboardingStep, int Page = 1, int PageCount = 10);
 
     public class Validator : AbstractValidator<QueryParams>
     {
         public Validator()
         {
             RuleFor(x => x.OnboardingStatus)
-                .NotEmpty().WithMessage("Onboarding status is required.")
-                .IsEnumName(typeof(OnboardingStatus), caseSensitive: false);
+                .IsEnumName(typeof(OnboardingStatus), caseSensitive: false)
+                .When(x => !string.IsNullOrEmpty(x.OnboardingStatus))
+                .WithMessage("Invalid onboarding status provided.");
 
             RuleFor(x => x.OnboardingStep)
-                .NotEmpty().WithMessage("Onboarding step is required.")
-                .IsEnumName(typeof(OnboardingStep), caseSensitive: false);
+                .IsEnumName(typeof(OnboardingStep), caseSensitive: false)
+                .When(x => !string.IsNullOrEmpty(x.OnboardingStep))
+                .WithMessage("Invalid onboarding step provided.");
 
             RuleFor(x => x.Page)
                 .GreaterThan(0).WithMessage("Page must be greater than 0.");
@@ -40,10 +42,11 @@ public class GetFilteredDriversEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/admin/drivers", GetPendingApplications)
+            .AddEndpointFilter<ValidationFilter<QueryParams>>()
             .WithName("GetFilteredDrivers")
             .WithTags("Admin - Driver Management")
             .WithSummary("Get filtered driver applications for review")
-            .WithDescription("Retrieves all driver applications that match the specified filters. Includes complete application details with pre-signed document URLs valid for 15 minutes.")
+            .WithDescription("Retrieves driver applications that match the specified filters. If OnboardingStatus is not provided, returns drivers with any status. Includes complete application details with pre-signed document URLs valid for 15 minutes.")
             .Produces<PaginatedList<DriverSummaryDto>>()
             .Produces(401)
             .Produces(403)
@@ -53,9 +56,17 @@ public class GetFilteredDriversEndpoint : IEndpoint
 
     public async Task<IResult> GetPendingApplications([FromServices] ISender sender, [AsParameters] QueryParams queryParams, HttpContext ctx)
     {
+        OnboardingStatus? onboardingStatus = string.IsNullOrEmpty(queryParams.OnboardingStatus) 
+            ? null 
+            : Enum.Parse<OnboardingStatus>(queryParams.OnboardingStatus);
+        
+        OnboardingStep? onboardingStep = string.IsNullOrEmpty(queryParams.OnboardingStep) 
+            ? null 
+            : Enum.Parse<OnboardingStep>(queryParams.OnboardingStep);
+            
         var query = new ListDriversWithFilters(
-            Enum.Parse<OnboardingStatus>(queryParams.OnboardingStatus),
-            Enum.Parse<OnboardingStep>(queryParams.OnboardingStep),
+            onboardingStatus,
+            onboardingStep,
             queryParams.Page,
             queryParams.PageCount
         );
