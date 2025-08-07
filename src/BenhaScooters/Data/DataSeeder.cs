@@ -60,9 +60,8 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                     .Then(res => driver.EnrollVehicle(VehicleType.Scooter, "Brand", "Model", "Color", LicensePlate.From("ABC1234"), 2020, VIN.From("12345678901234567")))
                     .Then(res => driver.AddDocument(DocumentType.DrivingLicense, "url://image1", DateOnly.FromDateTime(DateTime.UtcNow.AddYears(5)))
                     .Then(res => driver.AddDocument(DocumentType.VehicleRegistration, "url://image2"))
-                    .Then(res => driver.AddDocument(DocumentType.DriverPhoto, "url://image3"))
-                    .Then(res => driver.CompleteOnboarding()));
-
+                    .Then(res => driver.AddDocument(DocumentType.DriverPhoto, "url://image3")));
+                
                 if (result.IsError)
                 {
                     throw new Exception("Failed to create driver: " + result.Errors.First().Description);
