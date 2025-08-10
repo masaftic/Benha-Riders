@@ -52,7 +52,7 @@ public class Driver : AggregateRoot
         if (OnboardingState.IsCompleted)
             return DriverErrors.OnboardingAlreadyCompleted;
 
-        if (!OnboardingState.CanAdvanceFrom(OnboardingStep.PersonalInfo))
+        if (!OnboardingState.CanAdvanceFrom(OnboardingStatus.PersonalInfo))
             return DriverErrors.PreviousStepsRequired;
 
         Info = new DriverInfo(fullName, nationalId, dateOfBirth, address, city, emergencyContactName, emergencyContactPhone);
@@ -67,7 +67,7 @@ public class Driver : AggregateRoot
         if (OnboardingState.IsCompleted)
             return DriverErrors.OnboardingAlreadyCompleted;
 
-        if (!OnboardingState.CanAdvanceFrom(OnboardingStep.VehicleInfo))
+        if (!OnboardingState.CanAdvanceFrom(OnboardingStatus.VehicleInfo))
             return DriverErrors.PersonalInfoRequired;
 
         Vehicle = new DriverVehicle(Id, vehicleType, vehicleBrand, vehicleModel, vehicleColor, licensePlate, vehicleYear, vin);
@@ -91,7 +91,7 @@ public class Driver : AggregateRoot
         if (OnboardingState.IsCompleted)
             return DriverErrors.OnboardingAlreadyCompleted;
 
-        if (!OnboardingState.CanAdvanceFrom(OnboardingStep.Documents))
+        if (!OnboardingState.CanAdvanceFrom(OnboardingStatus.Documents))
             return DriverErrors.PreviousStepsRequired;
 
         // Remove existing document of same type
@@ -190,7 +190,7 @@ public class Driver : AggregateRoot
 
         document.Reject(reason);
 
-        if (OnboardingState.CurrentStep == OnboardingStep.Review)
+        if (OnboardingState.Status == OnboardingStatus.Review)
         {
             OnboardingState = OnboardingState.MoveBackToDocuments();
         }

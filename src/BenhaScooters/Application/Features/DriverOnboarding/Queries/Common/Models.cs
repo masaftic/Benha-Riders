@@ -12,7 +12,6 @@ public record DriverSummaryDto(
     string VehicleBrand,
     int VehicleYear,
     OnboardingStatus Status,
-    OnboardingStep CurrentStep,
     int Progress,
     DateTime CreatedAt);
 
@@ -47,10 +46,8 @@ public record DocumentDto(
 
 public record OnboardingStateDto(
     string Status,
-    string CurrentStep,
     int Progress,
     string? RejectionReason,
     DateTime CreatedAt,
     DateTime? CompletedAt,
-    bool IsCompleted,
-    bool CanAdvance);
+    bool IsCompleted);

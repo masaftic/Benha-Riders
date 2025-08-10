@@ -23,7 +23,7 @@ public record UpdateDocumentsCommand(
     IFormFile DriverImage) : IRequest<ErrorOr<UpdateDocumentsResponse>>;
 
 
-public record UpdateDocumentsResponse(string Message, OnboardingStep NextStep);
+public record UpdateDocumentsResponse(string Message, OnboardingStatus NextStep);
 
 public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsCommand, ErrorOr<UpdateDocumentsResponse>>
 {
@@ -91,7 +91,7 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
 
             return new UpdateDocumentsResponse(
                 "Documents uploaded successfully. Your application is now under review.",
-                driver.OnboardingState.CurrentStep);
+                driver.OnboardingState.Status);
         }
         catch (Exception ex)
         {

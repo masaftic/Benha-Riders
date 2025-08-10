@@ -24,10 +24,9 @@ public class SelectRoleCommandValidator : AbstractValidator<SelectRoleCommand>
             .NotEmpty().WithMessage("User ID is required.");
 
         RuleFor(x => x.Role)
-            .NotEmpty().WithMessage("Role is required.")
-            .Must(role => role.Equals("rider", StringComparison.CurrentCultureIgnoreCase)
-                       || role.Equals("driver", StringComparison.CurrentCultureIgnoreCase))
-            .WithMessage("Role must be either 'Rider' or 'Driver'.");
+            .NotEmpty().WithMessage("الدور مطلوب.")
+            .Must(role => role == "Rider" || role == "Driver")
+            .WithMessage("الدور يجب أن يكون إما 'راكب' أو 'سائق'.");
     }
 }
 

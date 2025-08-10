@@ -4,27 +4,19 @@ using Vogen;
 
 namespace BenhaScooters.Domain.Drivers.ValueObjects;
 
-public enum OnboardingStep
+public enum OnboardingStatus
 {
     PersonalInfo = 1,
     VehicleInfo = 2,
     Documents = 3,
     Review = 4,
-    Completed = 5
-}
-
-public enum OnboardingStatus
-{
-    NotStarted,
-    InProgress,
-    Completed,
-    Rejected
+    Completed = 5,
+    Rejected = 0
 }
 
 public class OnboardingState : ValueObject
 {
     public OnboardingStatus Status { get; private set; }
-    public OnboardingStep CurrentStep { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
     public string? RejectionReason { get; private set; }
@@ -35,30 +27,26 @@ public class OnboardingState : ValueObject
     {
         return new OnboardingState
         {
-            Status = OnboardingStatus.NotStarted,
-            CurrentStep = OnboardingStep.PersonalInfo,
+            Status = OnboardingStatus.PersonalInfo,
             CreatedAt = DateTime.UtcNow
         };
     }
 
     public OnboardingState AdvanceToNextStep()
     {
-        var nextStep = CurrentStep switch
+        var nextStep = Status switch
         {
-            OnboardingStep.PersonalInfo => OnboardingStep.VehicleInfo,
-            OnboardingStep.VehicleInfo => OnboardingStep.Documents,
-            OnboardingStep.Documents => OnboardingStep.Review,
-            OnboardingStep.Review => OnboardingStep.Completed,
-            OnboardingStep.Completed => OnboardingStep.Completed,
-            _ => throw new InvalidOperationException($"Invalid onboarding step: {CurrentStep}")
+            OnboardingStatus.PersonalInfo => OnboardingStatus.VehicleInfo,
+            OnboardingStatus.VehicleInfo => OnboardingStatus.Documents,
+            OnboardingStatus.Documents => OnboardingStatus.Review,
+            OnboardingStatus.Review => OnboardingStatus.Completed,
+            OnboardingStatus.Completed => OnboardingStatus.Completed,
+            _ => throw new InvalidOperationException($"Invalid onboarding step: {Status}")
         };
-
-        var newStatus = Status == OnboardingStatus.NotStarted ? OnboardingStatus.InProgress : Status;
 
         return new OnboardingState
         {
-            Status = newStatus,
-            CurrentStep = nextStep,
+            Status = nextStep,
             CreatedAt = CreatedAt,
             CompletedAt = CompletedAt,
             RejectionReason = RejectionReason
@@ -70,7 +58,6 @@ public class OnboardingState : ValueObject
         return new OnboardingState
         {
             Status = OnboardingStatus.Completed,
-            CurrentStep = OnboardingStep.Completed,
             CreatedAt = CreatedAt,
             CompletedAt = DateTime.UtcNow,
             RejectionReason = null
@@ -85,8 +72,7 @@ public class OnboardingState : ValueObject
 
         return new OnboardingState
         {
-            Status = OnboardingStatus.InProgress,
-            CurrentStep = OnboardingStep.Documents,
+            Status = OnboardingStatus.Documents,
             CreatedAt = CreatedAt,
             CompletedAt = null,
             RejectionReason = null
@@ -101,7 +87,6 @@ public class OnboardingState : ValueObject
         return new OnboardingState
         {
             Status = OnboardingStatus.Rejected,
-            CurrentStep = CurrentStep,
             CreatedAt = CreatedAt,
             CompletedAt = null,
             RejectionReason = reason
@@ -109,14 +94,13 @@ public class OnboardingState : ValueObject
     }
 
     public bool IsCompleted => Status == OnboardingStatus.Completed;
-    public bool CanAdvanceFrom(OnboardingStep step) => CurrentStep == step;
-    public bool CanComplete => CurrentStep == OnboardingStep.Review;
-    public int ProgressPercentage => (int)CurrentStep * 20; // 20% per step
+    public bool CanAdvanceFrom(OnboardingStatus status) => Status == status; 
+    public bool CanComplete => Status == OnboardingStatus.Review;
+    public int ProgressPercentage => (int)Status * 20; // 20% per step
 
     protected override IEnumerable<object> GetEqualityComponents()
     {
         yield return Status;
-        yield return CurrentStep;
         yield return CreatedAt;
         yield return CompletedAt ?? DateTime.MinValue;
         yield return RejectionReason ?? string.Empty;

@@ -15,7 +15,6 @@ public class GetOnboardingStatusEndpoint : IEndpoint
 {
     public record GetOnboardingStatusResponseDto(
         string Status,
-        string CurrentStep,
         int Progress,
         string? RejectionReason,
         DateTime CreatedAt,
@@ -57,5 +56,4 @@ public partial class GetOnboardingStatusEndpointMapper
     public partial GetOnboardingStatusEndpoint.GetOnboardingStatusResponseDto MapToResponse(GetOnboardingProgressResponse response);
 
     private static string OnboardingStatusToString(OnboardingStatus status) => status.ToString();
-    private static string OnboardingStepToString(OnboardingStep step) => step.ToString();
 }

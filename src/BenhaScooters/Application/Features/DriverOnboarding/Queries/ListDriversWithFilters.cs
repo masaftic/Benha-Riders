@@ -9,7 +9,6 @@ namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 
 public record ListDriversWithFilters(
     OnboardingStatus? OnboardingStatus,
-    OnboardingStep? OnboardingStep,
     int Page,
     int PageSize) : IRequest<PaginatedList<DriverSummaryDto>>;
 
@@ -27,11 +26,6 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
             query = query.Where(d => d.OnboardingState.Status == request.OnboardingStatus.Value);
         }
 
-        if (request.OnboardingStep.HasValue)
-        {
-            query = query.Where(d => d.OnboardingState.CurrentStep == request.OnboardingStep.Value);
-        }
-
         query = query.OrderBy(d => d.OnboardingState.CreatedAt);
 
         var count = await query.CountAsync(cancellationToken);
@@ -47,7 +41,6 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
                 Brand = d.Vehicle!.Brand,
                 Year = d.Vehicle.Year,
                 Status = d.OnboardingState.Status,
-                CurrentStep = d.OnboardingState.CurrentStep,
                 CreatedAt = d.OnboardingState.CreatedAt
             })
             .ToListAsync(cancellationToken);
@@ -59,8 +52,7 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
             d.Brand,
             d.Year,
             d.Status,
-            d.CurrentStep,
-            (int)d.CurrentStep * 20, // Now this calculation happens in C#, not SQL
+            (int)d.Status * 20, // Now this calculation happens in C#, not SQL
             d.CreatedAt))
             .ToList();
 

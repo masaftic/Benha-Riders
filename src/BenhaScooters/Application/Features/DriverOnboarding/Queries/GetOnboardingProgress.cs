@@ -14,7 +14,6 @@ public record GetOnboardingProgressQuery(DriverId DriverId) : IRequest<ErrorOr<G
 
 public record GetOnboardingProgressResponse(
     OnboardingStatus Status,
-    OnboardingStep CurrentStep,
     int Progress,
     string? RejectionReason,
     DateTime CreatedAt,
@@ -41,7 +40,6 @@ public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingProg
 
         var response = new GetOnboardingProgressResponse(
             driver.OnboardingState.Status,
-            driver.OnboardingState.CurrentStep,
             driver.OnboardingProgress,
             driver.OnboardingState.RejectionReason,
             driver.OnboardingState.CreatedAt,

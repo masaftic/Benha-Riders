@@ -30,47 +30,47 @@ public class UpdateVehicleInfoEndpoint : IEndpoint
         {
             RuleFor(x => x.VehicleType)
                 .IsInEnum()
-                .WithMessage("Valid vehicle type is required.");
+                .WithMessage("نوع المركبة صحيح مطلوب.");
 
             RuleFor(x => x.VehicleBrand)
                 .NotEmpty()
-                .WithMessage("Vehicle brand is required.")
+                .WithMessage("ماركة المركبة مطلوبة.")
                 .MinimumLength(2)
-                .WithMessage("Vehicle brand must be at least 2 characters long.")
+                .WithMessage("ماركة المركبة يجب أن تكون على الأقل حرفين.")
                 .MaximumLength(50)
-                .WithMessage("Vehicle brand cannot exceed 50 characters.");
+                .WithMessage("ماركة المركبة لا يمكن أن تتجاوز 50 حرف.");
 
             RuleFor(x => x.VehicleModel)
                 .NotEmpty()
-                .WithMessage("Vehicle model is required.")
+                .WithMessage("موديل المركبة مطلوب.")
                 .MinimumLength(1)
-                .WithMessage("Vehicle model must be at least 1 character long.")
+                .WithMessage("موديل المركبة يجب أن يكون على الأقل حرف واحد.")
                 .MaximumLength(50)
-                .WithMessage("Vehicle model cannot exceed 50 characters.");
+                .WithMessage("موديل المركبة لا يمكن أن يتجاوز 50 حرف.");
 
             RuleFor(x => x.VehicleColor)
                 .NotEmpty()
-                .WithMessage("Vehicle color is required.")
+                .WithMessage("لون المركبة مطلوب.")
                 .MinimumLength(2)
-                .WithMessage("Vehicle color must be at least 2 characters long.")
+                .WithMessage("لون المركبة يجب أن يكون على الأقل حرفين.")
                 .MaximumLength(30)
-                .WithMessage("Vehicle color cannot exceed 30 characters.");
+                .WithMessage("لون المركبة لا يمكن أن يتجاوز 30 حرف.");
 
             RuleFor(x => x.LicensePlate)
                 .NotEmpty()
-                .WithMessage("License plate is required.")
+                .WithMessage("لوحة الترخيص مطلوبة.")
                 .Length(3, 10)
-                .WithMessage("License plate must be between 3 and 10 characters.");
+                .WithMessage("لوحة الترخيص يجب أن تكون بين 3 و 10 أحرف.");
 
             RuleFor(x => x.VehicleYear)
                 .InclusiveBetween(1980, DateTime.Now.Year + 1)
-                .WithMessage($"Vehicle year must be between 1980 and {DateTime.Now.Year + 1}.");
+                .WithMessage($"سنة المركبة يجب أن تكون بين 1980 و {DateTime.Now.Year + 1}.");
 
             RuleFor(x => x.VIN)
                 .NotEmpty()
-                .WithMessage("VIN is required.")
+                .WithMessage("رقم الهيكل (VIN) مطلوب.")
                 .Length(17)
-                .WithMessage("VIN must be exactly 17 characters.");
+                .WithMessage("رقم الهيكل (VIN) يجب أن يكون 17 حرف بالضبط.");
         }
     }
 
@@ -128,6 +128,4 @@ public partial class UpdateVehicleInfoEndpointMapper
     }
 
     public partial UpdateVehicleInfoEndpoint.UpdateVehicleInfoResponseDto MapToResponse(UpdateVehicleInfoResponse response);
-
-    private static string OnboardingStepToString(BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep step) => step.ToString();
 }

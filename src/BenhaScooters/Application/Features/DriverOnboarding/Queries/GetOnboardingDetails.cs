@@ -72,13 +72,11 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
 
         var onboardingState = new OnboardingStateDto(
             driver.OnboardingState.Status.ToString(),
-            driver.OnboardingState.CurrentStep.ToString(),
             driver.OnboardingProgress,
             driver.OnboardingState.RejectionReason,
             driver.OnboardingState.CreatedAt,
             driver.OnboardingState.CompletedAt,
-            driver.OnboardingState.IsCompleted,
-            driver.OnboardingState.CurrentStep != OnboardingStep.Completed);
+            driver.OnboardingState.IsCompleted);
 
         var response = new GetOnboardingDetailsResponse(
             onboardingState,

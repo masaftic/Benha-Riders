@@ -45,7 +45,7 @@ public class UpdatePersonalInfoCommandValidator : AbstractValidator<UpdatePerson
     }
 }
 
-public record UpdatePersonalInfoResponse(string Message, OnboardingStep NextStep);
+public record UpdatePersonalInfoResponse(string Message, OnboardingStatus NextStep);
 
 public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler<UpdatePersonalInfoCommand, ErrorOr<UpdatePersonalInfoResponse>>
 {
@@ -79,6 +79,6 @@ public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler
 
         return new UpdatePersonalInfoResponse(
             "Personal information updated successfully.",
-            driver.OnboardingState.CurrentStep);
+            driver.OnboardingState.Status);
     }
 }

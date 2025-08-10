@@ -22,9 +22,9 @@ public class VerifySmsCodeCommandValidator : AbstractValidator<VerifySmsCodeComm
             .NotEmpty().WithMessage("User ID is required.");
 
         RuleFor(x => x.Code)
-            .NotEmpty().WithMessage("Verification code is required.")
-            .Length(6).WithMessage("Verification code must be 6 digits.")
-            .Matches(@"^\d{6}$").WithMessage("Verification code must contain only digits.");
+            .NotEmpty().WithMessage("رمز التحقق مطلوب.")
+            .Length(6).WithMessage("رمز التحقق يجب أن يكون 6 أرقام.")
+            .Matches(@"^\d{6}$").WithMessage("رمز التحقق يجب أن يحتوي على أرقام فقط.");
     }
 }
 

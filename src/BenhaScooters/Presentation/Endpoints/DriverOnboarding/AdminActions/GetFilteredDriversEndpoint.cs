@@ -15,7 +15,7 @@ namespace BenhaScooters.Presentation.Endpoints.DriverOnboarding.AdminActions;
 
 public class GetFilteredDriversEndpoint : IEndpoint
 {
-    public record QueryParams(string? OnboardingStatus, string? OnboardingStep, int Page = 1, int PageCount = 10);
+    public record QueryParams(string? OnboardingStatus, int Page = 1, int PageCount = 10);
 
     public class Validator : AbstractValidator<QueryParams>
     {
@@ -25,11 +25,6 @@ public class GetFilteredDriversEndpoint : IEndpoint
                 .IsEnumName(typeof(OnboardingStatus), caseSensitive: false)
                 .When(x => !string.IsNullOrEmpty(x.OnboardingStatus))
                 .WithMessage("Invalid onboarding status provided.");
-
-            RuleFor(x => x.OnboardingStep)
-                .IsEnumName(typeof(OnboardingStep), caseSensitive: false)
-                .When(x => !string.IsNullOrEmpty(x.OnboardingStep))
-                .WithMessage("Invalid onboarding step provided.");
 
             RuleFor(x => x.Page)
                 .GreaterThan(0).WithMessage("Page must be greater than 0.");
@@ -59,14 +54,10 @@ public class GetFilteredDriversEndpoint : IEndpoint
         OnboardingStatus? onboardingStatus = string.IsNullOrEmpty(queryParams.OnboardingStatus) 
             ? null 
             : Enum.Parse<OnboardingStatus>(queryParams.OnboardingStatus);
-        
-        OnboardingStep? onboardingStep = string.IsNullOrEmpty(queryParams.OnboardingStep) 
-            ? null 
-            : Enum.Parse<OnboardingStep>(queryParams.OnboardingStep);
+
             
         var query = new ListDriversWithFilters(
             onboardingStatus,
-            onboardingStep,
             queryParams.Page,
             queryParams.PageCount
         );

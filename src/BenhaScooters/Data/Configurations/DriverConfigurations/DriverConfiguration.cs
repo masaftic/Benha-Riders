@@ -68,10 +68,6 @@ public class DriverConfiguration : IEntityTypeConfiguration<Driver>
                 .HasConversion<string>()
                 .IsRequired();
 
-            onboardingState.Property(os => os.CurrentStep)
-                .HasConversion<string>()
-                .IsRequired();
-
             onboardingState.Property(os => os.RejectionReason)
                 .HasMaxLength(500);
 

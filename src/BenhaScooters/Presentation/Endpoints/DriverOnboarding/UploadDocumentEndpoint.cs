@@ -14,8 +14,8 @@ public class UploadDocumentEndpoint : IEndpoint
     {
         public Validator()
         {
-            RuleFor(x => x.DocumentType).NotEmpty().IsEnumName(typeof(DocumentType), caseSensitive: false).WithMessage("Invalid document type.");
-            RuleFor(x => x.File).NotNull().WithMessage("File is required.").Must(file => file.Length > 0).WithMessage("File cannot be empty.");
+            RuleFor(x => x.DocumentType).NotEmpty().IsEnumName(typeof(DocumentType), caseSensitive: false).WithMessage("نوع المستند غير صحيح.");
+            RuleFor(x => x.File).NotNull().WithMessage("الملف مطلوب.").Must(file => file.Length > 0).WithMessage("الملف لا يمكن أن يكون فارغ.");
         }
     }
 

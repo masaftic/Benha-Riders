@@ -102,6 +102,4 @@ public class UpdateDocumentsEndpoint : IEndpoint
 public partial class UpdateDocumentsEndpointMapper
 {
     public partial UpdateDocumentsEndpoint.UpdateDocumentsResponseDto MapToResponse(UpdateDocumentsResponse response);
-
-    private static string OnboardingStepToString(BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep step) => step.ToString();
 }

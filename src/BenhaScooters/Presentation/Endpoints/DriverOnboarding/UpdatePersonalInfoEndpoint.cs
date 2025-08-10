@@ -30,53 +30,53 @@ public class UpdatePersonalInfoEndpoint : IEndpoint
         {
             RuleFor(x => x.FullName)
                 .NotEmpty()
-                .WithMessage("Full name is required.")
+                .WithMessage("الاسم الكامل مطلوب.")
                 .MinimumLength(2)
-                .WithMessage("Full name must be at least 2 characters long.")
+                .WithMessage("الاسم الكامل يجب أن يكون على الأقل حرفين.")
                 .MaximumLength(100)
-                .WithMessage("Full name cannot exceed 100 characters.");
+                .WithMessage("الاسم الكامل لا يمكن أن يتجاوز 100 حرف.");
 
             RuleFor(x => x.NationalId)
                 .NotEmpty()
-                .WithMessage("National ID is required.")
+                .WithMessage("الرقم القومي مطلوب.")
                 .Matches(@"^[0-9]{14}$")
-                .WithMessage("National ID must be exactly 14 digits.");
+                .WithMessage("الرقم القومي يجب أن يكون 14 رقم بالضبط.");
 
             RuleFor(x => x.DateOfBirth)
                 .NotEmpty()
-                .WithMessage("Date of birth is required.")
+                .WithMessage("تاريخ الميلاد مطلوب.")
                 .Must(BeValidAge)
-                .WithMessage("Driver must be between 18 and 80 years old.");
+                .WithMessage("يجب أن يكون عمر السائق بين 18 و 80 سنة.");
 
             RuleFor(x => x.Address)
                 .NotEmpty()
-                .WithMessage("Address is required.")
+                .WithMessage("العنوان مطلوب.")
                 .MinimumLength(10)
-                .WithMessage("Address must be at least 10 characters long.")
+                .WithMessage("العنوان يجب أن يكون على الأقل 10 أحرف.")
                 .MaximumLength(200)
-                .WithMessage("Address cannot exceed 200 characters.");
+                .WithMessage("العنوان لا يمكن أن يتجاوز 200 حرف.");
 
             RuleFor(x => x.City)
                 .NotEmpty()
-                .WithMessage("City is required.")
+                .WithMessage("المدينة مطلوبة.")
                 .MinimumLength(2)
-                .WithMessage("City must be at least 2 characters long.")
+                .WithMessage("المدينة يجب أن تكون على الأقل حرفين.")
                 .MaximumLength(50)
-                .WithMessage("City cannot exceed 50 characters.");
+                .WithMessage("المدينة لا يمكن أن تتجاوز 50 حرف.");
 
             RuleFor(x => x.EmergencyContactName)
                 .NotEmpty()
-                .WithMessage("Emergency contact name is required.")
+                .WithMessage("اسم جهة الاتصال في حالة الطوارئ مطلوب.")
                 .MinimumLength(2)
-                .WithMessage("Emergency contact name must be at least 2 characters long.")
+                .WithMessage("اسم جهة الاتصال في حالة الطوارئ يجب أن يكون على الأقل حرفين.")
                 .MaximumLength(100)
-                .WithMessage("Emergency contact name cannot exceed 100 characters.");
+                .WithMessage("اسم جهة الاتصال في حالة الطوارئ لا يمكن أن يتجاوز 100 حرف.");
 
             RuleFor(x => x.EmergencyContactPhone)
                 .NotEmpty()
-                .WithMessage("Emergency contact phone is required.")
+                .WithMessage("رقم هاتف جهة الاتصال في حالة الطوارئ مطلوب.")
                 .Matches(@"^(\+201|01)[0-9]{9}$")
-                .WithMessage("Emergency contact phone must be a valid Egyptian phone number.");
+                .WithMessage("رقم هاتف جهة الاتصال في حالة الطوارئ يجب أن يكون رقم هاتف مصري صحيح.");
         }
 
         private static bool BeValidAge(DateOnly dateOfBirth)
@@ -142,6 +142,4 @@ public partial class UpdatePersonalInfoEndpointMapper
     }
 
     public partial UpdatePersonalInfoEndpoint.UpdatePersonalInfoResponseDto MapToResponse(UpdatePersonalInfoResponse response);
-
-    private static string OnboardingStepToString(BenhaScooters.Domain.Drivers.ValueObjects.OnboardingStep step) => step.ToString();
 }

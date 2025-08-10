@@ -40,9 +40,7 @@ public class GetPendingApplicationsQueryHandler : IRequestHandler<GetPendingAppl
         var pendingApplications = await _db.Drivers
             .Include(d => d.Vehicle)
             .Include(d => d.Documents)
-            .Where(dp =>
-                dp.OnboardingState.Status == OnboardingStatus.InProgress &&
-                dp.OnboardingState.CurrentStep == OnboardingStep.Review)
+            .Where(dp => dp.OnboardingState.Status == OnboardingStatus.Review)
             .OrderBy(dp => dp.OnboardingState.CreatedAt)
             .ToListAsync(cancellationToken);
 

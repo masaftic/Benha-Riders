@@ -58,7 +58,7 @@ public class UpdateVehicleInfoCommandValidator : AbstractValidator<UpdateVehicle
     }
 }
 
-public record UpdateVehicleInfoResponse(string Message, OnboardingStep NextStep);
+public record UpdateVehicleInfoResponse(string Message, OnboardingStatus NextStep);
 
 public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<UpdateVehicleInfoCommand, ErrorOr<UpdateVehicleInfoResponse>>
 {
@@ -92,6 +92,6 @@ public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<
 
         return new UpdateVehicleInfoResponse(
             "تم تحديث معلومات المركبة بنجاح.",
-            driver.OnboardingState.CurrentStep);
+            driver.OnboardingState.Status);
     }
 }
