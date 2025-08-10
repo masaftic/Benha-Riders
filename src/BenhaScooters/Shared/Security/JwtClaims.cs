@@ -12,6 +12,7 @@ public static class JwtClaims
     public const string NextStep = "next_step";
     public const string DriverId = "driver_id";
     public const string DriverOnboardingStatus = "driver_onboarding_status";
+    public const string DriverOnboardingStep = "driver_onboarding_step";
     public const string RiderId = "rider_id";
     public const string Roles = "roles";
 }
