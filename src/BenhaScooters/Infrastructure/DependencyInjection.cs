@@ -70,9 +70,11 @@ public static class DependencyInjection
 
             var config = new AmazonS3Config
             {
-                ServiceURL = s3Options.ServiceUrl,
-                ForcePathStyle = s3Options.ForcePathStyle,
-                AuthenticationRegion = s3Options.Region,
+                RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(s3Options.Region),
+                HttpClientFactory = new AmazonS3HttpClientFactory(new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                })
             };
 
             var credentials = new BasicAWSCredentials(s3Options.AccessKey, s3Options.SecretKey);
@@ -128,6 +130,20 @@ public static class DependencyInjection
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey))
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        // Allow JWT tokens to be received from query string for SignalR hubs
+                        if (context.Request.Path.StartsWithSegments("/hubs/driver") &&
+                            context.Request.Query.ContainsKey("access_token"))
+                        {
+                            context.Token = context.Request.Query["access_token"];
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
 
