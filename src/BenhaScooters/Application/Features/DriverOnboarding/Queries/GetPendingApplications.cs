@@ -37,7 +37,8 @@ public class GetPendingApplicationsQueryHandler : IRequestHandler<GetPendingAppl
 
     public async Task<ErrorOr<GetPendingApplicationsResponse>> Handle(GetPendingApplicationsQuery request, CancellationToken cancellationToken)
     {
-        var pendingApplications = await _db.Drivers
+        var pendingApplications = await _db.Drivers // TODO: use projection to avoid loading unnecessary data
+            .Include(d => d.User)
             .Include(d => d.Vehicle)
             .Include(d => d.Documents)
             .Where(dp => dp.OnboardingState.Status == OnboardingStatus.Review)
@@ -51,6 +52,7 @@ public class GetPendingApplicationsQueryHandler : IRequestHandler<GetPendingAppl
             var personalInfo = driver.Info != null ? new PersonalInfoDto(
                 driver.Info.FullName,
                 driver.Info.NationalId.Value,
+                driver.User.PhoneNumber!.Value,
                 driver.Info.DateOfBirth,
                 driver.Info.Address,
                 driver.Info.City,

@@ -34,6 +34,9 @@ public class Driver : AggregateRoot
     private readonly List<DriverDocument> _documents = new();
     public IReadOnlyList<DriverDocument> Documents => _documents.AsReadOnly();
 
+    // Navigation
+    public User User { get; private set; } = null!;
+
     private Driver() // For EF Core
     {
         OnboardingState = null!; // Will be set by EF Core

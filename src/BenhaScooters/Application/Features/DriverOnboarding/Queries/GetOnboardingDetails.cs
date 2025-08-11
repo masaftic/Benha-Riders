@@ -35,7 +35,8 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
 
     public async Task<ErrorOr<GetOnboardingDetailsResponse>> Handle(GetOnboardingDetailsQuery request, CancellationToken cancellationToken)
     {
-        var driver = await _db.Drivers
+        var driver = await _db.Drivers // Use Projection to avoid loading unnecessary data
+            .Include(d => d.User)
             .Include(d => d.Documents)
             .Include(d => d.Vehicle)
             .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
@@ -48,6 +49,7 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
         var personalInfo = driver.Info != null ? new PersonalInfoDto(
             driver.Info.FullName,
             driver.Info.NationalId.Value,
+            driver.User.PhoneNumber!.Value,
             driver.Info.DateOfBirth,
             driver.Info.Address,
             driver.Info.City,

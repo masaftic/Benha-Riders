@@ -37,6 +37,7 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
             {
                 Id = d.Id,
                 FullName = d.Info == null ? null : (string?)d.Info.FullName,
+                PhoneNumber = d.User.PhoneNumber,
                 NationalId = d.Info == null ? null : (NationalId?)d.Info.NationalId,
                 Brand = d.Vehicle == null ? null : (string?)d.Vehicle.Brand,
                 Year = d.Vehicle == null ? null : (int?)d.Vehicle.Year,
@@ -49,6 +50,7 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
             d.Id,
             d.FullName,
             d.NationalId,
+            d.PhoneNumber!.Value,
             d.Brand,
             d.Year,
             d.Status,

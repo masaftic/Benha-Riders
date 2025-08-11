@@ -19,7 +19,7 @@ public class DriverConfiguration : IEntityTypeConfiguration<Driver>
         builder.Property(x => x.UserId)
             .IsRequired();
         
-        builder.HasOne<User>()
+        builder.HasOne(d => d.User)
             .WithOne()
             .HasForeignKey<Driver>(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
