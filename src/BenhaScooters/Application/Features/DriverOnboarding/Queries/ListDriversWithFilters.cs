@@ -36,10 +36,10 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
             .Select(d => new
             {
                 Id = d.Id,
-                FullName = d.Info!.FullName,
-                NationalId = d.Info.NationalId,
-                Brand = d.Vehicle!.Brand,
-                Year = d.Vehicle.Year,
+                FullName = d.Info == null ? null : (string?)d.Info.FullName,
+                NationalId = d.Info == null ? null : (NationalId?)d.Info.NationalId,
+                Brand = d.Vehicle == null ? null : (string?)d.Vehicle.Brand,
+                Year = d.Vehicle == null ? null : (int?)d.Vehicle.Year,
                 Status = d.OnboardingState.Status,
                 CreatedAt = d.OnboardingState.CreatedAt
             })

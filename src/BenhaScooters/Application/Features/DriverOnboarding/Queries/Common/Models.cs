@@ -7,10 +7,10 @@ namespace BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
 
 public record DriverSummaryDto(
     DriverId Id, 
-    string FullName, 
-    NationalId NationalId, 
-    string VehicleBrand,
-    int VehicleYear,
+    string? FullName, 
+    NationalId? NationalId, 
+    string? VehicleBrand,
+    int? VehicleYear,
     OnboardingStatus Status,
     int Progress,
     DateTime CreatedAt);
