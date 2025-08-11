@@ -86,7 +86,7 @@ public static class DependencyInjection
         services.AddScoped<IS3Service, S3Service>();
 
         // Register MinIO initialization service
-        services.AddScoped<IMinioInitializationService, MinioInitializationService>();
+        services.AddScoped<IS3InitializationService, S3BucketInitializer>();
 
         // Register Google authentication service
         services.AddScoped<IGoogleAuthService, GoogleAuthService>();
