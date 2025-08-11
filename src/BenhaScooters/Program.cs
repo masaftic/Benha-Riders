@@ -43,8 +43,8 @@ using (var scope = app.Services.CreateScope())
         await dataSeeder.SeedAsync();
 
         // Initialize MinIO bucket
-        var minioInitService = scope.ServiceProvider.GetRequiredService<IMinioInitializationService>();
-        await minioInitService.InitializeAsync();
+        var s3InitService = scope.ServiceProvider.GetRequiredService<IS3InitializationService>();
+        await s3InitService.InitializeAsync();
     }
 }
 
