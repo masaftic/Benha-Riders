@@ -35,6 +35,7 @@ public class ApproveDriverCommandHandler : IRequestHandler<ApproveDriverCommand,
         var driver = await _db.Drivers
             .Include(dp => dp.Documents)
             .Include(dp => dp.Vehicle)
+            .Include(dp => dp.Fields)
             .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
 
         if (driver == null)

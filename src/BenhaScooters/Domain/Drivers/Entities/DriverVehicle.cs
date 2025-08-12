@@ -84,4 +84,47 @@ public class DriverVehicle
     }
 
     public string GetDisplayName() => $"{Brand} {Model} ({Year})";
+
+    public ErrorOr<Success> UpdateField(string name, string value)
+    {
+        var pascalName = ToPascalCase(name);
+
+        switch (pascalName)
+        {
+            case nameof(Brand):
+                Brand = value;
+                break;
+            case nameof(Model):
+                Model = value;
+                break;
+            case nameof(Color):
+                Color = value;
+                break;
+            case nameof(LicensePlate):
+                LicensePlate = LicensePlate.From(value);
+                break;
+            case nameof(Year):
+                if (int.TryParse(value, out var year))
+                    Year = year;
+                else
+                    return Error.Validation("INVALID_YEAR", "Invalid year format.");
+                break;
+            case nameof(VIN):
+                VIN = VIN.From(value);
+                break;
+            default:
+                return Error.Validation("UNKNOWN_FIELD_NAME", $"Unknown field: {name}");
+        }
+
+        return Result.Success;
+    }
+
+
+    private static string ToPascalCase(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return input;
+
+        return char.ToUpperInvariant(input[0]) + input[1..];
+    }
 }

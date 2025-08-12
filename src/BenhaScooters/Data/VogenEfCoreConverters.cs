@@ -33,6 +33,7 @@ namespace BenhaScooters.Data;
 [EfCoreConverter<VIN>]
 [EfCoreConverter<DriverDocumentId>]
 [EfCoreConverter<DriverVehicleId>]
+[EfCoreConverter<DriverFieldId>]
 [EfCoreConverter<DriverId>]
 [EfCoreConverter<DriverRatingId>]
 [EfCoreConverter<DriverLocationId>]

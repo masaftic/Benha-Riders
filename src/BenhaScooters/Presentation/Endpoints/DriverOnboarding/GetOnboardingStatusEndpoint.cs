@@ -13,13 +13,6 @@ namespace BenhaScooters.Presentation.Endpoints.DriverOnboarding;
 
 public class GetOnboardingStatusEndpoint : IEndpoint
 {
-    public record GetOnboardingStatusResponseDto(
-        string Status,
-        int Progress,
-        string? RejectionReason,
-        DateTime CreatedAt,
-        DateTime? CompletedAt);
-
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/drivers/me/onboarding/status", GetOnboardingStatus)
@@ -27,7 +20,7 @@ public class GetOnboardingStatusEndpoint : IEndpoint
             .WithTags("Driver Onboarding")
             .WithSummary("Get driver onboarding status")
             .WithDescription("Retrieves the current onboarding status of the driver including progress and any rejection reasons. Creates a new driver profile if none exists.")
-            .Produces<GetOnboardingStatusResponseDto>()
+            .Produces<GetOnboardingStatusResponse>()
             .Produces(401)
             .Produces(403)
             .RequireAuthorization(policy => policy.RequireRole("Driver"))
@@ -36,7 +29,7 @@ public class GetOnboardingStatusEndpoint : IEndpoint
 
     public async Task<IResult> GetOnboardingStatus([FromServices] ISender sender, HttpContext ctx)
     {
-        var query = new GetOnboardingProgressQuery(ctx.GetDriverId());
+        var query = new GetOnboardingStatusQuery(ctx.GetDriverId());
         var result = await sender.Send(query);
 
         if (result.IsError)
@@ -44,16 +37,6 @@ public class GetOnboardingStatusEndpoint : IEndpoint
             return ApiProblem.HandleProblems(result.Errors, ctx);
         }
 
-        var mapper = new GetOnboardingStatusEndpointMapper();
-        var response = mapper.MapToResponse(result.Value);
-        return Results.Ok(response);
+        return Results.Ok(result.Value);
     }
-}
-
-[Mapper]
-public partial class GetOnboardingStatusEndpointMapper
-{
-    public partial GetOnboardingStatusEndpoint.GetOnboardingStatusResponseDto MapToResponse(GetOnboardingProgressResponse response);
-
-    private static string OnboardingStatusToString(OnboardingStatus status) => status.ToString();
 }

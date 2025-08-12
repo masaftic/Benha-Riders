@@ -114,6 +114,38 @@ public static class DriverErrors
             {"Detail", "الحد الأقصى المسموح لحجم الملف هو 10 ميجابايت."}
         });
 
+    public static Error FieldNotFound => Error.Validation(
+        "FIELD_NOT_FOUND",
+        "الحقل المطلوب غير موجود.",
+        metadata: new Dictionary<string, object>
+        {
+            {"Detail", "الحقل الذي تحاول الوصول إليه غير موجود في بيانات السائق."}
+        });
+
+    public static Error FieldsNotApproved => Error.Validation(
+        "FIELDS_NOT_APPROVED",
+        "بعض الحقول لم تتم الموافقة عليها بعد.",
+        metadata: new Dictionary<string, object>
+        {
+            {"Detail", "يجب الموافقة على جميع الحقول قبل إكمال التسجيل."}
+        });
+
+    public static Error NoPendingFieldsForStep => Error.Validation(
+        "NO_PENDING_FIELDS_FOR_STEP",
+        "لا توجد حقول معلقة للموافقة في هذه الخطوة.",
+        metadata: new Dictionary<string, object>
+        {
+            {"Detail", "جميع الحقول في هذه الخطوة تمت مراجعتها بالفعل."}
+        });
+
+    public static Error FieldAlreadyReviewed = Error.Validation(
+        "FIELD_ALREADY_REVIEWED",
+        "تم مراجعة هذا الحقل بالفعل.",
+        metadata: new Dictionary<string, object>
+        {
+            {"Detail", "لا يمكن الموافقة على حقل تمت مراجعته مسبقاً."}
+        });
+
     // Driver availability errors
     public static class Availability
     {

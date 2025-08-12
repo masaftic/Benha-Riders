@@ -3,6 +3,7 @@ using System;
 using BenhaScooters.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BenhaScooters.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250812190150_Driver_Fields")]
+    partial class Driver_Fields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -805,15 +808,15 @@ namespace BenhaScooters.Data.Migrations
                             b1.Property<int>("DriverId")
                                 .HasColumnType("integer");
 
-                            b1.Property<string>("BanReason")
-                                .HasMaxLength(500)
-                                .HasColumnType("character varying(500)");
-
                             b1.Property<DateTime?>("CompletedAt")
                                 .HasColumnType("timestamp with time zone");
 
                             b1.Property<DateTime>("CreatedAt")
                                 .HasColumnType("timestamp with time zone");
+
+                            b1.Property<string>("RejectionReason")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
 
                             b1.Property<string>("Status")
                                 .IsRequired()

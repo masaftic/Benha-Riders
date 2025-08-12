@@ -11,7 +11,8 @@ public enum OnboardingStatus
     Documents = 3,
     Review = 4,
     Completed = 5,
-    Rejected = 0
+    Rejected = 0,
+    Banned = -1
 }
 
 public class OnboardingState : ValueObject
@@ -19,7 +20,7 @@ public class OnboardingState : ValueObject
     public OnboardingStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
-    public string? RejectionReason { get; private set; }
+    public string? BanReason { get; private set; }
 
     private OnboardingState() { } // For EF Core
 
@@ -49,7 +50,28 @@ public class OnboardingState : ValueObject
             Status = nextStep,
             CreatedAt = CreatedAt,
             CompletedAt = CompletedAt,
-            RejectionReason = RejectionReason
+            BanReason = BanReason
+        };
+    }
+
+    public OnboardingState MoveToReview()
+    {
+        return new OnboardingState
+        {
+            Status = OnboardingStatus.Review,
+            CreatedAt = CreatedAt,
+            CompletedAt = null,
+            BanReason = null
+        };
+    }
+
+    public OnboardingState Reject()
+    {
+        return new OnboardingState
+        {
+            Status = OnboardingStatus.Rejected,
+            CreatedAt = CreatedAt,
+            CompletedAt = null,
         };
     }
 
@@ -60,7 +82,7 @@ public class OnboardingState : ValueObject
             Status = OnboardingStatus.Completed,
             CreatedAt = CreatedAt,
             CompletedAt = DateTime.UtcNow,
-            RejectionReason = null
+            BanReason = null
         };
     }
 
@@ -75,21 +97,21 @@ public class OnboardingState : ValueObject
             Status = OnboardingStatus.Documents,
             CreatedAt = CreatedAt,
             CompletedAt = null,
-            RejectionReason = null
+            BanReason = null
         };
     }
 
-    public OnboardingState Reject(string reason)
+    public OnboardingState Ban(string reason)
     {
         if (string.IsNullOrWhiteSpace(reason))
             throw new ArgumentException("Rejection reason is required.", nameof(reason));
 
         return new OnboardingState
         {
-            Status = OnboardingStatus.Rejected,
+            Status = OnboardingStatus.Banned,
             CreatedAt = CreatedAt,
             CompletedAt = null,
-            RejectionReason = reason
+            BanReason = reason
         };
     }
 
@@ -103,6 +125,6 @@ public class OnboardingState : ValueObject
         yield return Status;
         yield return CreatedAt;
         yield return CompletedAt ?? DateTime.MinValue;
-        yield return RejectionReason ?? string.Empty;
+        yield return BanReason ?? string.Empty;
     }
 }

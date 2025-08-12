@@ -66,4 +66,46 @@ public class DriverInfo : ValueObject
         yield return EmergencyContactName;
         yield return EmergencyContactPhone;
     }
+
+    public ErrorOr<Success> UpdateField(string name, string value)
+    {
+        var pascalName = ToPascalCase(name);
+
+        switch (pascalName)
+        {
+            case nameof(FullName):
+                FullName = value;
+                break;
+            case nameof(NationalId):
+                NationalId = NationalId.From(value);
+                break;
+            case nameof(DateOfBirth):
+                DateOfBirth = DateOnly.Parse(value);
+                break;
+            case nameof(Address):
+                Address = value;
+                break;
+            case nameof(City):
+                City = value;
+                break;
+            case nameof(EmergencyContactName):
+                EmergencyContactName = value;
+                break;
+            case nameof(EmergencyContactPhone):
+                EmergencyContactPhone = PhoneNumber.From(value);
+                break;
+            default:
+                return Error.Validation("UNKNOWN_FIELD_NAME", $"Unknown field: {name}");
+        }
+
+        return Result.Success;
+    }
+
+    private static string ToPascalCase(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return input;
+
+        return char.ToUpperInvariant(input[0]) + input[1..];
+    }
 }

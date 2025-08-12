@@ -40,11 +40,9 @@ public record VehicleInfoDto(
 
 public record DocumentDto(
     string Type,
-    string Status,
     string ImageUrl,
     DateTime UploadedAt,
-    DateOnly? ExpiryDate,
-    string? RejectionReason);
+    DateOnly? ExpiryDate);
 
 
 public record OnboardingStateDto(
@@ -54,3 +52,5 @@ public record OnboardingStateDto(
     DateTime CreatedAt,
     DateTime? CompletedAt,
     bool IsCompleted);
+
+public record RejectedFieldDto(string Step, string FieldName, string? RejectionReason);

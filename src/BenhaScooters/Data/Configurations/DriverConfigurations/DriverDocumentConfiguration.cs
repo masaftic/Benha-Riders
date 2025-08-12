@@ -18,9 +18,6 @@ public class DriverDocumentConfiguration : IEntityTypeConfiguration<DriverDocume
         builder.Property(d => d.Type)
             .IsRequired();
 
-        builder.Property(d => d.Status)
-            .IsRequired();
-
         builder.Property(d => d.UploadedAt)
             .IsRequired();
 

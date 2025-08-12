@@ -11,27 +11,27 @@ using FluentValidation;
 
 namespace BenhaScooters.Presentation.Endpoints.DriverOnboarding.AdminActions;
 
-public class RejectDriverEndpoint : IEndpoint
+public class BanDriverEndpoint : IEndpoint
 {
-    public record RejectDriverRequestDto(string Reason);
-    public class Validator : AbstractValidator<RejectDriverRequestDto>
+    public record BanDriverRequestDto(string Reason);
+    public class Validator : AbstractValidator<BanDriverRequestDto>
     {
         public Validator()
         {
             RuleFor(x => x.Reason)
-                .NotEmpty().WithMessage("Rejection reason is required.")
-                .MaximumLength(500).WithMessage("Rejection reason must not exceed 500 characters.");
+                .NotEmpty().WithMessage("Ban reason is required.")
+                .MaximumLength(500).WithMessage("Ban reason must not exceed 500 characters.");
         }
     }
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/admin/drivers/{driverId}/reject", RejectDriver)
-            .AddEndpointFilter<ValidationFilter<RejectDriverRequestDto>>()
-            .WithName("RejectDriverApplication")
+        app.MapPost("/admin/drivers/{driverId}/ban", BanDriver)
+            .AddEndpointFilter<ValidationFilter<BanDriverRequestDto>>()
+            .WithName("BanDriverApplication")
             .WithTags("Admin - Driver Management")
-            .WithSummary("Reject driver onboarding application")
-            .WithDescription("Rejects a driver's onboarding application with a specific reason. The driver can resubmit their application after addressing the rejection reason. Rejection reason is required and will be visible to the driver.")
+            .WithSummary("Ban driver onboarding application")
+            .WithDescription("Ban a driver's onboarding application with a specific reason.")
             .Produces<NoContent>()
             .ProducesValidationProblem()
             .Produces(400)
@@ -42,9 +42,9 @@ public class RejectDriverEndpoint : IEndpoint
             .WithOpenApi();
     }
 
-    public async Task<IResult> RejectDriver([FromServices] ISender sender, [FromRoute] int driverId, [FromBody] RejectDriverRequestDto rejectRequest, HttpContext ctx)
+    public async Task<IResult> BanDriver([FromServices] ISender sender, [FromRoute] int driverId, [FromBody] BanDriverRequestDto rejectRequest, HttpContext ctx)
     {
-        var command = new RejectDriverCommand(DriverId.From(driverId), rejectRequest.Reason); 
+        var command = new BanDriverCommand(DriverId.From(driverId), rejectRequest.Reason); 
         var result = await sender.Send(command);
 
         if (result.IsError)

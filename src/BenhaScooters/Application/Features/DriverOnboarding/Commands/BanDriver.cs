@@ -10,11 +10,11 @@ using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
-public record RejectDriverCommand(DriverId DriverId, string Reason) : IRequest<ErrorOr<Success>>;
+public record BanDriverCommand(DriverId DriverId, string Reason) : IRequest<ErrorOr<Success>>;
 
-public class RejectDriverCommandValidator : AbstractValidator<RejectDriverCommand>
+public class BanDriverCommandValidator : AbstractValidator<BanDriverCommand>
 {
-    public RejectDriverCommandValidator()
+    public BanDriverCommandValidator()
     {
         RuleFor(x => x.DriverId.Value)
             .NotEmpty().WithMessage("Driver user ID is required.");
@@ -26,11 +26,11 @@ public class RejectDriverCommandValidator : AbstractValidator<RejectDriverComman
 }
 
 
-public class RejectDriverCommandHandler(AppDbContext db) : IRequestHandler<RejectDriverCommand, ErrorOr<Success>>
+public class RejectDriverCommandHandler(AppDbContext db) : IRequestHandler<BanDriverCommand, ErrorOr<Success>>
 {
     private readonly AppDbContext _db = db;
 
-    public async Task<ErrorOr<Success>> Handle(RejectDriverCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Success>> Handle(BanDriverCommand request, CancellationToken cancellationToken)
     {
         var driver = await _db.Drivers
             .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
@@ -40,7 +40,7 @@ public class RejectDriverCommandHandler(AppDbContext db) : IRequestHandler<Rejec
             return AdminErrors.DriverNotFound;
         }
 
-        var rejectResult = driver.RejectOnboarding(request.Reason);
+        var rejectResult = driver.BanDriver(request.Reason);
         if (rejectResult.IsError)
         {
             return rejectResult.Errors;

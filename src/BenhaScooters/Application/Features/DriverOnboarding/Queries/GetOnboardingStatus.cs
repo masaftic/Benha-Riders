@@ -7,19 +7,21 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using BenhaScooters.Domain.Users;
+using BenhaScooters.Domain.Drivers.Entities;
+using BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 
-public record GetOnboardingProgressQuery(DriverId DriverId) : IRequest<ErrorOr<GetOnboardingProgressResponse>>;
+public record GetOnboardingStatusQuery(DriverId DriverId) : IRequest<ErrorOr<GetOnboardingStatusResponse>>;
 
-public record GetOnboardingProgressResponse(
+public record GetOnboardingStatusResponse(
     OnboardingStatus Status,
     int Progress,
-    string? RejectionReason,
+    List<RejectedFieldDto> RejectedFields,
     DateTime CreatedAt,
     DateTime? CompletedAt);
 
-public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingProgressQuery, ErrorOr<GetOnboardingProgressResponse>>
+public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingStatusQuery, ErrorOr<GetOnboardingStatusResponse>>
 {
     private readonly AppDbContext _db;
 
@@ -28,9 +30,10 @@ public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingProg
         _db = db;
     }
 
-    public async Task<ErrorOr<GetOnboardingProgressResponse>> Handle(GetOnboardingProgressQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GetOnboardingStatusResponse>> Handle(GetOnboardingStatusQuery request, CancellationToken cancellationToken)
     {
         var driver = await _db.Drivers
+            .Include(d => d.Fields)
             .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
 
         if (driver == null)
@@ -38,10 +41,15 @@ public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingProg
             return DriverErrors.DriverNotFound;
         }
 
-        var response = new GetOnboardingProgressResponse(
+        var rejectedFields = driver.Fields
+            .Where(f => f.Status == FieldStatus.Rejected)
+            .Select(f => new RejectedFieldDto(f.Step, f.FieldName, f.RejectionReason))
+            .ToList();
+
+        var response = new GetOnboardingStatusResponse(
             driver.OnboardingState.Status,
             driver.OnboardingProgress,
-            driver.OnboardingState.RejectionReason,
+            rejectedFields,
             driver.OnboardingState.CreatedAt,
             driver.OnboardingState.CompletedAt);
 
