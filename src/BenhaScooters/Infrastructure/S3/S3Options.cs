@@ -1,11 +1,21 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BenhaScooters.Infrastructure.S3;
 
 public class S3Options
 {
     public const string SectionName = "S3";
-    
-    public string AccessKey { get; set; } = string.Empty;
-    public string SecretKey { get; set; } = string.Empty;
-    public string Region { get; set; } = string.Empty;
-    public string BucketName { get; set; } = string.Empty;
+
+    [Required]
+    public string AccessKey { get; set; } = null!;
+
+    [Required]
+    public string SecretKey { get; set; } = null!;
+
+    [Required]
+    public string Region { get; set; } = null!;
+
+    [Required]
+    public string BucketName { get; set; } = null!;
+    public string ServiceUrl { get; set; } = string.Empty; // Minio, or s3 compatible storage
 }

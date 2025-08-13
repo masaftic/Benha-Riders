@@ -68,14 +68,30 @@ public static class DependencyInjection
         {
             var s3Options = sp.GetRequiredService<IOptions<S3Options>>().Value;
 
-            var config = new AmazonS3Config
+            AmazonS3Config config;
+
+            if (string.IsNullOrEmpty(s3Options.ServiceUrl)) // AWS S3
             {
-                RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(s3Options.Region),
-                HttpClientFactory = new AmazonS3HttpClientFactory(new HttpClientHandler
+                Console.WriteLine("Using AWS S3 configuration --------------------");
+                config = new AmazonS3Config
                 {
-                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                })
-            };
+                    RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(s3Options.Region),
+                    HttpClientFactory = new AmazonS3HttpClientFactory(new HttpClientHandler
+                    {
+                        ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                    })
+                };
+            }
+            else // Minio for local
+            {
+                Console.WriteLine("Using MinIO configuration --------------------");
+                config = new AmazonS3Config
+                {
+                    ServiceURL = s3Options.ServiceUrl,
+                    ForcePathStyle = true, 
+                    AuthenticationRegion = s3Options.Region,
+                };
+            }
 
             var credentials = new BasicAWSCredentials(s3Options.AccessKey, s3Options.SecretKey);
 
