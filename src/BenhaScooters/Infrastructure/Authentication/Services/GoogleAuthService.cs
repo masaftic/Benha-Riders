@@ -21,7 +21,8 @@ public class GoogleAuthService : IGoogleAuthService
     {
         var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, new GoogleJsonWebSignature.ValidationSettings
         {
-            Audience = new[] { _configuration["GoogleAuth:ClientId"] }
+            Audience = ["722364989102-to75aj9k5r396b4ounuvjebcjq8b19ld.apps.googleusercontent.com",
+                "722364989102-o33m7c5g369r67r65ontfa3q2i595jne.apps.googleusercontent.com"]
         });
 
         return payload;
