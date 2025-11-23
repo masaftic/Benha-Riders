@@ -56,6 +56,7 @@ public class GoogleSignInCommandHandler : IRequestHandler<GoogleSignInCommand, E
 
             var existingAuth = await _db.ExternalAuths
                 .Include(ea => ea.User)
+                .ThenInclude(u => u.Roles)
                 .FirstOrDefaultAsync(x => x.ProviderUserId == googleId && x.Provider == "Google", cancellationToken);
 
             if (existingAuth is null)
