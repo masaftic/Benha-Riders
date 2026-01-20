@@ -21,20 +21,27 @@ public class ListDriverDocumentsHandler(AppDbContext db, IS3Service s3) : IReque
 
     public async Task<ErrorOr<ListDriverDocumentsResponse>> Handle(ListDriverDocuments request, CancellationToken cancellationToken)
     {
-        var driverDocuments = await _db.Drivers
-            .Where(d => d.Id == request.DriverId)
+        var userId = request.DriverId.ToUserId();
+        
+        var driverDocuments = await _db.DriverProfiles
+            .Where(d => d.UserId == userId)
             .Select(d => d.Documents)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (driverDocuments == null)
         {
-            return DriverErrors.DriverNotFound;
+            return DriverErrors.Profile.NotFound;
         }
 
-        var documentTasks = driverDocuments.Select(x => x.ToDto(_s3));
+        var documentTasks = driverDocuments.Select(async doc => new DocumentDto(
+            Type: doc.Type.ToString(),
+            ImageUrl: await _s3.GetPreSignedUrlAsync(doc.ImageUrl, TimeSpan.FromMinutes(15), cancellationToken),
+            UploadedAt: doc.UploadedAt,
+            ExpiryDate: doc.ExpiryDate
+        ));
         List<DocumentDto> documents = [.. await Task.WhenAll(documentTasks)];
 
-        var requiredDocuments = Driver.GetRequiredDocuments();
+        var requiredDocuments = DriverProfile.GetRequiredDocumentTypes().Select(t => t.ToString()).ToList();
         var missingDocuments = requiredDocuments.Except(documents.Select(d => d.Type)).ToList();
 
         return new ListDriverDocumentsResponse(

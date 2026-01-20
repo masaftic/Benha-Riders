@@ -153,4 +153,100 @@ public static class DriverErrors
             "DRIVER_INVALID_STATUS",
             "لا يمكن تنفيذ هذه العملية مع حالة السائق الحالية");
     }
+
+    // Driver profile errors (new simplified onboarding)
+    public static class Profile
+    {
+        public static readonly Error CannotModifyApprovedProfile = Error.Conflict(
+            "CANNOT_MODIFY_APPROVED_PROFILE",
+            "لا يمكن تعديل الملف الشخصي بعد الموافقة عليه.");
+
+        public static readonly Error InvalidStatusTransition = Error.Conflict(
+            "INVALID_STATUS_TRANSITION",
+            "لا يمكن الانتقال إلى هذه الحالة من الحالة الحالية.");
+
+        public static readonly Error PersonalInfoRequired = Error.Validation(
+            "PERSONAL_INFO_REQUIRED",
+            "يجب إكمال المعلومات الشخصية.");
+
+        public static readonly Error VehicleInfoRequired = Error.Validation(
+            "VEHICLE_INFO_REQUIRED",
+            "يجب إكمال معلومات المركبة.");
+
+        public static readonly Error DocumentsRequired = Error.Validation(
+            "DOCUMENTS_REQUIRED",
+            "يجب رفع جميع المستندات المطلوبة.");
+
+        public static readonly Error RejectionReasonRequired = Error.Validation(
+            "REJECTION_REASON_REQUIRED",
+            "يجب تقديم سبب للرفض.");
+
+        public static readonly Error SuspensionReasonRequired = Error.Validation(
+            "SUSPENSION_REASON_REQUIRED",
+            "يجب تقديم سبب للإيقاف.");
+
+        public static readonly Error NotFound = Error.NotFound(
+            "DRIVER_PROFILE_NOT_FOUND",
+            "الملف الشخصي للسائق غير موجود.");
+    }
+
+    // Driver document errors
+    public static class Document
+    {
+        public static readonly Error NotFound = Error.NotFound(
+            "DOCUMENT_NOT_FOUND",
+            "المستند غير موجود.");
+
+        public static readonly Error InvalidType = Error.Validation(
+            "INVALID_DOCUMENT_TYPE",
+            "نوع المستند غير صالح.");
+    }
+
+    // Driver status errors (online/offline/trip)
+    public static class Status
+    {
+        public static readonly Error CannotGoOnlineWhileOnTrip = Error.Conflict(
+            "CANNOT_GO_ONLINE_WHILE_ON_TRIP",
+            "لا يمكن التحول لوضع الاتصال أثناء الرحلة.");
+
+        public static readonly Error CannotGoOfflineWhileOnTrip = Error.Conflict(
+            "CANNOT_GO_OFFLINE_WHILE_ON_TRIP",
+            "لا يمكن قطع الاتصال أثناء الرحلة.");
+
+        public static readonly Error MustBeOnlineToStartTrip = Error.Conflict(
+            "MUST_BE_ONLINE_TO_START_TRIP",
+            "يجب أن تكون متصلاً لبدء رحلة.");
+
+        public static readonly Error NotOnTrip = Error.Conflict(
+            "NOT_ON_TRIP",
+            "أنت لست في رحلة حالياً.");
+
+        public static readonly Error MustBeOnlineToSetBusy = Error.Conflict(
+            "MUST_BE_ONLINE_TO_SET_BUSY",
+            "يجب أن تكون متصلاً لتعيين حالة مشغول.");
+
+        public static readonly Error NotFound = Error.NotFound(
+            "DRIVER_STATUS_NOT_FOUND",
+            "حالة السائق غير موجودة.");
+    }
+
+    // Driver stats errors
+    public static class Stats
+    {
+        public static readonly Error NotFound = Error.NotFound(
+            "DRIVER_STATS_NOT_FOUND",
+            "إحصائيات السائق غير موجودة.");
+    }
+
+    // Driver location errors
+    public static class Location
+    {
+        public static readonly Error NotFound = Error.NotFound(
+            "DRIVER_LOCATION_NOT_FOUND",
+            "موقع السائق غير موجود.");
+
+        public static readonly Error Stale = Error.Conflict(
+            "DRIVER_LOCATION_STALE",
+            "موقع السائق قديم جداً.");
+    }
 }

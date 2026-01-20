@@ -1,7 +1,4 @@
-using System.Text.RegularExpressions;
-using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Riders;
@@ -12,39 +9,31 @@ using Vogen;
 
 namespace BenhaScooters.Data;
 
-// User
+// User & Auth
 [EfCoreConverter<UserId>]
 [EfCoreConverter<Email>]
 [EfCoreConverter<UserRoleId>]
 [EfCoreConverter<PhoneNumber>]
-
-// Refresh token
 [EfCoreConverter<RefreshTokenId>]
-
-// Sms verification code
 [EfCoreConverter<SmsVerificationCodeId>]
 
-// Rider
+// Rider (semantic wrapper around UserId)
 [EfCoreConverter<RiderId>]
 
-// Driver
+// Driver (semantic wrapper around UserId) and value objects
+[EfCoreConverter<DriverId>]
 [EfCoreConverter<NationalId>]
 [EfCoreConverter<LicensePlate>]
 [EfCoreConverter<VIN>]
-[EfCoreConverter<DriverDocumentId>]
-[EfCoreConverter<DriverVehicleId>]
-[EfCoreConverter<DriverFieldId>]
-[EfCoreConverter<DriverId>]
-[EfCoreConverter<DriverRatingId>]
-[EfCoreConverter<DriverLocationId>]
-[EfCoreConverter<DriverAvailabilityId>]
 
+// Trip
 [EfCoreConverter<TripRequestId>]
-
 [EfCoreConverter<TripId>]
 [EfCoreConverter<TripGpsPointId>]
 [EfCoreConverter<TripRatingId>]
 
+// Matching
 [EfCoreConverter<DriverMatchAttemptId>]
 [EfCoreConverter<MatchingSessionId>]
+
 public partial class VogenEfCoreConverters;

@@ -39,13 +39,14 @@ public class UpdatePersonalInfoCommandValidator : AbstractValidator<UpdatePerson
 
     private async Task<bool> BeUniqueNationalId(UpdatePersonalInfoCommand command, string nationalId, CancellationToken cancellationToken)
     {
-        return !await _db.Drivers
-            .AnyAsync(x => x.Info!.NationalId == NationalId.From(nationalId) && x.Id != command.DriverId, 
+        var userId = command.DriverId.ToUserId();
+        return !await _db.DriverProfiles
+            .AnyAsync(x => x.PersonalInfo != null && x.PersonalInfo.NationalId == NationalId.From(nationalId) && x.UserId != userId, 
                 cancellationToken);
     }
 }
 
-public record UpdatePersonalInfoResponse(string Message, OnboardingStatus NextStep);
+public record UpdatePersonalInfoResponse(string Message, DriverOnboardingStatus Status);
 
 public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler<UpdatePersonalInfoCommand, ErrorOr<UpdatePersonalInfoResponse>>
 {
@@ -53,15 +54,17 @@ public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler
 
     public async Task<ErrorOr<UpdatePersonalInfoResponse>> Handle(UpdatePersonalInfoCommand request, CancellationToken cancellationToken)
     {
-        var driver = await _db.Drivers
-            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await _db.DriverProfiles
+            .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);
 
-        if (driver == null)
+        if (driverProfile == null)
         {
             return DriverErrors.DriverNotFound;
         }
 
-        var updateResult = driver.UpdatePersonalInfo(
+        var personalInfo = new DriverPersonalInfo(
             request.FullName,
             NationalId.From(request.NationalId),
             request.DateOfBirth,
@@ -69,6 +72,8 @@ public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler
             request.City,
             request.EmergencyContactName,
             PhoneNumber.From(request.EmergencyContactPhone));
+
+        var updateResult = driverProfile.UpdatePersonalInfo(personalInfo);
 
         if (updateResult.IsError)
         {
@@ -79,6 +84,6 @@ public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler
 
         return new UpdatePersonalInfoResponse(
             "Personal information updated successfully.",
-            driver.OnboardingState.Status);
+            driverProfile.OnboardingStatus);
     }
 }

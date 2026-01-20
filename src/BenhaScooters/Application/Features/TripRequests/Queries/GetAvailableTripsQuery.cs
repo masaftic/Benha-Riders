@@ -32,11 +32,13 @@ public class GetAvailableTripsQueryHandler(AppDbContext db) : IRequestHandler<Ge
 {
     public async Task<ErrorOr<GetAvailableTripsResult>> Handle(GetAvailableTripsQuery request, CancellationToken cancellationToken)
     {
+        var userId = request.DriverId.ToUserId();
+        
         // Check if driver is available to see trips
-        var driverAvailability = await db.DriverAvailabilities
-            .FirstOrDefaultAsync(da => da.DriverId == request.DriverId, cancellationToken);
+        var driverStatus = await db.DriverStatuses
+            .FirstOrDefaultAsync(ds => ds.UserId == userId, cancellationToken);
 
-        if (driverAvailability == null || driverAvailability.Status != DriverStatus.Online)
+        if (driverStatus == null || driverStatus.Status != DriverAvailabilityStatus.Online)
         {
             return TripErrors.Driver.NotOnline;
         }
@@ -53,7 +55,7 @@ public class GetAvailableTripsQueryHandler(AppDbContext db) : IRequestHandler<Ge
                 tr.DropoffLocation,
                 tr.PickupAddress,
                 tr.DropoffAddress,
-                tr.EstimatedFare,
+                tr.FinalFare,
                 tr.RequestedAt,
                 tr.ExpiresAt
             })
@@ -68,9 +70,9 @@ public class GetAvailableTripsQueryHandler(AppDbContext db) : IRequestHandler<Ge
                 at.DropoffLocation.X, // Longitude
                 at.PickupAddress,
                 at.DropoffAddress,
-                at.EstimatedFare.Amount,
-                at.EstimatedFare.Distance,
-                at.EstimatedFare.Time,
+                at.FinalFare.Amount,
+                at.FinalFare.Distance,
+                at.FinalFare.Time,
                 at.RequestedAt,
                 at.ExpiresAt)).ToList();
 

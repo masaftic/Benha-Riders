@@ -43,16 +43,21 @@ public class GetTripStatusQueryHandler(AppDbContext db) : IRequestHandler<GetTri
 {
     public async Task<ErrorOr<GetTripStatusResult>> Handle(GetTripStatusQuery request, CancellationToken cancellationToken)
     {
+        var riderUserId = request.RiderId.ToUserId();
+        
         // Find the trip request
         var tripStatusInfo = await db.TripRequests
-            .Include(tr => tr.MatchedDriver)
+            .Include(tr => tr.MatchedDriverProfile)
+                .ThenInclude(dp => dp!.PersonalInfo)
             .AsNoTracking()
             .Where(tr => tr.RiderId == request.RiderId && tr.Id == request.TripRequestId)
             .Select(tr => new
             {
                 tr.Id,
                 tr.Status,
-                MatchedDriverName = tr.MatchedDriver != null ? tr.MatchedDriver.Info!.FullName : null,
+                MatchedDriverName = tr.MatchedDriverProfile != null && tr.MatchedDriverProfile.PersonalInfo != null 
+                    ? tr.MatchedDriverProfile.PersonalInfo.FullName 
+                    : null,
                 tr.RequestedAt,
                 tr.MatchedAt,
                 tr.ExpiresAt,

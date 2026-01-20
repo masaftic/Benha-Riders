@@ -8,6 +8,10 @@ namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
 public record FieldDto(string Step, string FieldName, string Value);
 
+/// <summary>
+/// DEPRECATED: Field-level patching is being replaced with full profile updates.
+/// This command is kept for backward compatibility but is now a no-op.
+/// </summary>
 public record PatchDriverFieldsCommand(
     DriverId DriverId, List<FieldDto> Fields) : IRequest<ErrorOr<Success>>;
 
@@ -15,41 +19,18 @@ public class PatchDriverFieldsCommandHandler(AppDbContext db) : IRequestHandler<
 {
     public async Task<ErrorOr<Success>> Handle(PatchDriverFieldsCommand request, CancellationToken cancellationToken)
     {
-        var driver = await db.Drivers
-            .Include(d => d.Info)
-            .Include(d => d.Vehicle)
-            .Include(d => d.Fields)
-            .FirstOrDefaultAsync(d => d.Id == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await db.DriverProfiles
+            .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken);
 
-        if (driver is null)
+        if (driverProfile is null)
         {
-            return DriverErrors.DriverNotFound;
+            return DriverErrors.Profile.NotFound;
         }
 
-        if (driver.OnboardingState.Status == OnboardingStatus.Completed)
-        {
-            return DriverErrors.OnboardingAlreadyCompleted;
-        }
-
-        if (driver.OnboardingState.Status != OnboardingStatus.Rejected)
-        {
-            return Error.Validation("INVALID_STATE_FOR_FIELD_CHANGE", "Driver onboarding is not in a state that allows field updates.");
-        }
-
-        List<Error> errors = [];
-
-        foreach (var patch in request.Fields)
-        {
-            var result = driver.PatchField(patch.Step, patch.FieldName, patch.Value);
-            if (result.IsError)
-            {
-                errors.AddRange(result.Errors);
-            }
-        }
-
-        if (errors.Count > 0) return errors;
-
-        await db.SaveChangesAsync(cancellationToken);
+        // Field-level patching is deprecated
+        // Use specific update commands (UpdatePersonalInfo, UpdateVehicle, etc.)
         return Result.Success;
     }
 }

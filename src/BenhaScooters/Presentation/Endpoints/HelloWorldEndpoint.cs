@@ -1,5 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Drivers.ValueObjects;
 using FluentValidation;
 using Hangfire;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +13,7 @@ public static class HelloWorldEndpoint
 {
     public class Request
     {
+        public NationalId NationalId { get; set; }
         public string Name { get; set; } = null!;
     }
 
@@ -45,7 +48,7 @@ public static class HelloWorldEndpoint
 
         public IResult Handler([FromBody] Request request)
         {
-            var message = $"Hello, {request.Name}!";
+            var message = $"Hello, {request.Name} {request.NationalId}!";
             BackgroundJob.Enqueue(() => Console.WriteLine(message));
             BackgroundJob.Schedule(() => Console.WriteLine(message), TimeSpan.FromSeconds(2));
             var response = new Response(message);

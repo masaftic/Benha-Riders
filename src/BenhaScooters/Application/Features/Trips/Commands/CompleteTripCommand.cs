@@ -69,10 +69,11 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
         }
 
         // Update driver availability back to available
-        var driverAvailability = await db.DriverAvailabilities
-            .FirstAsync(da => da.DriverId == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        var driverStatus = await db.DriverStatuses
+            .FirstAsync(ds => ds.UserId == userId, cancellationToken);
 
-        var completeTripAvailabilityResult = driverAvailability.CompleteTrip();
+        var completeTripAvailabilityResult = driverStatus.CompleteTrip();
         if (completeTripAvailabilityResult.IsError)
         {
             return completeTripAvailabilityResult.Errors;
@@ -100,6 +101,6 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
             "Trip completed successfully",
             trip.CompletedAt!.Value,
             trip.TotalDuration,
-            trip.TripFare?.TotalFare ?? trip.EstimatedFare.Amount);
+            trip.TripFare?.TotalFare ?? trip.FinalFare.Amount);
     }
 }

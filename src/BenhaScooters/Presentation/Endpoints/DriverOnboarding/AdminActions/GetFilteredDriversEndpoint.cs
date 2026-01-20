@@ -51,9 +51,9 @@ public class GetFilteredDriversEndpoint : IEndpoint
 
     public async Task<IResult> GetPendingApplications([FromServices] ISender sender, [AsParameters] QueryParams queryParams, HttpContext ctx)
     {
-        OnboardingStatus? onboardingStatus = string.IsNullOrEmpty(queryParams.OnboardingStatus) 
+        DriverOnboardingStatus? onboardingStatus = string.IsNullOrEmpty(queryParams.OnboardingStatus) 
             ? null 
-            : Enum.Parse<OnboardingStatus>(queryParams.OnboardingStatus);
+            : Enum.Parse<DriverOnboardingStatus>(queryParams.OnboardingStatus);
 
             
         var query = new ListDriversWithFilters(

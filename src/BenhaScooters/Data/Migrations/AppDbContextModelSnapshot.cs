@@ -24,42 +24,115 @@ namespace BenhaScooters.Data.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.Driver", b =>
+            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverLocation", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.Property<float?>("Heading")
+                        .HasColumnType("real");
 
-                    b.HasIndex("IsActive");
+                    b.Property<Point>("Location")
+                        .IsRequired()
+                        .HasColumnType("geography (point)");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.Property<float?>("Speed")
+                        .HasColumnType("real");
 
-                    b.ToTable("Drivers");
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("Location");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Location"), "GIST");
+
+                    b.HasIndex("Timestamp");
+
+                    b.ToTable("DriverLocations", (string)null);
                 });
 
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverAvailability", b =>
+            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverProfile", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("OnboardingStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("OnboardingStatus");
+
+                    b.ToTable("DriverProfiles", (string)null);
+                });
+
+            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverStats", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("AverageRating")
+                        .HasPrecision(3, 2)
+                        .HasColumnType("numeric(3,2)");
+
+                    b.Property<int>("CancelledTrips")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CompletedTrips")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CurrentStreak")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("LastOnlineAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastStreakDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastTripAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<TimeSpan>("TotalOnlineTime")
+                        .HasColumnType("interval");
+
+                    b.Property<int>("TotalRatings")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalTrips")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("AverageRating");
+
+                    b.HasIndex("CompletedTrips");
+
+                    b.ToTable("DriverStats", (string)null);
+                });
+
+            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverStatus", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.Property<int?>("CurrentTripId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("DriverId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("LastStatusChange")
@@ -72,187 +145,13 @@ namespace BenhaScooters.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<TimeSpan>("TotalOnlineTime")
-                        .HasColumnType("interval");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CurrentTripId");
+                    b.HasKey("UserId");
 
                     b.HasIndex("Status");
 
-                    b.ToTable("DriverAvailabilities");
-                });
+                    b.HasIndex("Status", "UserId");
 
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverLocation", b =>
-                {
-                    b.Property<int>("DriverId")
-                        .HasColumnType("integer");
-
-                    b.Property<Point>("Location")
-                        .IsRequired()
-                        .HasColumnType("geography (point)");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("DriverId");
-
-                    b.HasIndex("Location");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Location"), "GIST");
-
-                    b.HasIndex("Timestamp");
-
-                    b.ToTable("DriverLocations");
-                });
-
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverRating", b =>
-                {
-                    b.Property<int>("DriverId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("AverageRating")
-                        .HasPrecision(3, 2)
-                        .HasColumnType("numeric(3,2)");
-
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("TotalRatings")
-                        .HasColumnType("integer");
-
-                    b.HasKey("DriverId");
-
-                    b.ToTable("DriverRatings");
-                });
-
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.Entities.DriverDocument", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DriverId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateOnly?>("ExpiryDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UploadedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DriverId");
-
-                    b.ToTable("DriverDocument");
-                });
-
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.Entities.DriverField", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DriverId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("FieldName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("RejectionReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<DateTime?>("ReviewedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Step")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DriverId");
-
-                    b.ToTable("DriverField");
-                });
-
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.Entities.DriverVehicle", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Brand")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Color")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DeactivatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DriverId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("LicensePlate")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Model")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("VIN")
-                        .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
-
-                    b.Property<string>("VehicleType")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DriverId")
-                        .IsUnique();
-
-                    b.ToTable("Vehicles");
+                    b.ToTable("DriverStatuses", (string)null);
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Matching.DriverMatchAttempt", b =>
@@ -270,12 +169,12 @@ namespace BenhaScooters.Data.Migrations
                         .HasPrecision(8, 3)
                         .HasColumnType("double precision");
 
-                    b.Property<int>("DriverId")
-                        .HasColumnType("integer");
-
                     b.Property<decimal>("DriverScore")
                         .HasPrecision(5, 2)
                         .HasColumnType("numeric(5,2)");
+
+                    b.Property<int>("DriverUserId")
+                        .HasColumnType("integer");
 
                     b.Property<double>("EstimatedArrivalTime")
                         .HasPrecision(5, 2)
@@ -302,7 +201,7 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasIndex("CreatedAt");
 
-                    b.HasIndex("DriverId");
+                    b.HasIndex("DriverUserId");
 
                     b.HasIndex("MatchingSessionId");
 
@@ -357,20 +256,21 @@ namespace BenhaScooters.Data.Migrations
                     b.ToTable("MatchingSessions");
                 });
 
-            modelBuilder.Entity("BenhaScooters.Domain.Riders.Rider", b =>
+            modelBuilder.Entity("BenhaScooters.Domain.Riders.RiderProfile", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<decimal>("AverageRating")
+                        .HasPrecision(3, 2)
+                        .HasColumnType("numeric(3,2)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DefaultPaymentMethodId")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -382,22 +282,15 @@ namespace BenhaScooters.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("SavedAddresses")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("TotalRatings")
+                        .HasColumnType("integer");
 
                     b.Property<int>("TotalTrips")
                         .HasColumnType("integer");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.HasKey("UserId");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Riders");
+                    b.ToTable("RiderProfiles", (string)null);
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.TripRequests.TripRequest", b =>
@@ -426,7 +319,7 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<DateTime?>("MatchedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("MatchedDriverId")
+                    b.Property<int?>("MatchedDriverUserId")
                         .HasColumnType("integer");
 
                     b.Property<string>("PickupAddress")
@@ -440,7 +333,7 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<DateTime>("RequestedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("RiderId")
+                    b.Property<int>("RiderUserId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Status")
@@ -449,11 +342,11 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MatchedDriverId");
+                    b.HasIndex("MatchedDriverUserId");
 
                     b.HasIndex("RequestedAt");
 
-                    b.HasIndex("RiderId");
+                    b.HasIndex("RiderUserId");
 
                     b.HasIndex("Status");
 
@@ -477,7 +370,7 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<DateTime?>("DriverArrivedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("DriverId")
+                    b.Property<int>("DriverUserId")
                         .HasColumnType("integer");
 
                     b.Property<string>("DropoffAddress")
@@ -496,7 +389,7 @@ namespace BenhaScooters.Data.Migrations
                         .IsRequired()
                         .HasColumnType("geography (point)");
 
-                    b.Property<int>("RiderId")
+                    b.Property<int>("RiderUserId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("StartedAt")
@@ -508,9 +401,9 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DriverId");
+                    b.HasIndex("DriverUserId");
 
-                    b.HasIndex("RiderId");
+                    b.HasIndex("RiderUserId");
 
                     b.HasIndex("Status");
 
@@ -745,164 +638,199 @@ namespace BenhaScooters.Data.Migrations
                     b.ToTable("UserRoles");
                 });
 
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.Driver", b =>
+            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverLocation", b =>
                 {
                     b.HasOne("BenhaScooters.Domain.Users.User", "User")
                         .WithOne()
-                        .HasForeignKey("BenhaScooters.Domain.Drivers.Driver", "UserId")
+                        .HasForeignKey("BenhaScooters.Domain.Drivers.DriverLocation", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.OwnsOne("BenhaScooters.Domain.Drivers.ValueObjects.DriverInfo", "Info", b1 =>
-                        {
-                            b1.Property<int>("DriverId")
-                                .HasColumnType("integer");
-
-                            b1.Property<string>("Address")
-                                .IsRequired()
-                                .HasMaxLength(500)
-                                .HasColumnType("character varying(500)");
-
-                            b1.Property<string>("City")
-                                .IsRequired()
-                                .HasMaxLength(100)
-                                .HasColumnType("character varying(100)");
-
-                            b1.Property<DateOnly>("DateOfBirth")
-                                .HasColumnType("date");
-
-                            b1.Property<string>("EmergencyContactName")
-                                .IsRequired()
-                                .HasMaxLength(100)
-                                .HasColumnType("character varying(100)");
-
-                            b1.Property<string>("EmergencyContactPhone")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.Property<string>("FullName")
-                                .IsRequired()
-                                .HasMaxLength(100)
-                                .HasColumnType("character varying(100)");
-
-                            b1.Property<string>("NationalId")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.HasKey("DriverId");
-
-                            b1.HasIndex("NationalId")
-                                .IsUnique();
-
-                            b1.ToTable("Drivers");
-
-                            b1.WithOwner()
-                                .HasForeignKey("DriverId");
-                        });
-
-                    b.OwnsOne("BenhaScooters.Domain.Drivers.ValueObjects.OnboardingState", "OnboardingState", b1 =>
-                        {
-                            b1.Property<int>("DriverId")
-                                .HasColumnType("integer");
-
-                            b1.Property<string>("BanReason")
-                                .HasMaxLength(500)
-                                .HasColumnType("character varying(500)");
-
-                            b1.Property<DateTime?>("CompletedAt")
-                                .HasColumnType("timestamp with time zone");
-
-                            b1.Property<DateTime>("CreatedAt")
-                                .HasColumnType("timestamp with time zone");
-
-                            b1.Property<string>("Status")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.HasKey("DriverId");
-
-                            b1.ToTable("Drivers");
-
-                            b1.WithOwner()
-                                .HasForeignKey("DriverId");
-                        });
-
-                    b.Navigation("Info");
-
-                    b.Navigation("OnboardingState")
                         .IsRequired();
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverAvailability", b =>
+            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverProfile", b =>
                 {
-                    b.HasOne("BenhaScooters.Domain.Trips.Trip", null)
-                        .WithMany()
-                        .HasForeignKey("CurrentTripId")
-                        .OnDelete(DeleteBehavior.SetNull);
-                });
-
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverLocation", b =>
-                {
-                    b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
+                    b.HasOne("BenhaScooters.Domain.Users.User", "User")
                         .WithOne()
-                        .HasForeignKey("BenhaScooters.Domain.Drivers.DriverLocation", "DriverId")
+                        .HasForeignKey("BenhaScooters.Domain.Drivers.DriverProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Driver");
+                    b.OwnsOne("BenhaScooters.Domain.Drivers.DriverPersonalInfo", "PersonalInfo", b1 =>
+                        {
+                            b1.Property<int>("DriverProfileUserId")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Address")
+                                .IsRequired()
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)")
+                                .HasColumnName("PersonalInfo_Address");
+
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("PersonalInfo_City");
+
+                            b1.Property<DateOnly>("DateOfBirth")
+                                .HasColumnType("date")
+                                .HasColumnName("PersonalInfo_DateOfBirth");
+
+                            b1.Property<string>("EmergencyContactName")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("PersonalInfo_EmergencyContactName");
+
+                            b1.Property<string>("EmergencyContactPhone")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("PersonalInfo_EmergencyContactPhone");
+
+                            b1.Property<string>("FullName")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("PersonalInfo_FullName");
+
+                            b1.Property<string>("NationalId")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("PersonalInfo_NationalId");
+
+                            b1.HasKey("DriverProfileUserId");
+
+                            b1.ToTable("DriverProfiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DriverProfileUserId");
+                        });
+
+                    b.OwnsOne("BenhaScooters.Domain.Drivers.DriverVehicleInfo", "Vehicle", b1 =>
+                        {
+                            b1.Property<int>("DriverProfileUserId")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Brand")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("Vehicle_Brand");
+
+                            b1.Property<string>("Color")
+                                .IsRequired()
+                                .HasMaxLength(30)
+                                .HasColumnType("character varying(30)")
+                                .HasColumnName("Vehicle_Color");
+
+                            b1.Property<string>("LicensePlate")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Vehicle_LicensePlate");
+
+                            b1.Property<string>("Model")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)")
+                                .HasColumnName("Vehicle_Model");
+
+                            b1.Property<string>("VIN")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Vehicle_VIN");
+
+                            b1.Property<string>("VehicleType")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("Vehicle_Type");
+
+                            b1.Property<int>("Year")
+                                .HasColumnType("integer")
+                                .HasColumnName("Vehicle_Year");
+
+                            b1.HasKey("DriverProfileUserId");
+
+                            b1.ToTable("DriverProfiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DriverProfileUserId");
+                        });
+
+                    b.OwnsMany("BenhaScooters.Domain.Drivers.DriverDocument", "Documents", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
+
+                            b1.Property<int>("DriverUserId")
+                                .HasColumnType("integer");
+
+                            b1.Property<DateOnly?>("ExpiryDate")
+                                .HasColumnType("date");
+
+                            b1.Property<string>("ImageUrl")
+                                .IsRequired()
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("Type")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<DateTime>("UploadedAt")
+                                .HasColumnType("timestamp with time zone");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("DriverUserId", "Type")
+                                .IsUnique();
+
+                            b1.ToTable("DriverDocuments", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("DriverUserId");
+                        });
+
+                    b.Navigation("Documents");
+
+                    b.Navigation("PersonalInfo");
+
+                    b.Navigation("User");
+
+                    b.Navigation("Vehicle");
                 });
 
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverRating", b =>
+            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverStats", b =>
                 {
-                    b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
+                    b.HasOne("BenhaScooters.Domain.Users.User", "User")
                         .WithOne()
-                        .HasForeignKey("BenhaScooters.Domain.Drivers.DriverRating", "DriverId")
+                        .HasForeignKey("BenhaScooters.Domain.Drivers.DriverStats", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Driver");
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.Entities.DriverDocument", b =>
+            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverStatus", b =>
                 {
-                    b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
-                        .WithMany("Documents")
-                        .HasForeignKey("DriverId")
+                    b.HasOne("BenhaScooters.Domain.Users.User", "User")
+                        .WithOne()
+                        .HasForeignKey("BenhaScooters.Domain.Drivers.DriverStatus", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Driver");
-                });
-
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.Entities.DriverField", b =>
-                {
-                    b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
-                        .WithMany("Fields")
-                        .HasForeignKey("DriverId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Driver");
-                });
-
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.Entities.DriverVehicle", b =>
-                {
-                    b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
-                        .WithOne("Vehicle")
-                        .HasForeignKey("BenhaScooters.Domain.Drivers.Entities.DriverVehicle", "DriverId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Driver");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Matching.DriverMatchAttempt", b =>
                 {
-                    b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
+                    b.HasOne("BenhaScooters.Domain.Drivers.DriverProfile", "DriverProfile")
                         .WithMany()
-                        .HasForeignKey("DriverId")
+                        .HasForeignKey("DriverUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -912,7 +840,7 @@ namespace BenhaScooters.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Driver");
+                    b.Navigation("DriverProfile");
 
                     b.Navigation("MatchingSession");
                 });
@@ -928,65 +856,86 @@ namespace BenhaScooters.Data.Migrations
                     b.Navigation("TripRequest");
                 });
 
-            modelBuilder.Entity("BenhaScooters.Domain.Riders.Rider", b =>
+            modelBuilder.Entity("BenhaScooters.Domain.Riders.RiderProfile", b =>
                 {
                     b.HasOne("BenhaScooters.Domain.Users.User", "User")
                         .WithOne()
-                        .HasForeignKey("BenhaScooters.Domain.Riders.Rider", "UserId")
+                        .HasForeignKey("BenhaScooters.Domain.Riders.RiderProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("BenhaScooters.Domain.Riders.ValueObjects.RiderRating", "Rating", b1 =>
+                    b.OwnsMany("BenhaScooters.Domain.Riders.SavedAddress", "SavedAddresses", b1 =>
                         {
-                            b1.Property<int>("RiderId")
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
                                 .HasColumnType("integer");
 
-                            b1.Property<decimal>("Rating")
-                                .HasColumnType("numeric");
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
 
-                            b1.Property<int>("TotalRatings")
+                            b1.Property<string>("Address")
+                                .IsRequired()
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<string>("Label")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.Property<double?>("Latitude")
+                                .HasColumnType("double precision");
+
+                            b1.Property<double?>("Longitude")
+                                .HasColumnType("double precision");
+
+                            b1.Property<int>("RiderUserId")
                                 .HasColumnType("integer");
 
-                            b1.HasKey("RiderId");
+                            b1.HasKey("Id");
 
-                            b1.ToTable("Riders");
+                            b1.HasIndex("RiderUserId", "Label")
+                                .IsUnique();
+
+                            b1.ToTable("RiderSavedAddresses", (string)null);
 
                             b1.WithOwner()
-                                .HasForeignKey("RiderId");
+                                .HasForeignKey("RiderUserId");
                         });
 
-                    b.Navigation("Rating")
-                        .IsRequired();
+                    b.Navigation("SavedAddresses");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.TripRequests.TripRequest", b =>
                 {
-                    b.HasOne("BenhaScooters.Domain.Drivers.Driver", "MatchedDriver")
+                    b.HasOne("BenhaScooters.Domain.Drivers.DriverProfile", "MatchedDriverProfile")
                         .WithMany()
-                        .HasForeignKey("MatchedDriverId")
+                        .HasForeignKey("MatchedDriverUserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("BenhaScooters.Domain.Riders.Rider", "Rider")
+                    b.HasOne("BenhaScooters.Domain.Riders.RiderProfile", "RiderProfile")
                         .WithMany()
-                        .HasForeignKey("RiderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("RiderUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("BenhaScooters.Domain.Trips.ValueObjects.FareEstimate", "EstimatedFare", b1 =>
+                    b.OwnsOne("BenhaScooters.Domain.Trips.ValueObjects.FareEstimate", "FinalFare", b1 =>
                         {
                             b1.Property<int>("TripRequestId")
                                 .HasColumnType("integer");
 
                             b1.Property<decimal>("Amount")
-                                .HasColumnType("numeric");
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("FinalFare_Amount");
 
                             b1.Property<double>("Distance")
-                                .HasColumnType("double precision");
+                                .HasColumnType("double precision")
+                                .HasColumnName("FinalFare_Distance");
 
                             b1.Property<double>("Time")
-                                .HasColumnType("double precision");
+                                .HasColumnType("double precision")
+                                .HasColumnName("FinalFare_Time");
 
                             b1.HasKey("TripRequestId");
 
@@ -996,41 +945,44 @@ namespace BenhaScooters.Data.Migrations
                                 .HasForeignKey("TripRequestId");
                         });
 
-                    b.Navigation("EstimatedFare")
+                    b.Navigation("FinalFare")
                         .IsRequired();
 
-                    b.Navigation("MatchedDriver");
+                    b.Navigation("MatchedDriverProfile");
 
-                    b.Navigation("Rider");
+                    b.Navigation("RiderProfile");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Trips.Trip", b =>
                 {
-                    b.HasOne("BenhaScooters.Domain.Drivers.Driver", "Driver")
+                    b.HasOne("BenhaScooters.Domain.Drivers.DriverProfile", "DriverProfile")
                         .WithMany()
-                        .HasForeignKey("DriverId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("DriverUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("BenhaScooters.Domain.Riders.Rider", "Rider")
+                    b.HasOne("BenhaScooters.Domain.Riders.RiderProfile", "RiderProfile")
                         .WithMany()
-                        .HasForeignKey("RiderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("RiderUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("BenhaScooters.Domain.Trips.ValueObjects.FareEstimate", "EstimatedFare", b1 =>
+                    b.OwnsOne("BenhaScooters.Domain.Trips.ValueObjects.FareEstimate", "FinalFare", b1 =>
                         {
                             b1.Property<int>("TripId")
                                 .HasColumnType("integer");
 
                             b1.Property<decimal>("Amount")
-                                .HasColumnType("decimal(18,2)");
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("FinalFare_Amount");
 
                             b1.Property<double>("Distance")
-                                .HasColumnType("double precision");
+                                .HasColumnType("double precision")
+                                .HasColumnName("FinalFare_Distance");
 
                             b1.Property<double>("Time")
-                                .HasColumnType("double precision");
+                                .HasColumnType("double precision")
+                                .HasColumnName("FinalFare_Time");
 
                             b1.HasKey("TripId");
 
@@ -1100,12 +1052,12 @@ namespace BenhaScooters.Data.Migrations
                                 .HasForeignKey("TripId");
                         });
 
-                    b.Navigation("Driver");
+                    b.Navigation("DriverProfile");
 
-                    b.Navigation("EstimatedFare")
+                    b.Navigation("FinalFare")
                         .IsRequired();
 
-                    b.Navigation("Rider");
+                    b.Navigation("RiderProfile");
 
                     b.Navigation("TripFare");
 
@@ -1170,15 +1122,6 @@ namespace BenhaScooters.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.Driver", b =>
-                {
-                    b.Navigation("Documents");
-
-                    b.Navigation("Fields");
-
-                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Matching.MatchingSession", b =>

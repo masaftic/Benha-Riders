@@ -88,7 +88,7 @@ public class UpdatePersonalInfoEndpoint : IEndpoint
         }
     }
 
-    public record UpdatePersonalInfoResponseDto(string Message, string NextStep);
+    public record UpdatePersonalInfoResponseDto(string Message, string Status);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -142,4 +142,6 @@ public partial class UpdatePersonalInfoEndpointMapper
     }
 
     public partial UpdatePersonalInfoEndpoint.UpdatePersonalInfoResponseDto MapToResponse(UpdatePersonalInfoResponse response);
+
+    private static string DriverOnboardingStatusToString(DriverOnboardingStatus status) => status.ToString();
 }

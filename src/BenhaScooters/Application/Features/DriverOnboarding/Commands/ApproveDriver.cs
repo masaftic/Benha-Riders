@@ -32,21 +32,23 @@ public class ApproveDriverCommandHandler : IRequestHandler<ApproveDriverCommand,
 
     public async Task<ErrorOr<Success>> Handle(ApproveDriverCommand request, CancellationToken cancellationToken)
     {
-        var driver = await _db.Drivers
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await _db.DriverProfiles
             .Include(dp => dp.Documents)
-            .Include(dp => dp.Vehicle)
-            .Include(dp => dp.Fields)
-            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
+            .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);
 
-        if (driver == null)
+        if (driverProfile == null)
         {
             return AdminErrors.DriverNotFound;
         }
 
-        var completeResult = driver.CompleteOnboarding();
-        if (completeResult.IsError)
+        // Admin approves the driver profile
+        var adminUserId = UserId.From(1); // TODO: Get from current user context
+        var approveResult = driverProfile.Approve(adminUserId);
+        if (approveResult.IsError)
         {
-            return completeResult.Errors;
+            return approveResult.Errors;
         }
 
         await _db.SaveChangesAsync(cancellationToken);

@@ -26,10 +26,13 @@ public class DriverMatchAttemptConfiguration : IEntityTypeConfiguration<DriverMa
         builder.Property(dma => dma.EstimatedArrivalTime)
             .HasPrecision(5, 2);
 
-        builder.HasOne(dma => dma.Driver)
+        builder.HasOne(dma => dma.DriverProfile)
             .WithMany()
-            .HasForeignKey(dma => dma.DriverId)
+            .HasForeignKey(dma => dma.DriverUserId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        // Ignore computed property
+        builder.Ignore(dma => dma.DriverId);
 
         builder.HasIndex(dma => dma.Status);
         builder.HasIndex(dma => dma.CreatedAt);

@@ -56,11 +56,16 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
         builder.Property(t => t.CompletedAt);
 
 
-        builder.OwnsOne(t => t.EstimatedFare, ef =>
+        builder.OwnsOne(t => t.FinalFare, ef =>
         {
             ef.Property(e => e.Amount)
+                .HasColumnName("FinalFare_Amount")
                 .HasColumnType("decimal(18,2)")
                 .IsRequired();
+            ef.Property(e => e.Distance)
+                .HasColumnName("FinalFare_Distance");
+            ef.Property(e => e.Time)
+                .HasColumnName("FinalFare_Time");
         });
 
         builder.OwnsOne(t => t.TripPayment, tp =>
@@ -85,15 +90,20 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
                 .HasMaxLength(100);
         });
 
-        builder.HasOne(t => t.Driver)
+        // DriverId/RiderId are semantic wrappers around UserId
+        // Configure FK to DriverProfile (keyed by UserId)
+        builder.HasOne(t => t.DriverProfile)
             .WithMany()
-            .HasForeignKey(t => t.DriverId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasForeignKey(t => t.DriverUserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(t => t.Rider)
+        builder.HasOne(t => t.RiderProfile)
             .WithMany()
-            .HasForeignKey(t => t.RiderId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasForeignKey(t => t.RiderUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.Ignore(t => t.DriverId);
+        builder.Ignore(t => t.RiderId);
 
         builder.HasIndex(t => t.Status);
     }

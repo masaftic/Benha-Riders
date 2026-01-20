@@ -16,8 +16,9 @@ public class InitDriverAvailabilityHandler : INotificationHandler<DriverOnboardi
 
     public async Task Handle(DriverOnboardingCompletedEvent notification, CancellationToken cancellationToken)
     {
-        var driverAvailability = new DriverAvailability(notification.DriverId);
-        _db.DriverAvailabilities.Add(driverAvailability);
+        var userId = notification.DriverId.ToUserId();
+        var driverStatus = new DriverStatus(userId);
+        _db.DriverStatuses.Add(driverStatus);
 
         await _db.SaveChangesAsync(cancellationToken);
     }

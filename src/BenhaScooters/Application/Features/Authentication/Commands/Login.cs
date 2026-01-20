@@ -65,15 +65,15 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
             return new OnboardingRequired(token, nextStep);
         }
 
-        var driver = await _db.Drivers
+        var driverProfile = await _db.DriverProfiles
             .AsNoTracking()
             .FirstOrDefaultAsync(d => d.UserId == user.Id, cancellationToken);
 
-        var rider = await _db.Riders
+        var riderProfile = await _db.RiderProfiles
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.UserId == user.Id, cancellationToken);
 
-        var authenticatedResponse = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driver, rider, cancellationToken);
+        var authenticatedResponse = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driverProfile, riderProfile, cancellationToken);
         return new LoginSuccess(authenticatedResponse.AccessToken, authenticatedResponse.RefreshToken, authenticatedResponse.ExpiresAt);
     }
 }

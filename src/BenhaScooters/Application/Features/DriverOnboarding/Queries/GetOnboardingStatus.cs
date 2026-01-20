@@ -7,7 +7,6 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using BenhaScooters.Domain.Users;
-using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
@@ -15,11 +14,11 @@ namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 public record GetOnboardingStatusQuery(DriverId DriverId) : IRequest<ErrorOr<GetOnboardingStatusResponse>>;
 
 public record GetOnboardingStatusResponse(
-    OnboardingStatus Status,
+    DriverOnboardingStatus Status,
     int Progress,
-    List<RejectedFieldDto> RejectedFields,
+    string? RejectionReason,
     DateTime CreatedAt,
-    DateTime? CompletedAt);
+    DateTime? ApprovedAt);
 
 public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingStatusQuery, ErrorOr<GetOnboardingStatusResponse>>
 {
@@ -32,27 +31,35 @@ public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingStat
 
     public async Task<ErrorOr<GetOnboardingStatusResponse>> Handle(GetOnboardingStatusQuery request, CancellationToken cancellationToken)
     {
-        var driver = await _db.Drivers
-            .Include(d => d.Fields)
-            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await _db.DriverProfiles
+            .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);
 
-        if (driver == null)
+        if (driverProfile == null)
         {
-            return DriverErrors.DriverNotFound;
+            return DriverErrors.Profile.NotFound;
         }
 
-        var rejectedFields = driver.Fields
-            .Where(f => f.Status == FieldStatus.Rejected)
-            .Select(f => new RejectedFieldDto(f.Step, f.FieldName, f.RejectionReason))
-            .ToList();
+        var progress = CalculateProgress(driverProfile);
 
         var response = new GetOnboardingStatusResponse(
-            driver.OnboardingState.Status,
-            driver.OnboardingProgress,
-            rejectedFields,
-            driver.OnboardingState.CreatedAt,
-            driver.OnboardingState.CompletedAt);
+            driverProfile.OnboardingStatus,
+            progress,
+            driverProfile.RejectionReason,
+            driverProfile.CreatedAt,
+            driverProfile.ApprovedAt);
 
         return response;
+    }
+    
+    private static int CalculateProgress(DriverProfile profile)
+    {
+        int steps = 0;
+        if (profile.PersonalInfo != null) steps++;
+        if (profile.Vehicle != null) steps++;
+        if (profile.Documents.Count >= 3) steps++;
+        if (profile.OnboardingStatus == DriverOnboardingStatus.Approved) steps++;
+        return steps * 25;
     }
 }

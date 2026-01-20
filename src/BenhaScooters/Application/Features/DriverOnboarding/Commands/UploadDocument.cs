@@ -2,7 +2,6 @@ using BenhaScooters.Application.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Infrastructure.S3;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,16 +26,18 @@ public class UploadDocumentHandler : IRequestHandler<UploadDocumentCommand, Erro
 
     public async Task<ErrorOr<Success>> Handle(UploadDocumentCommand request, CancellationToken cancellationToken)
     {
-        var driver = await _db.Drivers
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await _db.DriverProfiles
             .Include(d => d.Documents)
-            .FirstOrDefaultAsync(d => d.Id == request.DriverId, cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken: cancellationToken);
 
-        if (driver == null)
+        if (driverProfile == null)
         {
-            return DriverErrors.DriverNotFound;
+            return DriverErrors.Profile.NotFound;
         }
 
-        var uploadResult = await _s3Service.UploadFileAsync(request.File, $"drivers/{driver.Id}/documents/{request.DocumentType.ToKebabCase()}", useKeyPrefixAsFullUrl: true, cancellationToken);
+        var uploadResult = await _s3Service.UploadFileAsync(request.File, $"drivers/{driverProfile.GetDriverId()}/documents/{request.DocumentType.ToKebabCase()}", useKeyPrefixAsFullUrl: true, cancellationToken);
         if (uploadResult.IsError)
         {
             return uploadResult.Errors;
@@ -44,7 +45,7 @@ public class UploadDocumentHandler : IRequestHandler<UploadDocumentCommand, Erro
 
         var imageUrl = uploadResult.Value;
 
-        var result = driver.AddDocument(request.DocumentType, imageUrl, request.ExpiryDate);
+        var result = driverProfile.AddDocument(request.DocumentType, imageUrl, request.ExpiryDate);
         if (result.IsError)
         {
             await _s3Service.DeleteFileAsync(imageUrl, cancellationToken);

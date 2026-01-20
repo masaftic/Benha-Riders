@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
@@ -5,8 +6,10 @@ using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Infrastructure.Matching.Services;
+using BenhaScooters.Infrastructure.Notifications;
 using ErrorOr;
 using Hangfire;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -25,15 +28,18 @@ public class DriverMatchingService : IDriverMatchingService
     private readonly AppDbContext _dbContext;
     private readonly IDriverRankingService _driverRanking;
     private readonly ILogger<DriverMatchingService> _logger;
+    private readonly IHubContext<DriverHub, IDriverNotifications> _hub;
 
     public DriverMatchingService(
         AppDbContext dbContext,
         IDriverRankingService driverRanking,
-        ILogger<DriverMatchingService> logger)
+        ILogger<DriverMatchingService> logger,
+        IHubContext<DriverHub, IDriverNotifications> hub)
     {
         _dbContext = dbContext;
         _driverRanking = driverRanking;
         _logger = logger;
+        _hub = hub;
     }
 
     public async Task<ErrorOr<Success>> ProcessMatchingAsync(MatchingSessionId matchingSessionId, CancellationToken cancellationToken = default)
@@ -61,7 +67,7 @@ public class DriverMatchingService : IDriverMatchingService
             var tripRequest = matchingSession.TripRequest;
 
             _logger.LogInformation("Starting matching for session {MatchingSessionId} in round: {CurrentRound}",
-                matchingSessionId.Value, matchingSession.CurrentRound);
+                matchingSessionId, matchingSession.CurrentRound);
 
             var rankedDrivers = await _driverRanking.FindTopNDriversAsync(
                 tripRequest.PickupLocation,
@@ -72,7 +78,7 @@ public class DriverMatchingService : IDriverMatchingService
             if (rankedDrivers.Count == 0)
             {
                 _logger.LogInformation("No drivers found for matching session {MatchingSessionId}. Session cancelled.",
-                    matchingSessionId.Value);
+                    matchingSessionId);
 
                 matchingSession.Cancel("No drivers available for matching");
 
@@ -81,6 +87,8 @@ public class DriverMatchingService : IDriverMatchingService
 
                 return Result.Success;
             }
+
+            List<DriverMatchAttempt> matchAttempts = new List<DriverMatchAttempt>();
 
             foreach (var driver in rankedDrivers)
             {
@@ -94,12 +102,14 @@ public class DriverMatchingService : IDriverMatchingService
                 if (attemptResult.IsError)
                 {
                     _logger.LogWarning("Failed to create match attempt for driver {DriverId}: {Errors}",
-                        driver.DriverId.Value, string.Join(", ", attemptResult.Errors.Select(e => e.Description)));
+                        driver.DriverId, string.Join(", ", attemptResult.Errors.Select(e => e.Description)));
                     continue;
                 }
 
+                matchAttempts.Add(attemptResult.Value);
+
                 _logger.LogInformation("Created match attempt for driver {DriverId} in session {MatchingSessionId}",
-                    driver.DriverId.Value, matchingSessionId.Value);
+                    driver.DriverId, matchingSessionId);
 
                 BackgroundJob.Schedule<IDriverMatchingService>(
                     service => service.HandleMatchAttemptTimeoutAsync(
@@ -112,11 +122,14 @@ public class DriverMatchingService : IDriverMatchingService
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
+            await Task.WhenAll(matchAttempts.Select(async match => await _hub.Clients.Groups(match.DriverId.ToString())
+                    .NotifyRideRequestOfferAsync(match.DriverId.ToString(), match.Id.ToString())));
+
             return Result.Success;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error starting matching for session {MatchingSessionId}", matchingSessionId.Value);
+            _logger.LogError(ex, "Error starting matching for session {MatchingSessionId}", matchingSessionId);
             throw;
         }
     }
@@ -138,12 +151,12 @@ public class DriverMatchingService : IDriverMatchingService
             }
 
             _logger.LogInformation("Handling match attempt timeout for driver {DriverId} in session {MatchingSessionId}",
-                driverId.Value, matchingSessionId.Value);
+                driverId, matchingSessionId);
             var result = matchingSession.ExpireMatch(driverId);
             if (result.IsError)
             {
                 _logger.LogWarning("Failed to expire match attempt for driver {DriverId} in session {MatchingSessionId}: {Errors}",
-                    driverId.Value, matchingSessionId.Value, string.Join(", ", result.Errors.Select(e => e.Description)));
+                    driverId, matchingSessionId, string.Join(", ", result.Errors.Select(e => e.Description)));
                 return;
             }
 
@@ -152,13 +165,13 @@ public class DriverMatchingService : IDriverMatchingService
 
             if (matchingSession.ShouldAdvanceToNextRound())
             {
-                _logger.LogInformation("Advancing to next round for session {MatchingSessionId}", matchingSessionId.Value);
+                _logger.LogInformation("Advancing to next round for session {MatchingSessionId}", matchingSessionId);
                 matchingSession.AdvanceToNextRound();
                 var matchResult = await ProcessMatchingAsync(matchingSessionId, cancellationToken);
                 if (matchResult.IsError)
                 {
                     _logger.LogWarning("Failed to advance matching session {MatchingSessionId}: {Errors}",
-                        matchingSessionId.Value, string.Join(", ", matchResult.Errors.Select(e => e.Description)));
+                        matchingSessionId, string.Join(", ", matchResult.Errors.Select(e => e.Description)));
                 }
             }
 
@@ -167,7 +180,7 @@ public class DriverMatchingService : IDriverMatchingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error handling match attempt timeout for driver {DriverId} in session {MatchingSessionId}",
-                driverId.Value, matchingSessionId.Value);
+                driverId, matchingSessionId);
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }

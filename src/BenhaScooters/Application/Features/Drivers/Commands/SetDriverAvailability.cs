@@ -16,13 +16,13 @@ public class SetDriverAvailabilityCommandValidator : AbstractValidator<SetDriver
     public SetDriverAvailabilityCommandValidator()
     {
         RuleFor(x => x.DriverStatus)
-            .Must(value => Enum.TryParse<DriverStatus>(value, ignoreCase: true, out _))
+            .Must(value => Enum.TryParse<DriverAvailabilityStatus>(value, ignoreCase: true, out _))
             .WithMessage("Invalid driver status");
     }
 }
 
 public record SetDriverAvailabilityResponse(
-    DriverStatus Status,
+    DriverAvailabilityStatus Status,
     DateTime LastStatusChange,
     string Message);
 
@@ -37,14 +37,16 @@ public class SetDriverAvailabilityCommandHandler : IRequestHandler<SetDriverAvai
 
     public async Task<ErrorOr<SetDriverAvailabilityResponse>> Handle(SetDriverAvailabilityCommand request, CancellationToken cancellationToken)
     {
-        // Get or create driver availability
-        var availability = await _db.DriverAvailabilities
-            .FirstOrDefaultAsync(da => da.DriverId == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        
+        // Get or create driver status
+        var driverStatus = await _db.DriverStatuses
+            .FirstOrDefaultAsync(ds => ds.UserId == userId, cancellationToken);
 
-        if (availability == null)
+        if (driverStatus == null)
         {
-            availability = new DriverAvailability(request.DriverId);
-            await _db.DriverAvailabilities.AddAsync(availability, cancellationToken);
+            driverStatus = new DriverStatus(userId);
+            await _db.DriverStatuses.AddAsync(driverStatus, cancellationToken);
         }
 
         // Update driver availability based on requested status
@@ -53,24 +55,24 @@ public class SetDriverAvailabilityCommandHandler : IRequestHandler<SetDriverAvai
         ErrorOr<Success> result;
         try
         {
-            switch (Enum.Parse<DriverStatus>(request.DriverStatus, ignoreCase: true))
+            switch (Enum.Parse<DriverAvailabilityStatus>(request.DriverStatus, ignoreCase: true))
             {
-                case DriverStatus.Online:
-                    result = availability.GoOnline();
+                case DriverAvailabilityStatus.Online:
+                    result = driverStatus.GoOnline();
                     message = "Driver is now online and available";
                     break;
 
-                case DriverStatus.Offline:
-                    result = availability.GoOffline();
+                case DriverAvailabilityStatus.Offline:
+                    result = driverStatus.GoOffline();
                     message = "Driver is now offline";
                     break;
 
-                case DriverStatus.Busy:
-                    result = availability.SetBusy();
+                case DriverAvailabilityStatus.Busy:
+                    result = driverStatus.SetBusy();
                     message = "Driver is busy and not accepting requests";
                     break;
 
-                case DriverStatus.OnTrip:
+                case DriverAvailabilityStatus.OnTrip:
                     return Error.Validation("INVALID_STATUS_TRANSITION", "Cannot manually set status to OnTrip. This status is set automatically when a trip starts.");
 
                 default:
@@ -82,8 +84,8 @@ public class SetDriverAvailabilityCommandHandler : IRequestHandler<SetDriverAvai
             await _db.SaveChangesAsync(cancellationToken);
 
             return new SetDriverAvailabilityResponse(
-                availability.Status,
-                availability.LastStatusChange,
+                driverStatus.Status,
+                driverStatus.LastStatusChange,
                 message);
         }
         catch (InvalidOperationException ex)

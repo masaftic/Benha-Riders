@@ -1,6 +1,5 @@
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.TripRequests;
-using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using Vogen;
 
 namespace BenhaScooters.Domain.Matching;
@@ -21,7 +20,7 @@ public class DriverMatchAttempt
 {
     public DriverMatchAttemptId Id { get; private set; }
     public MatchingSessionId MatchingSessionId { get; private set; }
-    public DriverId DriverId { get; private set; }
+    public UserId DriverUserId { get; private set; }  // FK to DriverProfile.UserId
     public MatchAttemptStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? RespondedAt { get; private set; }
@@ -29,20 +28,23 @@ public class DriverMatchAttempt
     public string? RejectionReason { get; private set; }
     
     // Matching metrics
-    public double DistanceToPickup { get; private set; } // kilometers
+    public double DistanceToPickup { get; private set; } // meters
     public double EstimatedArrivalTime { get; private set; } // minutes
     public decimal DriverScore { get; private set; } // Matching algorithm score
 
     // Navigation Properties
-    public Driver Driver { get; private set; } = null!;
+    public DriverProfile DriverProfile { get; private set; } = null!;
     public MatchingSession MatchingSession { get; private set; } = null!;
+    
+    // Semantic accessor for DriverId
+    public DriverId DriverId => DriverId.FromUserId(DriverUserId);
 
     private DriverMatchAttempt() { } // For EF Core
 
     public DriverMatchAttempt(DriverId driverId, MatchingSessionId matchingSessionId,
         double distanceToPickup, double estimatedArrivalTime, decimal driverScore)
     {
-        DriverId = driverId;
+        DriverUserId = driverId.ToUserId();
         MatchingSessionId = matchingSessionId;
         DistanceToPickup = distanceToPickup;
         EstimatedArrivalTime = estimatedArrivalTime;
@@ -51,6 +53,9 @@ public class DriverMatchAttempt
         CreatedAt = DateTime.UtcNow;
         ExpiresAt = DateTime.UtcNow.AddSeconds(30); // 30-second response window
     }
+
+    // Helper to get UserId for database queries
+    public UserId GetDriverUserId() => DriverUserId;
 
     public void Accept()
     {

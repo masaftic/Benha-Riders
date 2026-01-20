@@ -4,31 +4,63 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BenhaScooters.Data.Configurations.UserConfigurations;
 
-public class RiderConfiguration : IEntityTypeConfiguration<Rider>
+public class RiderProfileConfiguration : IEntityTypeConfiguration<RiderProfile>
 {
-    public void Configure(EntityTypeBuilder<Rider> builder)
+    public void Configure(EntityTypeBuilder<RiderProfile> builder)
     {
-        builder.HasKey(r => r.Id);
-        builder.Property(r => r.Id).ValueGeneratedOnAdd();
+        builder.ToTable("RiderProfiles");
+        
+        // UserId is PK (1:1 with User)
+        builder.HasKey(x => x.UserId);
 
-        builder.Property(r => r.PreferredName)
+        builder.HasOne(x => x.User)
+            .WithOne()
+            .HasForeignKey<RiderProfile>(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(x => x.PreferredName)
             .HasMaxLength(100);
 
-        builder.Property(r => r.DefaultPaymentMethodId)
-            .HasMaxLength(50);
+        builder.Property(x => x.DefaultPaymentMethodId)
+            .HasMaxLength(100);
 
-        // builder.OwnsOne(r => r.Preferences);
-        builder.OwnsOne(r => r.Rating);
+        builder.Property(x => x.AverageRating)
+            .HasPrecision(3, 2)
+            .IsRequired();
 
-        builder.Property(r => r.SavedAddresses)
-            .HasConversion(
-                v => string.Join(';', v),
-                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList()
-            );
+        builder.Property(x => x.TotalRatings)
+            .IsRequired();
 
-        builder.HasOne(r => r.User)
-            .WithOne()
-            .HasForeignKey<Rider>(r => r.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.Property(x => x.TotalTrips)
+            .IsRequired();
+
+        builder.Property(x => x.IsActive)
+            .IsRequired();
+
+        builder.Property(x => x.CreatedAt)
+            .IsRequired();
+
+        // Configure SavedAddresses as owned collection
+        builder.OwnsMany(x => x.SavedAddresses, address =>
+        {
+            address.ToTable("RiderSavedAddresses");
+            
+            address.WithOwner().HasForeignKey("RiderUserId");
+            
+            address.HasKey(a => a.Id);
+            address.Property(a => a.Id)
+                .ValueGeneratedOnAdd();
+
+            address.Property(a => a.Label)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            address.Property(a => a.Address)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            address.HasIndex("RiderUserId", "Label")
+                .IsUnique();
+        });
     }
 }

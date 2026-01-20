@@ -3,7 +3,6 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Infrastructure.S3;
@@ -37,50 +36,55 @@ public class GetPendingApplicationsQueryHandler : IRequestHandler<GetPendingAppl
 
     public async Task<ErrorOr<GetPendingApplicationsResponse>> Handle(GetPendingApplicationsQuery request, CancellationToken cancellationToken)
     {
-        var pendingApplications = await _db.Drivers // TODO: use projection to avoid loading unnecessary data
+        var pendingApplications = await _db.DriverProfiles
             .Include(d => d.User)
-            .Include(d => d.Vehicle)
             .Include(d => d.Documents)
-            .Where(dp => dp.OnboardingState.Status == OnboardingStatus.Review)
-            .OrderBy(dp => dp.OnboardingState.CreatedAt)
+            .Where(dp => dp.OnboardingStatus == DriverOnboardingStatus.UnderReview)
+            .OrderBy(dp => dp.CreatedAt)
             .ToListAsync(cancellationToken);
 
         var response = new List<PendingDriverApplicationDto>();
 
-        foreach (var driver in pendingApplications)
+        foreach (var driverProfile in pendingApplications)
         {
-            var personalInfo = driver.Info != null ? new PersonalInfoDto(
-                driver.Info.FullName,
-                driver.Info.NationalId.Value,
-                driver.User.PhoneNumber!.Value,
-                driver.Info.DateOfBirth,
-                driver.Info.Address,
-                driver.Info.City,
-                driver.Info.EmergencyContactName,
-                driver.Info.EmergencyContactPhone.Value) : null;
+            var personalInfo = driverProfile.PersonalInfo != null ? new PersonalInfoDto(
+                driverProfile.PersonalInfo.FullName,
+                driverProfile.PersonalInfo.NationalId.Value,
+                driverProfile.User.PhoneNumber!.Value,
+                driverProfile.PersonalInfo.DateOfBirth,
+                driverProfile.PersonalInfo.Address,
+                driverProfile.PersonalInfo.City,
+                driverProfile.PersonalInfo.EmergencyContactName,
+                driverProfile.PersonalInfo.EmergencyContactPhone.Value) : null;
 
-            var vehicleInfo = driver.Vehicle is not null ? new VehicleInfoDto(
-                driver.Vehicle.VehicleType,
-                driver.Vehicle.Brand,
-                driver.Vehicle.Model,
-                driver.Vehicle.Color,
-                driver.Vehicle.LicensePlate.Value,
-                driver.Vehicle.Year,
-                driver.Vehicle.VIN.Value,
-                driver.Vehicle.IsActive,
-                driver.Vehicle.CreatedAt) : null;
+            var vehicleInfo = driverProfile.Vehicle is not null ? new VehicleInfoDto(
+                driverProfile.Vehicle.VehicleType,
+                driverProfile.Vehicle.Brand,
+                driverProfile.Vehicle.Model,
+                driverProfile.Vehicle.Color,
+                driverProfile.Vehicle.LicensePlate.Value,
+                driverProfile.Vehicle.Year,
+                driverProfile.Vehicle.VIN.Value,
+                true,
+                driverProfile.CreatedAt) : null;
 
-            var documentTasks = driver.Documents.Select(x => x.ToDto(_s3));
+            var documentTasks = driverProfile.Documents.Select(doc => ToDocumentDto(doc, _s3));
             List<DocumentDto> documents = [.. await Task.WhenAll(documentTasks)];
 
             response.Add(new PendingDriverApplicationDto(
-                driver.Id,
+                driverProfile.GetDriverId(),
                 personalInfo,
                 vehicleInfo,
                 documents,
-                driver.OnboardingState.CreatedAt));
+                driverProfile.CreatedAt));
         }
 
         return new GetPendingApplicationsResponse(response);
+    }
+    
+    private static async Task<DocumentDto> ToDocumentDto(DriverDocument doc, IS3Service s3)
+    {
+        var url = await s3.GetPreSignedUrlAsync(doc.ImageUrl, TimeSpan.FromMinutes(15));
+        return new DocumentDto(doc.Type.ToString(), url, doc.UploadedAt, doc.ExpiryDate);
     }
 }

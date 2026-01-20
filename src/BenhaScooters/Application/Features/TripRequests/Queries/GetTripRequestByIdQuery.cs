@@ -52,9 +52,9 @@ public class GetTripRequestByIdQueryHandler(AppDbContext db) : IRequestHandler<G
             tripRequest.DropoffLocation.X, // Longitude
             tripRequest.PickupAddress,
             tripRequest.DropoffAddress,
-            tripRequest.EstimatedFare.Amount,
-            tripRequest.EstimatedFare.Distance,
-            tripRequest.EstimatedFare.Time,
+            tripRequest.FinalFare.Amount,
+            tripRequest.FinalFare.Distance,
+            tripRequest.FinalFare.Time,
             tripRequest.RequestedAt,
             tripRequest.ExpiresAt,
             tripRequest.Status);

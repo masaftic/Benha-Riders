@@ -70,23 +70,23 @@ public class SelectRoleCommandHandler : IRequestHandler<SelectRoleCommand, Error
             var role = Enum.Parse<RoleName>(request.Role, ignoreCase: true);
             user.AddRole(new UserRole(role));
 
-            Driver? driver = null;
-            Rider? rider = null;
+            DriverProfile? driverProfile = null;
+            RiderProfile? riderProfile = null;
 
             if (role == RoleName.Rider)
             {
-                rider = new Rider(user.Id, user.Name);
-                _db.Riders.Add(rider);
+                riderProfile = new RiderProfile(user.Id, user.Name);
+                _db.RiderProfiles.Add(riderProfile);
             }
             else if (role == RoleName.Driver)
             {
-                driver = new Driver(user.Id);
-                _db.Drivers.Add(driver);
+                driverProfile = new DriverProfile(user.Id);
+                _db.DriverProfiles.Add(driverProfile);
             }
 
             await _db.SaveChangesAsync(cancellationToken);
 
-            var authResult = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driver, rider, cancellationToken);
+            var authResult = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driverProfile, riderProfile, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return authResult;
         }

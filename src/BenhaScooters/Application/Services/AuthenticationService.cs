@@ -11,8 +11,8 @@ public interface IAuthenticationService
 {
     Task<AuthenticatedResponse> GenerateAuthenticatedResponseAsync(
         User user, 
-        Driver? driver = null, 
-        Rider? rider = null, 
+        DriverProfile? driverProfile = null, 
+        RiderProfile? riderProfile = null, 
         CancellationToken cancellationToken = default);
 }
 
@@ -29,12 +29,12 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<AuthenticatedResponse> GenerateAuthenticatedResponseAsync(
         User user, 
-        Driver? driver = null, 
-        Rider? rider = null, 
+        DriverProfile? driverProfile = null, 
+        RiderProfile? riderProfile = null, 
         CancellationToken cancellationToken = default)
     {
         var expiresAt = _jwtService.GetAccessTokenExpiryTime();
-        var accessToken = _jwtService.GenerateAccessToken(user, driver, rider);
+        var accessToken = _jwtService.GenerateAccessToken(user, driverProfile, riderProfile);
         var refreshToken = _jwtService.GenerateRefreshToken();
 
         // Create and store refresh token

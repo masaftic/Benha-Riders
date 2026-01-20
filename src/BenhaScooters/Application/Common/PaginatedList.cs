@@ -17,3 +17,17 @@ public class PaginatedList<T>
         HasNextPage = (pageNumber * pageSize) < totalCount;
     }
 }
+
+public static class PaginatedListExtensions
+{
+    public static PaginatedList<T> PaginateAsync<T>(this IQueryable<T> source, int pageNumber, int pageSize)
+    {
+        var totalCount = source.Count();
+        var items = source
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return new PaginatedList<T>(items, totalCount, pageNumber, pageSize);
+    }
+}

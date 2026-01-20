@@ -30,17 +30,31 @@ public class TripRequestConfiguration : IEntityTypeConfiguration<TripRequest>
         builder.Property(tr => tr.CancellationReason)
             .HasMaxLength(500);
 
-        builder.OwnsOne(tr => tr.EstimatedFare);
+        builder.OwnsOne(tr => tr.FinalFare, ef =>
+        {
+            ef.Property(e => e.Amount)
+                .HasColumnName("FinalFare_Amount")
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+            ef.Property(e => e.Distance)
+                .HasColumnName("FinalFare_Distance");
+            ef.Property(e => e.Time)
+                .HasColumnName("FinalFare_Time");
+        });
 
-        builder.HasOne(tr => tr.Rider)
+        // RiderId/DriverId are semantic wrappers around UserId
+        builder.HasOne(tr => tr.RiderProfile)
             .WithMany()
-            .HasForeignKey(tr => tr.RiderId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasForeignKey(tr => tr.RiderUserId)
+            .OnDelete(DeleteBehavior.Restrict);
         
-        builder.HasOne(tr => tr.MatchedDriver)
+        builder.HasOne(tr => tr.MatchedDriverProfile)
             .WithMany()
-            .HasForeignKey(tr => tr.MatchedDriverId)
+            .HasForeignKey(tr => tr.MatchedDriverUserId)
             .OnDelete(DeleteBehavior.SetNull);
+        
+        builder.Ignore(tr => tr.MatchedDriverId);
+        builder.Ignore(tr => tr.RiderId);
 
         builder.HasIndex(tr => tr.Status);
         builder.HasIndex(tr => tr.RequestedAt);

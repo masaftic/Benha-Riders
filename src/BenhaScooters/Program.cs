@@ -1,6 +1,7 @@
 using BenhaScooters.Application;
 using BenhaScooters.Data;
 using BenhaScooters.Infrastructure;
+using BenhaScooters.Infrastructure.Notifications;
 using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Presentation;
 using Hangfire;
@@ -42,7 +43,7 @@ using (var scope = app.Services.CreateScope())
         var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         await dataSeeder.SeedAsync();
 
-        // Initialize MinIO bucket
+        // Initialize S3 bucket
         var s3InitService = scope.ServiceProvider.GetRequiredService<IS3InitializationService>();
         await s3InitService.InitializeAsync();
     }
@@ -61,6 +62,8 @@ app.MapEndpoints();
 app.MapOpenApi();
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.MapHub<DriverHub>("/hubs/driver");
 
 
 app.Run();

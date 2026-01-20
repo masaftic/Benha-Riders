@@ -1,7 +1,6 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Infrastructure.S3;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,16 +23,18 @@ public class DeleteDocumentCommandHandler : IRequestHandler<DeleteDocumentComman
 
     public async Task<ErrorOr<Deleted>> Handle(DeleteDocumentCommand request, CancellationToken cancellationToken)
     {
-        var driver = await _db.Drivers
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await _db.DriverProfiles
             .Include(d => d.Documents)
-            .FirstOrDefaultAsync(d => d.Id == request.DriverId, cancellationToken);
+            .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken);
 
-        if (driver == null)
+        if (driverProfile == null)
         {
-            return DriverErrors.DriverNotFound;
+            return DriverErrors.Profile.NotFound;
         }
 
-        var result = driver.RemoveDocument(request.DocumentType);
+        var result = driverProfile.RemoveDocument(request.DocumentType);
         if (result.IsError) return result.Errors;
 
         await _db.SaveChangesAsync(cancellationToken);

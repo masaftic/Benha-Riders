@@ -1,5 +1,5 @@
 using BenhaScooters.Application.Features.DriverOnboarding.Commands;
-using BenhaScooters.Domain.Drivers.Entities;
+using BenhaScooters.Domain.Drivers;
 using FluentValidation;
 
 namespace BenhaScooters.Presentation.Endpoints.DriverOnboarding;

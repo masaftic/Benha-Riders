@@ -54,17 +54,17 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, E
             return UserErrors.UserNotFound;
         }
 
-        var driver = await _db.Drivers
+        var driverProfile = await _db.DriverProfiles
             .FirstOrDefaultAsync(d => d.UserId == user.Id, cancellationToken);
 
-        var rider = await _db.Riders
+        var riderProfile = await _db.RiderProfiles
             .FirstOrDefaultAsync(r => r.UserId == user.Id, cancellationToken);
 
         // Revoke the old refresh token
         refreshToken.Revoke();
 
         // Generate new tokens using the authentication service
-        var authenticatedResponse = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driver, rider, cancellationToken);
+        var authenticatedResponse = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driverProfile, riderProfile, cancellationToken);
 
         return new RefreshTokenResponse(authenticatedResponse.AccessToken, authenticatedResponse.RefreshToken, authenticatedResponse.ExpiresAt);
     }

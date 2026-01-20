@@ -5,6 +5,7 @@ using BenhaScooters.Domain.Trips.ValueObjects;
 using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Domain.Trips.Events;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using Vogen;
 
@@ -16,8 +17,14 @@ public partial struct TripId;
 public class Trip : AggregateRoot
 {
     public TripId Id { get; private set; }
-    public DriverId DriverId { get; private set; }
-    public RiderId RiderId { get; private set; }
+
+    public UserId DriverUserId { get; private set; }
+    public UserId RiderUserId { get; private set; }
+
+
+    // Semantic IDs (wrappers around UserId) for type safety
+    public DriverId DriverId => DriverId.FromUserId(DriverUserId);
+    public RiderId RiderId => RiderId.FromUserId(RiderUserId);
 
     // Trip Details
     public Point PickupLocation { get; private set; } = null!;
@@ -32,34 +39,38 @@ public class Trip : AggregateRoot
     public DateTime? StartedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
 
-    public FareEstimate EstimatedFare { get; private set; } = null!;
+    // Final fare (locked at trip creation, no recalculation)
+    public FareEstimate FinalFare { get; private set; } = null!;
 
-    public TripFare? TripFare { get; private set; } // Represents fare details for the trip
-    public TripPayment? TripPayment { get; private set; } // Represents payment details for the trip
+    public TripFare? TripFare { get; private set; } // Actual fare details after completion
+    public TripPayment? TripPayment { get; private set; } // Payment details
 
 
-    // Navigation Properties
-    public Driver Driver { get; private set; } = null!;
-    public Rider Rider { get; private set; } = null!;
+    // Navigation Properties (to profiles, not old aggregates)
+    public DriverProfile DriverProfile { get; private set; } = null!;
+    public RiderProfile RiderProfile { get; private set; } = null!;
 
 
     private Trip() { } // For EF Core
 
     public Trip(DriverId driverId, RiderId riderId,
         Point pickupLocation, Point dropoffLocation, string? pickupAddress, string? dropoffAddress,
-        FareEstimate estimatedFare)
+        FareEstimate finalFare)
     {
-        DriverId = driverId;
-        RiderId = riderId;
+        DriverUserId = driverId.ToUserId();
+        RiderUserId = riderId.ToUserId();
         PickupLocation = pickupLocation;
         DropoffLocation = dropoffLocation;
         PickupAddress = pickupAddress?.Trim();
         DropoffAddress = dropoffAddress?.Trim();
-        EstimatedFare = estimatedFare;
+        FinalFare = finalFare;
         Status = TripStatus.Assigned;
         AssignedAt = DateTime.UtcNow;
     }
 
+    // Helper to get UserId for database queries
+    public UserId GetDriverUserId() => DriverId.ToUserId();
+    public UserId GetRiderUserId() => RiderId.ToUserId();
 
     /// <summary>
     /// Call this method after the entity is saved to the database to publish the domain event

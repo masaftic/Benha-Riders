@@ -46,8 +46,8 @@ public class GetDriverCurrentTripQueryHandler : IRequestHandler<GetDriverCurrent
                 t.Status,
                 t.PickupAddress,
                 t.DropoffAddress,
-                t.EstimatedFare,
-                FinalFare = t.TripFare,
+                t.FinalFare,
+                TripFare = t.TripFare,
                 IsPaid = t.TripPayment,
                 t.AssignedAt,
                 t.DriverArrivedAt,
@@ -57,8 +57,8 @@ public class GetDriverCurrentTripQueryHandler : IRequestHandler<GetDriverCurrent
                     (t.CompletedAt - t.AssignedAt) :
                     (t.StartedAt.HasValue ?
                         (t.StartedAt - t.AssignedAt) : null),
-                RiderName = t.Rider.PreferredName ?? "Unknown",
-                RiderPhoneNumber = t.Rider.User.PhoneNumber
+                RiderName = t.RiderProfile.PreferredName ?? "Unknown",
+                RiderPhoneNumber = t.RiderProfile.User.PhoneNumber
             })
             .OrderBy(t => t.AssignedAt)
             .FirstOrDefaultAsync(cancellationToken);
@@ -73,7 +73,7 @@ public class GetDriverCurrentTripQueryHandler : IRequestHandler<GetDriverCurrent
             tripResult.Status,
             tripResult.PickupAddress ?? "Unknown pickup location",
             tripResult.DropoffAddress ?? "Unknown dropoff location",
-            tripResult.EstimatedFare.Amount,
+            tripResult.FinalFare.Amount,
             tripResult.AssignedAt,
             tripResult.DriverArrivedAt,
             tripResult.StartedAt,

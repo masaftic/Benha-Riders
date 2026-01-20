@@ -15,7 +15,7 @@ namespace BenhaScooters.Infrastructure.Authentication.Services;
 
 public interface IJwtService
 {
-    string GenerateAccessToken(User user, Driver? driver = null, Rider? rider = null);
+    string GenerateAccessToken(User user, DriverProfile? driverProfile = null, RiderProfile? riderProfile = null);
     string GenerateOnboardingToken(UserId userId, UserStatus userStatus, string nextStep);
     string GenerateRefreshToken();
     DateTime GetAccessTokenExpiryTime();
@@ -33,7 +33,7 @@ public class JwtService : IJwtService
         _signingKey = _jwtOptions.Value.SigningKey;
     }
 
-    public string GenerateAccessToken(User user, Driver? driver = null, Rider? rider = null)
+    public string GenerateAccessToken(User user, DriverProfile? driverProfile = null, RiderProfile? riderProfile = null)
     {
         var expiresAt = GetAccessTokenExpiryTime();
 
@@ -50,15 +50,15 @@ public class JwtService : IJwtService
             new Claim(JwtClaims.Roles, JsonSerializer.Serialize(user.Roles.Select(r => r.Name.ToString()).ToArray()), JsonClaimValueTypes.JsonArray),
         ];
 
-        if (driver is not null)
+        if (driverProfile is not null)
         {
-            claims.Add(new Claim(JwtClaims.DriverId, driver.Id.ToString()));
-            claims.Add(new Claim(JwtClaims.DriverOnboardingStatus, driver.OnboardingState.Status.ToString()));
+            claims.Add(new Claim(JwtClaims.DriverId, driverProfile.GetDriverId().ToString()));
+            claims.Add(new Claim(JwtClaims.DriverOnboardingStatus, driverProfile.OnboardingStatus.ToString()));
         }
 
-        if (rider is not null)
+        if (riderProfile is not null)
         {
-            claims.Add(new Claim(JwtClaims.RiderId, rider.Id.ToString()));
+            claims.Add(new Claim(JwtClaims.RiderId, riderProfile.GetRiderId().ToString()));
         }
 
         var tokenDescriptor = new SecurityTokenDescriptor

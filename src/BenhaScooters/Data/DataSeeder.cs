@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Riders;
@@ -35,7 +34,7 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
             }
 
             // create a verified driver
-            if (!db.Drivers.Any(dp => dp.Info!.FullName == "Sample Driver"))
+            if (!db.DriverProfiles.Any(dp => dp.PersonalInfo!.FullName == "Sample Driver"))
             {
                 var user = new User(
                     "Driver",
@@ -50,27 +49,45 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                 db.Users.Add(user);
                 await db.SaveChangesAsync();
 
-                var driver = new Driver(user.Id);
-
-                db.Drivers.Add(driver);
-                await db.SaveChangesAsync();
-
-                var result = driver
-                    .UpdatePersonalInfo("Sample Driver", NationalId.From("12345678901234"), new DateOnly(1990, 1, 1), "123 Street", "City", "Emergency Contact", PhoneNumber.From("09876543213"))
-                    .Then(res => driver.EnrollVehicle(VehicleType.Scooter, "Brand", "Model", "Color", LicensePlate.From("ABC1234"), 2020, VIN.From("12345678901234567")))
-                    .Then(res => driver.AddDocument(DocumentType.DrivingLicense, "url://image1", DateOnly.FromDateTime(DateTime.UtcNow.AddYears(5)))
-                    .Then(res => driver.AddDocument(DocumentType.VehicleRegistration, "url://image2"))
-                    .Then(res => driver.AddDocument(DocumentType.DriverPhoto, "url://image3")));
+                var driverProfile = new DriverProfile(user.Id);
                 
-                if (result.IsError)
-                {
-                    throw new Exception("Failed to create driver: " + result.Errors.First().Description);
-                }
+                var personalInfo = new DriverPersonalInfo(
+                    "Sample Driver", 
+                    NationalId.From("12345678901234"), 
+                    new DateOnly(1990, 1, 1), 
+                    "123 Street", 
+                    "City", 
+                    "Emergency Contact", 
+                    PhoneNumber.From("09876543213"));
+                
+                var vehicleInfo = new DriverVehicleInfo(
+                    VehicleType.Scooter, 
+                    "Brand", 
+                    "Model", 
+                    "Color", 
+                    LicensePlate.From("ABC1234"), 
+                    2020, 
+                    VIN.From("12345678901234567"));
+                
+                driverProfile.UpdatePersonalInfo(personalInfo);
+                driverProfile.UpdateVehicle(vehicleInfo);
+                driverProfile.AddDocument(DocumentType.DrivingLicense, "url://image1", DateOnly.FromDateTime(DateTime.UtcNow.AddYears(5)));
+                driverProfile.AddDocument(DocumentType.VehicleRegistration, "url://image2");
+                driverProfile.AddDocument(DocumentType.DriverPhoto, "url://image3");
 
+                db.DriverProfiles.Add(driverProfile);
+                
+                // Create related status and stats
+                var driverStatus = new DriverStatus(user.Id);
+                var driverStats = new DriverStats(user.Id);
+                
+                db.DriverStatuses.Add(driverStatus);
+                db.DriverStats.Add(driverStats);
+                
                 await db.SaveChangesAsync();
             }
 
-            if (!db.Riders.Any(r => r.PreferredName == "Sample Rider"))
+            if (!db.RiderProfiles.Any(r => r.PreferredName == "Sample Rider"))
             {
                 var user = new User(
                     "Rider",
@@ -85,9 +102,9 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                 db.Users.Add(user);
 
                 await db.SaveChangesAsync();
-                var rider = new Rider(user.Id, "Sample Rider");
+                var riderProfile = new RiderProfile(user.Id, "Sample Rider");
 
-                db.Riders.Add(rider);
+                db.RiderProfiles.Add(riderProfile);
 
                 await db.SaveChangesAsync();
             }

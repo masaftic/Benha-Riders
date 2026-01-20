@@ -32,15 +32,17 @@ public class RejectDriverCommandHandler(AppDbContext db) : IRequestHandler<BanDr
 
     public async Task<ErrorOr<Success>> Handle(BanDriverCommand request, CancellationToken cancellationToken)
     {
-        var driver = await _db.Drivers
-            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await _db.DriverProfiles
+            .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);
 
-        if (driver == null)
+        if (driverProfile == null)
         {
             return AdminErrors.DriverNotFound;
         }
 
-        var rejectResult = driver.BanDriver(request.Reason);
+        var rejectResult = driverProfile.Suspend(request.Reason);
         if (rejectResult.IsError)
         {
             return rejectResult.Errors;

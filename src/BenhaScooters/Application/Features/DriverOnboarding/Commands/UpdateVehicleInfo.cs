@@ -2,7 +2,6 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Shared.Validation;
@@ -45,20 +44,22 @@ public class UpdateVehicleInfoCommandValidator : AbstractValidator<UpdateVehicle
 
     private async Task<bool> BeUniqueVIN(UpdateVehicleInfoCommand command, string vin, CancellationToken cancellationToken)
     {
-        return !await _db.Vehicles
-            .AnyAsync(v => v.VIN == VIN.From(vin) && v.DriverId != command.DriverId && v.IsActive, 
-                cancellationToken);
+        var userId = command.DriverId.ToUserId();
+        return !await _db.DriverProfiles
+            .Where(dp => dp.Vehicle != null && dp.UserId != userId)
+            .AnyAsync(dp => dp.Vehicle!.VIN == VIN.From(vin), cancellationToken);
     }
 
     private async Task<bool> BeUniqueLicensePlate(UpdateVehicleInfoCommand command, string licensePlate, CancellationToken cancellationToken)
     {
-        return !await _db.Vehicles
-            .AnyAsync(v => v.LicensePlate == LicensePlate.From(licensePlate) && v.DriverId != command.DriverId && v.IsActive, 
-                cancellationToken);
+        var userId = command.DriverId.ToUserId();
+        return !await _db.DriverProfiles
+            .Where(dp => dp.Vehicle != null && dp.UserId != userId)
+            .AnyAsync(dp => dp.Vehicle!.LicensePlate == LicensePlate.From(licensePlate), cancellationToken);
     }
 }
 
-public record UpdateVehicleInfoResponse(string Message, OnboardingStatus NextStep);
+public record UpdateVehicleInfoResponse(string Message, DriverOnboardingStatus NextStep);
 
 public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<UpdateVehicleInfoCommand, ErrorOr<UpdateVehicleInfoResponse>>
 {
@@ -66,15 +67,17 @@ public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<
 
     public async Task<ErrorOr<UpdateVehicleInfoResponse>> Handle(UpdateVehicleInfoCommand request, CancellationToken cancellationToken)
     {
-        var driver = await _db.Drivers
-            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await _db.DriverProfiles
+            .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);
 
-        if (driver == null)
+        if (driverProfile == null)
         {
-            return DriverErrors.DriverNotFound;
+            return DriverErrors.Profile.NotFound;
         }
 
-        var updateResult = driver.EnrollVehicle(
+        var vehicleInfo = new DriverVehicleInfo(
             request.VehicleType,
             request.VehicleBrand,
             request.VehicleModel,
@@ -82,6 +85,8 @@ public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<
             LicensePlate.From(request.LicensePlate),
             request.VehicleYear,
             VIN.From(request.VIN));
+
+        var updateResult = driverProfile.UpdateVehicle(vehicleInfo);
 
         if (updateResult.IsError)
         {
@@ -92,6 +97,6 @@ public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<
 
         return new UpdateVehicleInfoResponse(
             "تم تحديث معلومات المركبة بنجاح.",
-            driver.OnboardingState.Status);
+            driverProfile.OnboardingStatus);
     }
 }

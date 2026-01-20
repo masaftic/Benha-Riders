@@ -1,5 +1,4 @@
 using BenhaScooters.Domain.Drivers;
-using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,17 +8,25 @@ public class DriverLocationConfiguration : IEntityTypeConfiguration<DriverLocati
 {
     public void Configure(EntityTypeBuilder<DriverLocation> builder)
     {
-        builder.HasKey(dl => dl.DriverId);
+        builder.ToTable("DriverLocations");
+        
+        // UserId is PK (1:1 with User)
+        builder.HasKey(x => x.UserId);
 
-        builder.Property(dl => dl.Location)
-            .HasColumnType("geography (point)");
-
-        builder.HasOne(dl => dl.Driver)
+        builder.HasOne(x => x.User)
             .WithOne()
-            .HasForeignKey<DriverLocation>(dl => dl.DriverId)
+            .HasForeignKey<DriverLocation>(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(dl => dl.Location).HasMethod("GIST");
-        builder.HasIndex(dl => dl.Timestamp);
+        builder.Property(x => x.Location)
+            .HasColumnType("geography (point)")
+            .IsRequired();
+
+        builder.Property(x => x.Timestamp)
+            .IsRequired();
+
+        // Spatial index for proximity queries
+        builder.HasIndex(x => x.Location).HasMethod("GIST");
+        builder.HasIndex(x => x.Timestamp);
     }
 }

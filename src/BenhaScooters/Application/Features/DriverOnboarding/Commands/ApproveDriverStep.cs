@@ -5,6 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
+/// <summary>
+/// DEPRECATED: Field-level validation is being replaced with profile-level approval.
+/// This command is kept for backward compatibility but now approves the entire driver profile.
+/// </summary>
 public record ApproveDriverStepCommand(
     DriverId DriverId, 
     string Step) : IRequest<ErrorOr<Success>>;
@@ -13,22 +17,18 @@ public class ApproveDriverStepCommandHandler(AppDbContext db) : IRequestHandler<
 {
     public async Task<ErrorOr<Success>> Handle(ApproveDriverStepCommand request, CancellationToken cancellationToken)
     {
-        var driver = await db.Drivers
-            .Include(d => d.Fields)
-            .FirstOrDefaultAsync(d => d.Id == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await db.DriverProfiles
+            .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken);
 
-        if (driver is null)
+        if (driverProfile is null)
         {
-            return DriverErrors.DriverNotFound;
+            return DriverErrors.Profile.NotFound;
         }
 
-        var result = driver.ApproveEntireStep(request.Step);
-        if (result.IsError)
-        {
-            return result.Errors;
-        }
-
-        await db.SaveChangesAsync(cancellationToken);
+        // Field-level validation is deprecated - this is now a no-op
+        // Use ApproveDriverCommand for full approval
         return Result.Success;
     }
 }

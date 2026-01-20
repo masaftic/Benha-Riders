@@ -125,11 +125,17 @@ public abstract class FeatureTestBase : IClassFixture<DatabaseFixture>, IAsyncLi
         if (DbContext.TripRequests.Any())
             DbContext.TripRequests.RemoveRange(DbContext.TripRequests);
             
-        if (DbContext.Drivers.Any())
-            DbContext.Drivers.RemoveRange(DbContext.Drivers);
+        if (DbContext.DriverProfiles.Any())
+            DbContext.DriverProfiles.RemoveRange(DbContext.DriverProfiles);
             
-        if (DbContext.Riders.Any())
-            DbContext.Riders.RemoveRange(DbContext.Riders);
+        if (DbContext.DriverStatuses.Any())
+            DbContext.DriverStatuses.RemoveRange(DbContext.DriverStatuses);
+            
+        if (DbContext.DriverStats.Any())
+            DbContext.DriverStats.RemoveRange(DbContext.DriverStats);
+            
+        if (DbContext.RiderProfiles.Any())
+            DbContext.RiderProfiles.RemoveRange(DbContext.RiderProfiles);
             
         if (DbContext.UserRoles.Any())
             DbContext.UserRoles.RemoveRange(DbContext.UserRoles);

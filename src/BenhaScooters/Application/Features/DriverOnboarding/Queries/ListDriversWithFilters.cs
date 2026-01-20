@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 
 public record ListDriversWithFilters(
-    OnboardingStatus? OnboardingStatus,
+    DriverOnboardingStatus? OnboardingStatus,
     int Page,
     int PageSize) : IRequest<PaginatedList<DriverSummaryDto>>;
 
@@ -18,15 +18,15 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
 
     public async Task<PaginatedList<DriverSummaryDto>> Handle(ListDriversWithFilters request, CancellationToken cancellationToken)
     {
-        var query = _db.Drivers
+        var query = _db.DriverProfiles
             .AsNoTracking();
 
         if (request.OnboardingStatus.HasValue)
         {
-            query = query.Where(d => d.OnboardingState.Status == request.OnboardingStatus.Value);
+            query = query.Where(d => d.OnboardingStatus == request.OnboardingStatus.Value);
         }
 
-        query = query.OrderBy(d => d.OnboardingState.CreatedAt);
+        query = query.OrderBy(d => d.CreatedAt);
 
         var count = await query.CountAsync(cancellationToken);
 
@@ -35,14 +35,14 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
             .Take(request.PageSize)
             .Select(d => new
             {
-                Id = d.Id,
-                FullName = d.Info == null ? null : (string?)d.Info.FullName,
+                Id = DriverId.FromUserId(d.UserId),
+                FullName = d.PersonalInfo == null ? null : (string?)d.PersonalInfo.FullName,
                 PhoneNumber = d.User.PhoneNumber,
-                NationalId = d.Info == null ? null : (NationalId?)d.Info.NationalId,
+                NationalId = d.PersonalInfo == null ? null : (NationalId?)d.PersonalInfo.NationalId,
                 Brand = d.Vehicle == null ? null : (string?)d.Vehicle.Brand,
                 Year = d.Vehicle == null ? null : (int?)d.Vehicle.Year,
-                Status = d.OnboardingState.Status,
-                CreatedAt = d.OnboardingState.CreatedAt
+                Status = d.OnboardingStatus,
+                CreatedAt = d.CreatedAt
             })
             .ToListAsync(cancellationToken);
 

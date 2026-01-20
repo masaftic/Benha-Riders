@@ -13,7 +13,7 @@ public record DriverSummaryDto(
     PhoneNumber PhoneNumber,
     string? VehicleBrand,
     int? VehicleYear,
-    OnboardingStatus Status,
+    DriverOnboardingStatus Status,
     int Progress,
     DateTime CreatedAt);
 

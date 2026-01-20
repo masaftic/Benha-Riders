@@ -12,10 +12,9 @@ namespace BenhaScooters.Application.Features.Drivers.Queries;
 public record GetDriverAvailabilityQuery(DriverId DriverId) : IRequest<ErrorOr<GetDriverAvailabilityResponse>>;
 
 public record GetDriverAvailabilityResponse(
-    DriverStatus Status,
+    DriverAvailabilityStatus Status,
     DateTime LastStatusChange,
     TimeSpan? OnlineSessionDuration,
-    TimeSpan TotalOnlineTime,
     int? CurrentTripId);
 
 public class GetDriverAvailabilityQueryHandler : IRequestHandler<GetDriverAvailabilityQuery, ErrorOr<GetDriverAvailabilityResponse>>
@@ -29,30 +28,31 @@ public class GetDriverAvailabilityQueryHandler : IRequestHandler<GetDriverAvaila
 
     public async Task<ErrorOr<GetDriverAvailabilityResponse>> Handle(GetDriverAvailabilityQuery request, CancellationToken cancellationToken)
     {
-        // Get driver availability
-        var availability = await _db.DriverAvailabilities
-            .FirstOrDefaultAsync(da => da.DriverId == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        
+        // Get driver status
+        var driverStatus = await _db.DriverStatuses
+            .FirstOrDefaultAsync(ds => ds.UserId == userId, cancellationToken);
 
-        if (availability == null)
+        if (driverStatus == null)
         {
-            // Create default availability if none exists
-            availability = new DriverAvailability(request.DriverId);
-            await _db.DriverAvailabilities.AddAsync(availability, cancellationToken);
+            // Create default status if none exists
+            driverStatus = new DriverStatus(userId);
+            await _db.DriverStatuses.AddAsync(driverStatus, cancellationToken);
             await _db.SaveChangesAsync(cancellationToken);
         }
 
         // Calculate current session duration
         TimeSpan? sessionDuration = null;
-        if (availability.OnlineSessionStart.HasValue && availability.Status == DriverStatus.Online)
+        if (driverStatus.OnlineSessionStart.HasValue && driverStatus.Status == DriverAvailabilityStatus.Online)
         {
-            sessionDuration = DateTime.UtcNow - availability.OnlineSessionStart.Value;
+            sessionDuration = DateTime.UtcNow - driverStatus.OnlineSessionStart.Value;
         }
 
         return new GetDriverAvailabilityResponse(
-            availability.Status,
-            availability.LastStatusChange,
+            driverStatus.Status,
+            driverStatus.LastStatusChange,
             sessionDuration,
-            availability.TotalOnlineTime,
-            availability.CurrentTripId?.Value);
+            driverStatus.CurrentTripId?.Value);
     }
 }

@@ -44,16 +44,18 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
         GetDriverMatchOffersQuery request, 
         CancellationToken cancellationToken)
     {
+        var userId = request.DriverId.ToUserId();
+        
         // Check if driver exists and is available
-        var driverAvailability = await db.DriverAvailabilities
-            .FirstOrDefaultAsync(d => d.DriverId == request.DriverId, cancellationToken);
+        var driverStatus = await db.DriverStatuses
+            .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken);
 
-        if (driverAvailability == null)
+        if (driverStatus == null)
         {
             return DriverErrors.DriverNotFound;
         }
 
-        if (driverAvailability.Status != DriverStatus.Online)
+        if (driverStatus.Status != DriverAvailabilityStatus.Online)
         {
             return TripErrors.Driver.NotOnline;
         }
@@ -72,7 +74,7 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
                 ma.MatchingSession.TripRequest.DropoffLocation,
                 ma.MatchingSession.TripRequest.PickupAddress,
                 ma.MatchingSession.TripRequest.DropoffAddress,
-                ma.MatchingSession.TripRequest.EstimatedFare.Amount,
+                ma.MatchingSession.TripRequest.FinalFare.Amount,
                 ma.CreatedAt,
                 ma.ExpiresAt
             })

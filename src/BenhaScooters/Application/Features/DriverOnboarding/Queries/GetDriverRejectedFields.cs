@@ -4,39 +4,37 @@ using BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Drivers.Entities;
-using BenhaScooters.Domain.Drivers.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 
+/// <summary>
+/// Gets rejection reason for a driver profile.
+/// Simplified from field-level to profile-level rejection.
+/// </summary>
+public record GetDriverRejectionReasonQuery(DriverId DriverId) : IRequest<ErrorOr<RejectionReasonDto>>;
 
-public record GetDriverRejectedFieldsQuery(DriverId DriverId) : IRequest<ErrorOr<List<RejectedFieldDto>>>;
+public record RejectionReasonDto(string? Reason);
 
-
-public class GetDriverRejectedFieldsQueryHandler(AppDbContext db) : IRequestHandler<GetDriverRejectedFieldsQuery, ErrorOr<List<RejectedFieldDto>>>
+public class GetDriverRejectionReasonQueryHandler(AppDbContext db) : IRequestHandler<GetDriverRejectionReasonQuery, ErrorOr<RejectionReasonDto>>
 {
-    public async Task<ErrorOr<List<RejectedFieldDto>>> Handle(GetDriverRejectedFieldsQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<RejectionReasonDto>> Handle(GetDriverRejectionReasonQuery request, CancellationToken cancellationToken)
     {
-        var driver = await db.Drivers
-            .Include(d => d.Fields)
-            .FirstOrDefaultAsync(d => d.Id == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await db.DriverProfiles
+            .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken);
 
-        if (driver is null)
+        if (driverProfile is null)
         {
-            return DriverErrors.DriverNotFound;
+            return DriverErrors.Profile.NotFound;
         }
 
-        if (driver.OnboardingState.Status != OnboardingStatus.Rejected)
+        if (driverProfile.OnboardingStatus != DriverOnboardingStatus.Rejected)
         {
-            return Error.Validation("INVALID_STATE_FOR_FIELD_RETRIEVAL", "Driver onboarding is not in a state that allows field retrieval.");
+            return Error.Validation("INVALID_STATE", "Driver profile is not in rejected state.");
         }
 
-        var rejectedFields = driver.Fields
-            .Where(f => f.Status == FieldStatus.Rejected)
-            .Select(f => new RejectedFieldDto(f.Step, f.FieldName, f.RejectionReason))
-            .ToList();
-
-        return rejectedFields;
+        return new RejectionReasonDto(driverProfile.RejectionReason);
     }
 }

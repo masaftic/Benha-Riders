@@ -62,10 +62,11 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher) : 
                 return acceptResult.Errors;
             }
 
-            var driverAvailability = await db.DriverAvailabilities
-                .FirstOrDefaultAsync(d => d.DriverId == request.DriverId, cancellationToken);
+            var userId = request.DriverId.ToUserId();
+            var driverStatus = await db.DriverStatuses
+                .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken);
 
-            if (driverAvailability == null)
+            if (driverStatus == null)
             {
                 return DriverErrors.DriverNotFound;
             }
@@ -73,11 +74,11 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher) : 
             var tripRequest = matchingSession.TripRequest;
 
             var trip = new Trip(
-                driverAvailability.DriverId,
+                driverStatus.GetDriverId(),
                 tripRequest.RiderId,
                 tripRequest.PickupLocation, tripRequest.DropoffLocation,
                 tripRequest.PickupAddress, tripRequest.DropoffAddress,
-                tripRequest.EstimatedFare
+                tripRequest.FinalFare
             );
 
             db.Trips.Add(trip);
@@ -85,7 +86,7 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher) : 
             // Save to get the id
             await db.SaveChangesAsync(cancellationToken);
 
-            var result = driverAvailability.StartTrip(trip.Id);
+            var result = driverStatus.StartTrip(trip.Id);
             if (result.IsError)
             {
                 errors = result.Errors;
@@ -95,7 +96,7 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher) : 
             var tripRoute = new TripRoute(trip.Id);
             db.TripRoutes.Add(tripRoute);
 
-            result = tripRequest.MarkAsMatched(driverAvailability.DriverId);
+            result = tripRequest.MarkAsMatched(driverStatus.GetDriverId());
             if (result.IsError)
             {
                 errors = result.Errors;

@@ -59,7 +59,7 @@ public class GetDriverRecentTripsQueryHandler : IRequestHandler<GetDriverRecentT
                 t.Status,
                 t.PickupAddress ?? "Unknown pickup location",
                 t.DropoffAddress ?? "Unknown dropoff location",
-                t.EstimatedFare.Amount,
+                t.FinalFare.Amount,
                 t.TripFare != null ? t.TripFare.TotalFare : null,
                 t.TripPayment != null && t.TripPayment.IsPaid,
                 t.AssignedAt,
@@ -67,8 +67,8 @@ public class GetDriverRecentTripsQueryHandler : IRequestHandler<GetDriverRecentT
                 t.StartedAt,
                 t.CompletedAt,
                 new RiderInfo(
-                    t.Rider.PreferredName ?? "Unknown",
-                    t.Rider.User.PhoneNumber!.Value)))
+                    t.RiderProfile.PreferredName ?? "Unknown",
+                    t.RiderProfile.User.PhoneNumber!.Value)))
             .ToListAsync(cancellationToken);
 
         var hasNextPage = (request.PageNumber * request.PageSize) < totalCount;

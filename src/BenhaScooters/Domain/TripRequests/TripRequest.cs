@@ -1,10 +1,9 @@
 using NetTopologySuite.Geometries;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Domain.Trips.ValueObjects;
-using BenhaScooters.Domain.Trips.Events;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using Vogen;
 using BenhaScooters.Domain.TripRequests.Enums;
@@ -18,7 +17,8 @@ public partial struct TripRequestId;
 public class TripRequest : AggregateRoot
 {
     public TripRequestId Id { get; private set; }
-    public RiderId RiderId { get; private set; }
+    public UserId RiderUserId { get; private set; }
+    public RiderId RiderId => RiderId.FromUserId(RiderUserId);
     public Point PickupLocation { get; private set; } = null!;
     public Point DropoffLocation { get; private set; } = null!;
     public string? PickupAddress { get; private set; }
@@ -27,33 +27,40 @@ public class TripRequest : AggregateRoot
     public TripRequestStatus Status { get; private set; }
     public DateTime ExpiresAt { get; private set; }
 
-    // Pricing
-    public FareEstimate EstimatedFare { get; private set; } = null!;
+    // Final price (locked at request creation - this becomes the trip's FinalFare)
+    public FareEstimate FinalFare { get; private set; } = null!;
 
     // Final matching result (set by matching system when completed)
-    public DriverId? MatchedDriverId { get; private set; }
+    public UserId? MatchedDriverUserId { get; private set; }
+    public DriverId? MatchedDriverId => MatchedDriverUserId is not null ? DriverId.FromUserId(MatchedDriverUserId.Value) : null;
+
+
     public DateTime? MatchedAt { get; private set; }
     public string? CancellationReason { get; private set; }
 
     // Navigation Properties
-    public Rider Rider { get; private set; } = null!;
-    public Driver? MatchedDriver { get; private set; }
+    public RiderProfile RiderProfile { get; private set; } = null!;
+    public DriverProfile? MatchedDriverProfile { get; private set; }
 
     private TripRequest() { } // For EF Core
 
     public TripRequest(RiderId riderId, Point pickupLocation, Point dropoffLocation,
-        string? pickupAddress, string? dropoffAddress, FareEstimate estimatedFare)
+        string? pickupAddress, string? dropoffAddress, FareEstimate finalFare)
     {
-        RiderId = riderId;
+        RiderUserId = riderId.ToUserId();
         PickupLocation = pickupLocation;
         DropoffLocation = dropoffLocation;
         PickupAddress = pickupAddress;
         DropoffAddress = dropoffAddress;
-        EstimatedFare = estimatedFare;
+        FinalFare = finalFare;
         RequestedAt = DateTime.UtcNow;
         ExpiresAt = DateTime.UtcNow.AddMinutes(10); // 10-minute expiry
         Status = TripRequestStatus.Pending;
     }
+
+    // Helper to get UserId for database queries
+    public UserId GetRiderUserId() => RiderId.ToUserId();
+    public UserId? GetMatchedDriverUserId() => MatchedDriverId?.ToUserId();
 
     /// <summary>
     /// Call this method after the entity is saved to the database to publish the domain event
@@ -67,7 +74,7 @@ public class TripRequest : AggregateRoot
             DropoffLocation,
             PickupAddress,
             DropoffAddress,
-            EstimatedFare,
+            FinalFare,
             RequestedAt);
     }
 
@@ -82,7 +89,7 @@ public class TripRequest : AggregateRoot
         if (IsExpired)
             return TripErrors.TripRequest.Expired;
 
-        MatchedDriverId = driverId;
+        MatchedDriverUserId = driverId.ToUserId();
         MatchedAt = DateTime.UtcNow;
         Status = TripRequestStatus.Matched;
 

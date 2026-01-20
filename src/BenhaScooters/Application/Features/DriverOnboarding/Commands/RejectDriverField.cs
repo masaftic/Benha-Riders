@@ -5,6 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
+/// <summary>
+/// DEPRECATED: Field-level rejection is being replaced with profile-level rejection.
+/// This command is kept for backward compatibility but now rejects the entire profile.
+/// </summary>
 public record RejectDriverFieldCommand(
     DriverId DriverId, 
     string Step, 
@@ -15,16 +19,18 @@ public class RejectDriverFieldCommandHandler(AppDbContext db) : IRequestHandler<
 {
     public async Task<ErrorOr<Success>> Handle(RejectDriverFieldCommand request, CancellationToken cancellationToken)
     {
-        var driver = await db.Drivers
-            .Include(d => d.Fields)
-            .FirstOrDefaultAsync(d => d.Id == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await db.DriverProfiles
+            .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken);
 
-        if (driver is null)
+        if (driverProfile is null)
         {
-            return DriverErrors.DriverNotFound;
+            return DriverErrors.Profile.NotFound;
         }
 
-        var result = driver.RejectField(request.Step, request.FieldName, request.Reason);
+        // Reject the entire profile with the provided reason
+        var result = driverProfile.Reject(request.Reason);
         if (result.IsError)
         {
             return result.Errors;

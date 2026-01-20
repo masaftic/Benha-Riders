@@ -8,7 +8,6 @@ using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using BenhaScooters.Domain.Users;
-using BenhaScooters.Domain.Drivers.Entities;
 using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
@@ -35,50 +34,53 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
 
     public async Task<ErrorOr<GetOnboardingDetailsResponse>> Handle(GetOnboardingDetailsQuery request, CancellationToken cancellationToken)
     {
-        var driver = await _db.Drivers // Use Projection to avoid loading unnecessary data
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await _db.DriverProfiles
             .Include(d => d.User)
             .Include(d => d.Documents)
-            .Include(d => d.Vehicle)
-            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
+            .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);
 
-        if (driver == null)
+        if (driverProfile == null)
         {
-            return DriverErrors.DriverNotFound;
+            return DriverErrors.Profile.NotFound;
         }
 
-        var personalInfo = driver.Info != null ? new PersonalInfoDto(
-            driver.Info.FullName,
-            driver.Info.NationalId.Value,
-            driver.User.PhoneNumber!.Value,
-            driver.Info.DateOfBirth,
-            driver.Info.Address,
-            driver.Info.City,
-            driver.Info.EmergencyContactName,
-            driver.Info.EmergencyContactPhone.Value) : null;
+        var personalInfo = driverProfile.PersonalInfo != null ? new PersonalInfoDto(
+            driverProfile.PersonalInfo.FullName,
+            driverProfile.PersonalInfo.NationalId.Value,
+            driverProfile.User.PhoneNumber!.Value,
+            driverProfile.PersonalInfo.DateOfBirth,
+            driverProfile.PersonalInfo.Address,
+            driverProfile.PersonalInfo.City,
+            driverProfile.PersonalInfo.EmergencyContactName,
+            driverProfile.PersonalInfo.EmergencyContactPhone.Value) : null;
 
-        var activeVehicle = driver.Vehicle;
-        var vehicleInfo = activeVehicle != null ? new VehicleInfoDto(
-            activeVehicle.VehicleType,
-            activeVehicle.Brand,
-            activeVehicle.Model,
-            activeVehicle.Color,
-            activeVehicle.LicensePlate.Value,
-            activeVehicle.Year,
-            activeVehicle.VIN.Value,
-            activeVehicle.IsActive,
-            activeVehicle.CreatedAt) : null;
+        var vehicleInfo = driverProfile.Vehicle != null ? new VehicleInfoDto(
+            driverProfile.Vehicle.VehicleType,
+            driverProfile.Vehicle.Brand,
+            driverProfile.Vehicle.Model,
+            driverProfile.Vehicle.Color,
+            driverProfile.Vehicle.LicensePlate.Value,
+            driverProfile.Vehicle.Year,
+            driverProfile.Vehicle.VIN.Value,
+            true, // Vehicle is part of profile, always active
+            driverProfile.CreatedAt) : null;
 
 
-        var documentTasks = driver.Documents.Select(x => x.ToDto(_s3));
+        var documentTasks = driverProfile.Documents.Select(doc => ToDocumentDto(doc, _s3));
         List<DocumentDto> documents = [.. await Task.WhenAll(documentTasks)];
 
+        var isComplete = driverProfile.IsComplete;
+        var progress = CalculateProgress(driverProfile);
+        
         var onboardingState = new OnboardingStateDto(
-            driver.OnboardingState.Status.ToString(),
-            driver.OnboardingProgress,
-            driver.OnboardingState.BanReason,
-            driver.OnboardingState.CreatedAt,
-            driver.OnboardingState.CompletedAt,
-            driver.OnboardingState.IsCompleted);
+            driverProfile.OnboardingStatus.ToString(),
+            progress,
+            driverProfile.RejectionReason,
+            driverProfile.CreatedAt,
+            driverProfile.ApprovedAt,
+            driverProfile.OnboardingStatus == DriverOnboardingStatus.Approved);
 
         var response = new GetOnboardingDetailsResponse(
             onboardingState,
@@ -87,5 +89,21 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
             documents);
 
         return response;
+    }
+    
+    private static int CalculateProgress(DriverProfile profile)
+    {
+        int steps = 0;
+        if (profile.PersonalInfo != null) steps++;
+        if (profile.Vehicle != null) steps++;
+        if (profile.Documents.Count >= 3) steps++;
+        if (profile.OnboardingStatus == DriverOnboardingStatus.Approved) steps++;
+        return steps * 25; // 25% per step
+    }
+    
+    private static async Task<DocumentDto> ToDocumentDto(DriverDocument doc, IS3Service s3)
+    {
+        var url = await s3.GetPreSignedUrlAsync(doc.ImageUrl, TimeSpan.FromMinutes(15));
+        return new DocumentDto(doc.Type.ToString(), url, doc.UploadedAt, doc.ExpiryDate);
     }
 }

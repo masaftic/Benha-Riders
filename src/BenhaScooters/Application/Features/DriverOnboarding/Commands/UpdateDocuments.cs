@@ -1,4 +1,3 @@
-using Amazon.Runtime.Documents;
 using BenhaScooters.Application.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
@@ -11,8 +10,7 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-
-using DocumentType = BenhaScooters.Domain.Drivers.Entities.DocumentType;
+using DocumentType = BenhaScooters.Domain.Drivers.DocumentType;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
@@ -23,7 +21,7 @@ public record UpdateDocumentsCommand(
     IFormFile DriverImage) : IRequest<ErrorOr<UpdateDocumentsResponse>>;
 
 
-public record UpdateDocumentsResponse(string Message, OnboardingStatus NextStep);
+public record UpdateDocumentsResponse(string Message, DriverOnboardingStatus NextStep);
 
 public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsCommand, ErrorOr<UpdateDocumentsResponse>>
 {
@@ -38,22 +36,26 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
 
     public async Task<ErrorOr<UpdateDocumentsResponse>> Handle(UpdateDocumentsCommand request, CancellationToken cancellationToken)
     {
-        var driver = await _db.Drivers
-            .FirstOrDefaultAsync(dp => dp.Id == request.DriverId, cancellationToken);
+        var userId = request.DriverId.ToUserId();
+        
+        var driverProfile = await _db.DriverProfiles
+            .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);
 
-        if (driver == null)
+        if (driverProfile == null)
         {
-            return DriverErrors.DriverNotFound;
+            return DriverErrors.Profile.NotFound;
         }
 
         try
         {
+            var driverId = driverProfile.GetDriverId();
+            
             // Upload files to S3 and get their keys
             string licenseImageKey, vehicleRegistrationImageKey, driverImageKey;
 
             var uploadResult = await _s3Service.UploadFileAsync(
                 request.LicenseImage,
-                $"drivers/{driver.Id}/documents/{DocumentType.DrivingLicense.ToKebabCase()}",
+                $"drivers/{driverId}/documents/{DocumentType.DrivingLicense.ToKebabCase()}",
                 useKeyPrefixAsFullUrl: true,
                 cancellationToken);
 
@@ -62,7 +64,7 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
 
             uploadResult = await _s3Service.UploadFileAsync(
                 request.VehicleRegistrationImage,
-                $"drivers/{driver.Id}/documents/{DocumentType.VehicleRegistration.ToKebabCase()}",
+                $"drivers/{driverId}/documents/{DocumentType.VehicleRegistration.ToKebabCase()}",
                 useKeyPrefixAsFullUrl: true,
                 cancellationToken);
 
@@ -71,16 +73,16 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
 
             uploadResult = await _s3Service.UploadFileAsync(
                 request.DriverImage,
-                $"drivers/{driver.Id}/documents/{DocumentType.DriverPhoto.ToKebabCase()}",
+                $"drivers/{driverId}/documents/{DocumentType.DriverPhoto.ToKebabCase()}",
                 useKeyPrefixAsFullUrl: true,
                 cancellationToken);
 
             if (uploadResult.IsError) return uploadResult.Errors;
             else driverImageKey = uploadResult.Value;
 
-            var result = driver.AddDocument(DocumentType.DrivingLicense, licenseImageKey)
-                .Then(res => driver.AddDocument(DocumentType.VehicleRegistration, vehicleRegistrationImageKey))
-                .Then(res => driver.AddDocument(DocumentType.DriverPhoto, driverImageKey));
+            var result = driverProfile.AddDocument(DocumentType.DrivingLicense, licenseImageKey)
+                .Then(res => driverProfile.AddDocument(DocumentType.VehicleRegistration, vehicleRegistrationImageKey))
+                .Then(res => driverProfile.AddDocument(DocumentType.DriverPhoto, driverImageKey));
 
             if (result.IsError)
             {
@@ -91,7 +93,7 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
 
             return new UpdateDocumentsResponse(
                 "Documents uploaded successfully. Your application is now under review.",
-                driver.OnboardingState.Status);
+                driverProfile.OnboardingStatus);
         }
         catch (Exception ex)
         {

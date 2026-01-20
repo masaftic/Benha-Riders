@@ -17,7 +17,6 @@ public class GetDriverAvailabilityEndpoint : IEndpoint
         string Status,
         DateTime LastStatusChange,
         TimeSpan? OnlineSessionDuration,
-        TimeSpan TotalOnlineTime,
         int? CurrentTripId);
 
     public void MapEndpoint(IEndpointRouteBuilder app)

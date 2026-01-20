@@ -47,16 +47,14 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
         var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
         var location = geometryFactory.CreatePoint(new Coordinate(request.Longitude, request.Latitude));
 
-        var driverLocation = new DriverLocation(
-            request.DriverId,
-            location,
-            DateTime.UtcNow);
+        var userId = request.DriverId.ToUserId();
+        var driverLocation = new DriverLocation(userId, location);
 
         _db.DriverLocations.Update(driverLocation);
 
-        var tripId = await _db.DriverAvailabilities
-            .Where(da => da.DriverId == request.DriverId && da.Status == DriverStatus.OnTrip)
-            .Select(da => da.CurrentTripId)
+        var tripId = await _db.DriverStatuses
+            .Where(ds => ds.UserId == userId && ds.Status == DriverAvailabilityStatus.OnTrip)
+            .Select(ds => ds.CurrentTripId)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (tripId.HasValue)

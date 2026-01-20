@@ -4,6 +4,8 @@ using Microsoft.OpenApi.Models;
 
 namespace BenhaScooters.Presentation;
 
+
+
 public static class DependencyInjection
 {
     public static IServiceCollection AddPresentation(this IServiceCollection services)
@@ -51,17 +53,17 @@ public static class DependencyInjection
             // Apply the scheme globally to all endpoints marked as requiring auth
             options.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>() // No scopes required
                 }
-            },
-            Array.Empty<string>() // No scopes required
-        }
             });
 
         });
@@ -77,6 +79,12 @@ public static class DependencyInjection
         {
             options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         });
+
+        services.AddSignalR(o => o.EnableDetailedErrors = true)
+            .AddJsonProtocol(options =>
+            {
+                options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
         services.AddProblemDetails(c =>
         {
