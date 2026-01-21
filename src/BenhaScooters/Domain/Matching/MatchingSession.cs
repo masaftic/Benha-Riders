@@ -71,7 +71,7 @@ public class MatchingSession : AggregateRoot
     public DateTime CreatedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
     public DateTime ExpiresAt { get; private set; }
-    
+
 
     private readonly List<DriverMatchAttempt> _matchAttempts = [];
     public IReadOnlyList<DriverMatchAttempt> MatchAttempts => _matchAttempts.AsReadOnly();
@@ -81,7 +81,30 @@ public class MatchingSession : AggregateRoot
 
     private MatchingSession() { } // For EF Core
 
-    public MatchingSession(TripRequestId tripRequestId, int numberOfRounds, List<int> offersPerRound)
+
+    public static ErrorOr<MatchingSession> Create(TripRequestId tripRequestId, int numberOfRounds, List<int> offersPerRound)
+    {
+        if (numberOfRounds <= 0)
+            return Error.Validation(
+                code: "MatchingSession.InvalidNumberOfRounds",
+                description: "Number of rounds must be greater than zero");
+
+        if (offersPerRound.Count != numberOfRounds)
+            return Error.Validation(
+                code: "MatchingSession.InvalidOffersPerRound",
+                description: "Offers per round count must match number of rounds");
+
+        if (offersPerRound.Any(o => o <= 0))
+            return Error.Validation(
+                code: "MatchingSession.InvalidOffersPerRoundValue",
+                description: "All offers per round values must be greater than zero");
+
+        var session = new MatchingSession(tripRequestId, numberOfRounds, offersPerRound);
+        return session;
+    }
+
+
+    private MatchingSession(TripRequestId tripRequestId, int numberOfRounds, List<int> offersPerRound)
     {
         TripRequestId = tripRequestId;
 
@@ -198,7 +221,7 @@ public class MatchingSession : AggregateRoot
             return MatchingErrors.Session.Expired;
 
         // Find the pending match attempt for this driver
-        var matchAttempt = _matchAttempts.FirstOrDefault(ma => 
+        var matchAttempt = _matchAttempts.FirstOrDefault(ma =>
             ma.DriverId == driverId && ma.Status == MatchAttemptStatus.Pending);
 
         if (matchAttempt == null)
@@ -211,7 +234,7 @@ public class MatchingSession : AggregateRoot
         matchAttempt.Accept();
 
         // Cancel all other pending attempts
-        foreach (var otherAttempt in _matchAttempts.Where(ma => 
+        foreach (var otherAttempt in _matchAttempts.Where(ma =>
             ma.Status == MatchAttemptStatus.Pending && ma.DriverId != driverId))
         {
             otherAttempt.Cancel();
@@ -239,7 +262,7 @@ public class MatchingSession : AggregateRoot
             return MatchingErrors.Session.NotActive;
 
         // Find the pending match attempt for this driver
-        var matchAttempt = _matchAttempts.FirstOrDefault(ma => 
+        var matchAttempt = _matchAttempts.FirstOrDefault(ma =>
             ma.DriverId == driverId && ma.Status == MatchAttemptStatus.Pending);
 
         if (matchAttempt == null)
@@ -264,7 +287,7 @@ public class MatchingSession : AggregateRoot
             return MatchingErrors.Session.NotActive;
 
         // Find the pending match attempt for this driver
-        var matchAttempt = _matchAttempts.FirstOrDefault(ma => 
+        var matchAttempt = _matchAttempts.FirstOrDefault(ma =>
             ma.DriverId == driverId && ma.Status == MatchAttemptStatus.Pending);
 
         if (matchAttempt == null)

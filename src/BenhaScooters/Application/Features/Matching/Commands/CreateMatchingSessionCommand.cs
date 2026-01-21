@@ -65,7 +65,15 @@ public class CreateMatchingSessionCommandHandler(AppDbContext db)
         }
 
         // Create new matching session
-        var matchingSession = new MatchingSession(request.TripRequestId, 3, [1, 3, 5]); // TODO: get values from config or something
+        var matchingSessionResult = MatchingSession.Create(
+            request.TripRequestId,
+            numberOfRounds: 3,
+            offersPerRound: [1, 3, 5]);
+        
+        if (matchingSessionResult.IsError)
+            return matchingSessionResult.Errors;
+
+        var matchingSession = matchingSessionResult.Value;
 
         db.MatchingSessions.Add(matchingSession);
         await db.SaveChangesAsync(cancellationToken);
