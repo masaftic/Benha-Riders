@@ -75,7 +75,7 @@ public class DriverMatchingService : IDriverMatchingService
                 excludedDrivers: matchingSession.GetRejectedOrExpiredDrivers(),
                 cancellationToken: cancellationToken);
 
-            if (rankedDrivers.Count == 0)
+            if (rankedDrivers.Count == 0) // TODO: Don't cancel immediately, try next rounds first
             {
                 _logger.LogInformation("No drivers found for matching session {MatchingSessionId}. Session cancelled.",
                     matchingSessionId);

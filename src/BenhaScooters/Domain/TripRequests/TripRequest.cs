@@ -24,6 +24,7 @@ public class TripRequest : AggregateRoot
     public string? PickupAddress { get; private set; }
     public string? DropoffAddress { get; private set; }
     public DateTime RequestedAt { get; private set; }
+    public DateTime? ConfirmedAt { get; private set; }
     public TripRequestStatus Status { get; private set; }
     public DateTime ExpiresAt { get; private set; }
 
@@ -76,6 +77,35 @@ public class TripRequest : AggregateRoot
             DropoffAddress,
             FinalFare,
             RequestedAt);
+    }
+
+    public DomainEvent CreateTripRequestConfirmedEvent()
+    {
+        return new TripRequestConfirmedEvent(
+            Id,
+            RiderId,
+            PickupLocation,
+            DropoffLocation,
+            PickupAddress,
+            DropoffAddress,
+            FinalFare,
+            DateTime.UtcNow);
+    }
+
+    public ErrorOr<Success> Confirm()
+    {
+        if (Status != TripRequestStatus.Pending)
+            return TripErrors.TripRequest.NotPending;
+
+        if (IsExpired)
+            return TripErrors.TripRequest.Expired;
+
+        Status = TripRequestStatus.Pending;
+        ConfirmedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(CreateTripRequestConfirmedEvent());
+
+        return Result.Success;
     }
 
     /// <summary>

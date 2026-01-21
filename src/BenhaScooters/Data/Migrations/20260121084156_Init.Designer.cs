@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BenhaScooters.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260120091817_UserRefactoring")]
-    partial class UserRefactoring
+    [Migration("20260121084156_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -236,9 +236,9 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<int>("NumberOfRounds")
                         .HasColumnType("integer");
 
-                    b.Property<string>("OffersPerRound")
+                    b.PrimitiveCollection<int[]>("OffersPerRound")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("integer[]");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -307,6 +307,9 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<string>("CancellationReason")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DropoffAddress")
                         .HasMaxLength(500)

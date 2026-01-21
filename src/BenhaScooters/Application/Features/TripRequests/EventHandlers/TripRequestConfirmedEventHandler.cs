@@ -8,14 +8,14 @@ using Microsoft.Extensions.Logging;
 namespace BenhaScooters.Application.Features.TripRequests.EventHandlers;
 
 
-public class TripRequestedEventHandler : INotificationHandler<TripRequestedEvent>
+public class TripRequestConfirmedEventHandler : INotificationHandler<TripRequestConfirmedEvent>
 {
-    private readonly ILogger<TripRequestedEventHandler> _logger;
+    private readonly ILogger<TripRequestConfirmedEventHandler> _logger;
     private readonly ISender _sender;
     private readonly IDriverMatchingService _driverMatchingService;
 
-    public TripRequestedEventHandler(
-        ILogger<TripRequestedEventHandler> logger, 
+    public TripRequestConfirmedEventHandler(
+        ILogger<TripRequestConfirmedEventHandler> logger, 
         ISender sender,
         IDriverMatchingService driverMatchingService)
     {
@@ -24,7 +24,7 @@ public class TripRequestedEventHandler : INotificationHandler<TripRequestedEvent
         _driverMatchingService = driverMatchingService;
     }
 
-    public async Task Handle(TripRequestedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(TripRequestConfirmedEvent notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation(
             "Trip requested: {TripRequestId} by rider {RiderId} from {PickupAddress} to {DropoffAddress}. Starting matching process...",

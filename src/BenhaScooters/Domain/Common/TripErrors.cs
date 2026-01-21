@@ -29,6 +29,10 @@ public static class TripErrors
         public static readonly Error InvalidCoordinates = Error.Validation(
             "TRIP_REQUEST_INVALID_COORDINATES",
             "إحداثيات نقطة الانطلاق أو الوصول غير صحيحة");
+        
+        public static readonly Error Forbidden = Error.Forbidden(
+            "TRIP_REQUEST_FORBIDDEN",
+            "غير مصرح لك بتأكيد طلب الرحلة هذا");
     }
 
     public static class Trip

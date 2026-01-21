@@ -233,9 +233,9 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<int>("NumberOfRounds")
                         .HasColumnType("integer");
 
-                    b.Property<string>("OffersPerRound")
+                    b.PrimitiveCollection<int[]>("OffersPerRound")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("integer[]");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -304,6 +304,9 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<string>("CancellationReason")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DropoffAddress")
                         .HasMaxLength(500)

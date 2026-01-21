@@ -23,10 +23,7 @@ public class MatchingSessionConfiguration : IEntityTypeConfiguration<MatchingSes
             .IsRequired();
 
         builder.Property(ms => ms.OffersPerRound)
-            .IsRequired()
-            .HasConversion(value => string.Join(',', value), 
-                           value => value.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                         .Select(int.Parse).ToList());
+            .IsRequired();
 
         builder.HasMany(ms => ms.MatchAttempts)
             .WithOne(ma => ma.MatchingSession)
