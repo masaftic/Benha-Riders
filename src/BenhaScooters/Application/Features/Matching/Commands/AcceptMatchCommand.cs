@@ -4,6 +4,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -12,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.Matching.Commands;
 
 public record AcceptMatchCommand(
-    DriverId DriverId,
+    UserId DriverId,
     DriverMatchAttemptId DriverMatchAttemptId) : IRequest<ErrorOr<AcceptMatchResult>>;
 
 public record AcceptMatchResult(TripId TripId, DateTime AcceptedAt);
@@ -44,7 +45,7 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher, IL
             .ThenInclude(ms => ms.TripRequest)
             .FirstOrDefaultAsync(ma => ma.Id == request.DriverMatchAttemptId, cancellationToken);
 
-        if (matchAttempt is null || matchAttempt.DriverId != request.DriverId)
+        if (matchAttempt is null || matchAttempt.DriverUserId != request.DriverId)
         {
             logger.LogWarning("Match attempt {MatchAttemptId} not found or does not belong to driver {DriverId}",
                 request.DriverMatchAttemptId.Value, request.DriverId.Value);
@@ -82,7 +83,7 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher, IL
             return acceptResult.Errors;
         }
 
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         var driverStatus = await db.DriverStatuses
             .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken);
 
@@ -95,7 +96,7 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher, IL
         var tripRequest = matchingSession.TripRequest;
 
         var trip = new Trip(
-            driverStatus.GetDriverId(),
+            driverStatus.UserId,
             tripRequest.RiderId,
             tripRequest.PickupLocation,
             tripRequest.DropoffLocation,
@@ -122,7 +123,7 @@ public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher, IL
         var tripRoute = new TripRoute(trip.Id);
         db.TripRoutes.Add(tripRoute);
 
-        var markMatchedResult = tripRequest.MarkAsMatched(driverStatus.GetDriverId());
+        var markMatchedResult = tripRequest.MarkAsMatched(driverStatus.UserId);
         if (markMatchedResult.IsError)
         {
             logger.LogWarning("Failed to mark trip request {TripRequestId} as matched: {Errors}",

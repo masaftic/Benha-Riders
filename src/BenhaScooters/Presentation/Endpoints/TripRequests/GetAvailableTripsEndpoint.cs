@@ -1,5 +1,6 @@
 using BenhaScooters.Application.Features.TripRequests.Queries;
 using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -60,7 +61,7 @@ public class GetAvailableTripsEndpoint : IEndpoint
 [Mapper]
 public partial class GetAvailableTripsEndpointMapper
 {
-    public GetAvailableTripsQuery MapToQuery(Domain.Drivers.DriverId driverId)
+    public GetAvailableTripsQuery MapToQuery(UserId driverId)
     {
         return new GetAvailableTripsQuery(driverId);
     }

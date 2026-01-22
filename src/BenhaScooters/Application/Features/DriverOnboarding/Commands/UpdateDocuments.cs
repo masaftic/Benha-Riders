@@ -5,6 +5,7 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.S3;
 using ErrorOr;
 using FluentValidation;
@@ -15,7 +16,7 @@ using DocumentType = BenhaScooters.Domain.Drivers.DocumentType;
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
 public record UpdateDocumentsCommand(
-    DriverId DriverId,
+    UserId DriverId,
     IFormFile LicenseImage,
     IFormFile VehicleRegistrationImage,
     IFormFile DriverImage) : IRequest<ErrorOr<UpdateDocumentsResponse>>;
@@ -36,7 +37,7 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
 
     public async Task<ErrorOr<UpdateDocumentsResponse>> Handle(UpdateDocumentsCommand request, CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         
         var driverProfile = await _db.DriverProfiles
             .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);
@@ -48,7 +49,7 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
 
         try
         {
-            var driverId = driverProfile.GetDriverId();
+            var driverId = driverProfile.UserId;
             
             // Upload files to S3 and get their keys
             string licenseImageKey, vehicleRegistrationImageKey, driverImageKey;

@@ -1,5 +1,6 @@
 using BenhaScooters.Application.Features.DriverOnboarding.Queries;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Presentation.Endpoints.DriverOnboarding.AdminActions;
 
@@ -23,7 +24,7 @@ public class GetDriverDetailsEndpoint : IEndpoint
 
     public async Task<IResult> GetDriverDetails([FromServices] ISender sender, [FromRoute] int driverId, HttpContext ctx)
     {
-        var query = new GetOnboardingDetailsQuery(DriverId.From(driverId));
+        var query = new GetOnboardingDetailsQuery(UserId.From(driverId));
         var result = await sender.Send(query);
 
         if (result.IsError)

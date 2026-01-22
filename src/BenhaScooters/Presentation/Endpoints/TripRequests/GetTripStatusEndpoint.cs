@@ -1,6 +1,7 @@
 using BenhaScooters.Application.Features.TripRequests.Queries;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.TripRequests.Enums;
+using BenhaScooters.Domain.Users;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Riok.Mapperly.Abstractions;
@@ -52,7 +53,7 @@ public class GetTripStatusEndpoint : IEndpoint
 [Mapper]
 public partial class GetTripStatusEndpointMapper
 {
-    public GetTripStatusQuery MapToQuery(int tripRequestId, Domain.Riders.RiderId riderId)
+    public GetTripStatusQuery MapToQuery(int tripRequestId, UserId riderId)
     {
         return new GetTripStatusQuery(
             riderId,

@@ -27,8 +27,6 @@ public class DriverLocation
         Timestamp = DateTime.UtcNow;
     }
 
-    public DriverId GetDriverId() => DriverId.FromUserId(UserId);
-
     public void UpdateLocation(Point newLocation, float? heading = null, float? speed = null)
     {
         Location = newLocation;

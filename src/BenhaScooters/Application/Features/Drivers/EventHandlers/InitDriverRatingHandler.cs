@@ -16,7 +16,7 @@ public class InitDriverRatingHandler : INotificationHandler<DriverOnboardingComp
 
     public async Task Handle(DriverOnboardingCompletedEvent notification, CancellationToken cancellationToken)
     {
-        var userId = notification.DriverId.ToUserId();
+        var userId = notification.DriverId;
         var driverStats = new DriverStats(userId);
         _db.DriverStats.Add(driverStats);
 

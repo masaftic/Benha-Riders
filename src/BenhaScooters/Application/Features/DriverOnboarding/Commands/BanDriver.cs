@@ -10,7 +10,7 @@ using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
-public record BanDriverCommand(DriverId DriverId, string Reason) : IRequest<ErrorOr<Success>>;
+public record BanDriverCommand(UserId DriverId, string Reason) : IRequest<ErrorOr<Success>>;
 
 public class BanDriverCommandValidator : AbstractValidator<BanDriverCommand>
 {
@@ -32,7 +32,7 @@ public class RejectDriverCommandHandler(AppDbContext db) : IRequestHandler<BanDr
 
     public async Task<ErrorOr<Success>> Handle(BanDriverCommand request, CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         
         var driverProfile = await _db.DriverProfiles
             .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);

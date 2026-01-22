@@ -36,8 +36,6 @@ public class DriverStatus
         LastStatusChange = DateTime.UtcNow;
     }
 
-    public DriverId GetDriverId() => DriverId.FromUserId(UserId);
-
     public ErrorOr<Success> GoOnline()
     {
         if (Status == DriverAvailabilityStatus.Online)

@@ -1,6 +1,7 @@
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Domain.Matching.Events;
 
@@ -9,7 +10,7 @@ namespace BenhaScooters.Domain.Matching.Events;
 /// </summary>
 public record DriverMatchOfferCreatedEvent(
     TripRequestId TripRequestId,
-    DriverId DriverId,
+    UserId DriverId,
     double DistanceToPickup,
     double EstimatedArrivalTime,
     decimal DriverScore,

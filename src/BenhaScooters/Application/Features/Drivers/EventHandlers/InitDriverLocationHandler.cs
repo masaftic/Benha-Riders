@@ -21,7 +21,7 @@ public class InitDriverLocationHandler : INotificationHandler<DriverOnboardingCo
         var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
         var location = geometryFactory.CreatePoint(new Coordinate(0, 0));
 
-        var userId = notification.DriverId.ToUserId();
+        var userId = notification.DriverId;
         var driverLocation = new DriverLocation(userId, location);
 
         _db.DriverLocations.Add(driverLocation);

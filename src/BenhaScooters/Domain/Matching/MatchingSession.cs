@@ -4,6 +4,7 @@ using BenhaScooters.Domain.Matching.Events;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Events;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using Vogen;
 
@@ -117,11 +118,11 @@ public class MatchingSession : AggregateRoot
     }
 
 
-    public List<DriverId> GetRejectedOrExpiredDrivers()
+    public List<UserId> GetRejectedOrExpiredDrivers()
     {
         return _matchAttempts
             .Where(ma => ma.Status == MatchAttemptStatus.Rejected || ma.Status == MatchAttemptStatus.Expired)
-            .Select(ma => ma.DriverId)
+            .Select(ma => ma.DriverUserId)
             .Distinct()
             .ToList();
     }
@@ -154,7 +155,7 @@ public class MatchingSession : AggregateRoot
     }
 
     public ErrorOr<DriverMatchAttempt> CreateDriverMatchAttempt(
-        DriverId driverId,
+        UserId driverId,
         double distanceToPickup,
         double estimatedArrivalTime,
         decimal driverScore)
@@ -236,7 +237,7 @@ public class MatchingSession : AggregateRoot
     
 
 
-    public ErrorOr<Success> AcceptMatch(DriverId driverId)
+    public ErrorOr<Success> AcceptMatch(UserId driverId)
     {
         if (Status != MatchingSessionStatus.Active)
             return MatchingErrors.Session.NotActive;
@@ -246,7 +247,7 @@ public class MatchingSession : AggregateRoot
 
         // Find the pending match attempt for this driver
         var matchAttempt = _matchAttempts.FirstOrDefault(ma =>
-            ma.DriverId == driverId && ma.Status == MatchAttemptStatus.Pending);
+            ma.DriverUserId == driverId && ma.Status == MatchAttemptStatus.Pending);
 
         if (matchAttempt == null)
             return MatchingErrors.MatchAttempt.NotFound;
@@ -259,7 +260,7 @@ public class MatchingSession : AggregateRoot
 
         // Cancel all other pending attempts
         foreach (var otherAttempt in _matchAttempts.Where(ma =>
-            ma.Status == MatchAttemptStatus.Pending && ma.DriverId != driverId))
+            ma.Status == MatchAttemptStatus.Pending && ma.DriverUserId != driverId))
         {
             otherAttempt.Cancel();
         }
@@ -280,14 +281,14 @@ public class MatchingSession : AggregateRoot
         return Result.Success;
     }
 
-    public ErrorOr<Success> RejectMatch(DriverId driverId, string? reason = null)
+    public ErrorOr<Success> RejectMatch(UserId driverId, string? reason = null)
     {
         if (Status != MatchingSessionStatus.Active)
             return MatchingErrors.Session.NotActive;
 
         // Find the pending match attempt for this driver
         var matchAttempt = _matchAttempts.FirstOrDefault(ma =>
-            ma.DriverId == driverId && ma.Status == MatchAttemptStatus.Pending);
+            ma.DriverUserId == driverId && ma.Status == MatchAttemptStatus.Pending);
 
         if (matchAttempt == null)
             return MatchingErrors.MatchAttempt.NotFound;
@@ -305,14 +306,14 @@ public class MatchingSession : AggregateRoot
         return Result.Success;
     }
 
-    public ErrorOr<Success> ExpireMatch(DriverId driverId)
+    public ErrorOr<Success> ExpireMatch(UserId driverId)
     {
         if (Status != MatchingSessionStatus.Active)
             return MatchingErrors.Session.NotActive;
 
         // Find the pending match attempt for this driver
         var matchAttempt = _matchAttempts.FirstOrDefault(ma =>
-            ma.DriverId == driverId && ma.Status == MatchAttemptStatus.Pending);
+            ma.DriverUserId == driverId && ma.Status == MatchAttemptStatus.Pending);
 
         if (matchAttempt == null)
             return MatchingErrors.MatchAttempt.NotFound;

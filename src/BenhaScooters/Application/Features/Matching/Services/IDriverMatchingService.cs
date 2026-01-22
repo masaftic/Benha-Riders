@@ -6,6 +6,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.Matching.Services;
 using BenhaScooters.Infrastructure.Notifications;
 using ErrorOr;
@@ -20,7 +21,7 @@ namespace BenhaScooters.Application.Features.Matching.Services;
 public interface IDriverMatchingService
 {
     Task<ErrorOr<Success>> ProcessMatchingAsync(MatchingSessionId matchingSessionId, CancellationToken cancellationToken = default);
-    Task HandleMatchAttemptTimeoutAsync(MatchingSessionId matchingSessionId, DriverId driverId, CancellationToken cancellationToken = default);
+    Task HandleMatchAttemptTimeoutAsync(MatchingSessionId matchingSessionId, UserId driverId, CancellationToken cancellationToken = default);
 }
 
 public class DriverMatchingService : IDriverMatchingService
@@ -126,8 +127,8 @@ public class DriverMatchingService : IDriverMatchingService
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            await Task.WhenAll(matchAttempts.Select(async match => await _hub.Clients.Groups(match.DriverId.ToString())
-                    .NotifyRideRequestOfferAsync(match.DriverId.ToString(), match.Id.ToString())));
+            await Task.WhenAll(matchAttempts.Select(async match => await _hub.Clients.Groups(match.DriverUserId.ToString())
+                    .NotifyRideRequestOfferAsync(match.DriverUserId.ToString(), match.Id.ToString())));
 
             return Result.Success;
         }
@@ -139,7 +140,7 @@ public class DriverMatchingService : IDriverMatchingService
     }
 
 
-    public async Task HandleMatchAttemptTimeoutAsync(MatchingSessionId matchingSessionId, DriverId driverId, CancellationToken cancellationToken = default)
+    public async Task HandleMatchAttemptTimeoutAsync(MatchingSessionId matchingSessionId, UserId driverId, CancellationToken cancellationToken = default)
     {
         using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 

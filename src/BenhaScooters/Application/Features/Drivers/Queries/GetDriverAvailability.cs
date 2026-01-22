@@ -3,13 +3,14 @@ using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Drivers.Queries;
 
-public record GetDriverAvailabilityQuery(DriverId DriverId) : IRequest<ErrorOr<GetDriverAvailabilityResponse>>;
+public record GetDriverAvailabilityQuery(UserId DriverId) : IRequest<ErrorOr<GetDriverAvailabilityResponse>>;
 
 public record GetDriverAvailabilityResponse(
     DriverAvailabilityStatus Status,
@@ -28,7 +29,7 @@ public class GetDriverAvailabilityQueryHandler : IRequestHandler<GetDriverAvaila
 
     public async Task<ErrorOr<GetDriverAvailabilityResponse>> Handle(GetDriverAvailabilityQuery request, CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         
         // Get driver status
         var driverStatus = await _db.DriverStatuses

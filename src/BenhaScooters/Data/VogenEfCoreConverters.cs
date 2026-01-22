@@ -17,11 +17,7 @@ namespace BenhaScooters.Data;
 [EfCoreConverter<RefreshTokenId>]
 [EfCoreConverter<SmsVerificationCodeId>]
 
-// Rider (semantic wrapper around UserId)
-[EfCoreConverter<RiderId>]
 
-// Driver (semantic wrapper around UserId) and value objects
-[EfCoreConverter<DriverId>]
 [EfCoreConverter<NationalId>]
 [EfCoreConverter<LicensePlate>]
 [EfCoreConverter<VIN>]

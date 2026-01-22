@@ -3,6 +3,7 @@ using BenhaScooters.Application.Features.Matching.Queries;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -63,7 +64,7 @@ public class GetDriverMatchOffersEndpoint : IEndpoint
 [Mapper]
 public partial class GetDriverMatchOffersEndpointMapper
 {
-    public GetDriverMatchOffersQuery MapToQuery(DriverId driverId) =>
+    public GetDriverMatchOffersQuery MapToQuery(UserId driverId) =>
         new(driverId);
 
     public partial GetDriverMatchOffersEndpoint.GetDriverMatchOffersResponseDto MapToResponse(GetDriverMatchOffersResult result);

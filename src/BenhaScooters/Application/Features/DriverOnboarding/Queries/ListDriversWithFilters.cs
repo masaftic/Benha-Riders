@@ -35,7 +35,7 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
             .Take(request.PageSize)
             .Select(d => new
             {
-                Id = DriverId.FromUserId(d.UserId),
+                Id = d.UserId,
                 FullName = d.PersonalInfo == null ? null : (string?)d.PersonalInfo.FullName,
                 PhoneNumber = d.User.PhoneNumber,
                 NationalId = d.PersonalInfo == null ? null : (NationalId?)d.PersonalInfo.NationalId,

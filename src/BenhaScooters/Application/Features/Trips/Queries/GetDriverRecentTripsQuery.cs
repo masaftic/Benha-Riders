@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Trips.Queries;
 
-public record GetDriverRecentTripsQuery(DriverId DriverId, int PageNumber = 1, int PageSize = 10) : IRequest<ErrorOr<GetDriverRecentTripsResult>>;
+public record GetDriverRecentTripsQuery(UserId DriverId, int PageNumber = 1, int PageSize = 10) : IRequest<ErrorOr<GetDriverRecentTripsResult>>;
 
 public record GetDriverRecentTripsResult(
     IReadOnlyList<DriverTripSummary> Trips,

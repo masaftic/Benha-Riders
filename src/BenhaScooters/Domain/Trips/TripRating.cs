@@ -1,6 +1,7 @@
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Riders;
+using BenhaScooters.Domain.Users;
 using Vogen;
 
 namespace BenhaScooters.Domain.Trips;
@@ -12,8 +13,8 @@ public class TripRating : AggregateRoot
 {
     public TripRatingId Id { get; private set; }
     public TripId TripId { get; private set; }
-    public DriverId DriverId { get; private set; }
-    public RiderId RiderId { get; private set; }
+    public UserId DriverId { get; private set; }
+    public UserId RiderId { get; private set; }
 
     public decimal DriverRating { get; private set; }
     public string? DriverComment { get; private set; }

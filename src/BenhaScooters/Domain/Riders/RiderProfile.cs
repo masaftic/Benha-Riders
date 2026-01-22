@@ -4,23 +4,6 @@ using Vogen;
 
 namespace BenhaScooters.Domain.Riders;
 
-/// <summary>
-/// Semantic wrapper around UserId for type safety in rider contexts.
-/// Represents a UserId of a user with the Rider role.
-/// </summary>
-[ValueObject<int>]
-public partial struct RiderId
-{
-    /// <summary>
-    /// Creates a RiderId from a UserId (for users with Rider role)
-    /// </summary>
-    public static RiderId FromUserId(UserId userId) => From(userId.Value);
-    
-    /// <summary>
-    /// Converts back to UserId for database operations
-    /// </summary>
-    public UserId ToUserId() => UserId.From(Value);
-}
 
 /// <summary>
 /// Rider profile containing preferences and stats.
@@ -63,8 +46,6 @@ public class RiderProfile
         IsActive = true;
         CreatedAt = DateTime.UtcNow;
     }
-
-    public RiderId GetRiderId() => RiderId.FromUserId(UserId);
 
     public void UpdatePreferredName(string? preferredName)
     {

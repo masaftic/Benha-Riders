@@ -5,6 +5,7 @@ using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.TripRequests.Enums;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.TripRequests.Queries;
 
 public record GetTripRequestByIdQuery(
-    DriverId DriverId,
+    UserId DriverId,
     TripRequestId TripRequestId) : IRequest<ErrorOr<GetTripRequestByIdResult>>;
 
 public record GetTripRequestByIdResult(

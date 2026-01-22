@@ -3,6 +3,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -11,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.Matching.Commands;
 
 public record RejectMatchCommand(
-    DriverId DriverId,
+    UserId DriverId,
     DriverMatchAttemptId DriverMatchAttemptId,
     string? Reason = null) : IRequest<ErrorOr<Success>>;
 
@@ -39,7 +40,7 @@ public class RejectMatchCommandHandler(AppDbContext db) : IRequestHandler<Reject
             .Include(ma => ma.MatchingSession)
             .Where(ma => ma.Id == request.DriverMatchAttemptId
                         && ma.ExpiresAt > DateTime.UtcNow
-                        && ma.DriverId == request.DriverId
+                        && ma.DriverUserId == request.DriverId
                         && ma.Status == MatchAttemptStatus.Pending)
             .FirstOrDefaultAsync(cancellationToken);
         

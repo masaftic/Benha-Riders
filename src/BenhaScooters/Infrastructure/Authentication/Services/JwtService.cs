@@ -52,13 +52,11 @@ public class JwtService : IJwtService
 
         if (driverProfile is not null)
         {
-            claims.Add(new Claim(JwtClaims.DriverId, driverProfile.GetDriverId().ToString()));
             claims.Add(new Claim(JwtClaims.DriverOnboardingStatus, driverProfile.OnboardingStatus.ToString()));
         }
 
         if (riderProfile is not null)
         {
-            claims.Add(new Claim(JwtClaims.RiderId, riderProfile.GetRiderId().ToString()));
         }
 
         var tokenDescriptor = new SecurityTokenDescriptor

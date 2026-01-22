@@ -45,16 +45,13 @@ public class TripRequestConfiguration : IEntityTypeConfiguration<TripRequest>
         // RiderId/DriverId are semantic wrappers around UserId
         builder.HasOne(tr => tr.RiderProfile)
             .WithMany()
-            .HasForeignKey(tr => tr.RiderUserId)
+            .HasForeignKey(tr => tr.RiderId)
             .OnDelete(DeleteBehavior.Restrict);
         
         builder.HasOne(tr => tr.MatchedDriverProfile)
             .WithMany()
-            .HasForeignKey(tr => tr.MatchedDriverUserId)
+            .HasForeignKey(tr => tr.MatchedDriverId)
             .OnDelete(DeleteBehavior.SetNull);
-        
-        builder.Ignore(tr => tr.MatchedDriverId);
-        builder.Ignore(tr => tr.RiderId);
 
         builder.HasIndex(tr => tr.Status);
         builder.HasIndex(tr => tr.RequestedAt);

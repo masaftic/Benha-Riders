@@ -5,5 +5,5 @@ namespace BenhaScooters.Domain.Drivers.Events;
 
 
 public record DriverRegisteredEvent(
-    DriverId DriverId,
+    UserId DriverId,
     UserId UserId) : DomainEvent;

@@ -27,7 +27,7 @@ public static class HttpContextExtensions
         return UserId.From(int.Parse(userIdClaim.Value));
     }
 
-    public static DriverId GetDriverId(this HttpContext context)
+    public static UserId GetDriverId(this HttpContext context)
     {
         var driverIdClaim = context.User.FindFirst(JwtClaims.DriverId);
         if (driverIdClaim == null)
@@ -35,10 +35,10 @@ public static class HttpContextExtensions
             throw new InvalidOperationException("Driver ID claim not found. User is not a driver.");
         }
 
-        return DriverId.From(int.Parse(driverIdClaim.Value));
+        return UserId.From(int.Parse(driverIdClaim.Value));
     }
     
-    public static RiderId GetRiderId(this HttpContext context)
+    public static UserId GetRiderId(this HttpContext context)
     {
         var riderIdClaim = context.User.FindFirst(JwtClaims.RiderId);
         if (riderIdClaim == null)
@@ -46,6 +46,6 @@ public static class HttpContextExtensions
             throw new InvalidOperationException("Rider ID claim not found. User is not a rider.");
         }
 
-        return RiderId.From(int.Parse(riderIdClaim.Value));
+        return UserId.From(int.Parse(riderIdClaim.Value));
     }
 }

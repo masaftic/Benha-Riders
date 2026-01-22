@@ -3,6 +3,7 @@ using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.TripRequests.Enums;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -62,7 +63,7 @@ public class GetTripRequestByIdEndpoint : IEndpoint
 [Mapper]
 public partial class GetTripRequestByIdEndpointMapper
 {
-    public GetTripRequestByIdQuery MapToQuery(int tripRequestId, Domain.Drivers.DriverId driverId)
+    public GetTripRequestByIdQuery MapToQuery(int tripRequestId, UserId driverId)
     {
         return new GetTripRequestByIdQuery(
             driverId,

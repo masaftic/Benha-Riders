@@ -4,13 +4,14 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Trips.Queries;
 
-public record GetDriverTripByIdQuery(DriverId DriverId, TripId TripId) : IRequest<ErrorOr<GetDriverTripByIdResult>>;
+public record GetDriverTripByIdQuery(UserId DriverId, TripId TripId) : IRequest<ErrorOr<GetDriverTripByIdResult>>;
 
 public record GetDriverTripByIdResult(
     int TripId,

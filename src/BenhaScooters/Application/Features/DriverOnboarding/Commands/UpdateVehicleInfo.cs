@@ -4,6 +4,7 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Shared.Validation;
 using ErrorOr;
 using FluentValidation;
@@ -13,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
 public record UpdateVehicleInfoCommand(
-    DriverId DriverId,
+    UserId DriverId,
     VehicleType VehicleType,
     string VehicleBrand,
     string VehicleModel,
@@ -44,7 +45,7 @@ public class UpdateVehicleInfoCommandValidator : AbstractValidator<UpdateVehicle
 
     private async Task<bool> BeUniqueVIN(UpdateVehicleInfoCommand command, string vin, CancellationToken cancellationToken)
     {
-        var userId = command.DriverId.ToUserId();
+        var userId = command.DriverId;
         return !await _db.DriverProfiles
             .Where(dp => dp.Vehicle != null && dp.UserId != userId)
             .AnyAsync(dp => dp.Vehicle!.VIN == VIN.From(vin), cancellationToken);
@@ -52,7 +53,7 @@ public class UpdateVehicleInfoCommandValidator : AbstractValidator<UpdateVehicle
 
     private async Task<bool> BeUniqueLicensePlate(UpdateVehicleInfoCommand command, string licensePlate, CancellationToken cancellationToken)
     {
-        var userId = command.DriverId.ToUserId();
+        var userId = command.DriverId;
         return !await _db.DriverProfiles
             .Where(dp => dp.Vehicle != null && dp.UserId != userId)
             .AnyAsync(dp => dp.Vehicle!.LicensePlate == LicensePlate.From(licensePlate), cancellationToken);
@@ -67,7 +68,7 @@ public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<
 
     public async Task<ErrorOr<UpdateVehicleInfoResponse>> Handle(UpdateVehicleInfoCommand request, CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         
         var driverProfile = await _db.DriverProfiles
             .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);

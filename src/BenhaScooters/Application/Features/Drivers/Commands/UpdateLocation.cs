@@ -3,6 +3,7 @@ using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -13,7 +14,7 @@ using NetTopologySuite.Geometries;
 namespace BenhaScooters.Application.Features.Drivers.Commands;
 
 public record UpdateLocationCommand(
-    DriverId DriverId,
+    UserId DriverId,
     double Latitude,
     double Longitude) : IRequest<ErrorOr<UpdateLocationResponse>>;
 
@@ -47,7 +48,7 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
         var geometryFactory = NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326);
         var location = geometryFactory.CreatePoint(new Coordinate(request.Longitude, request.Latitude));
 
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         var driverLocation = new DriverLocation(userId, location);
 
         _db.DriverLocations.Update(driverLocation);

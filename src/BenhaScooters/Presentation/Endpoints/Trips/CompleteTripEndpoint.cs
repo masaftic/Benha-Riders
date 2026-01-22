@@ -1,5 +1,6 @@
 using BenhaScooters.Application.Features.Trips.Commands;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -52,7 +53,7 @@ public class CompleteTripEndpoint : IEndpoint
 [Mapper]
 public partial class CompleteTripEndpointMapper
 {
-    public CompleteTripCommand MapToCommand(int tripId, Domain.Drivers.DriverId driverId)
+    public CompleteTripCommand MapToCommand(int tripId, UserId driverId)
     {
         return new CompleteTripCommand(driverId, TripId.From(tripId));
     }

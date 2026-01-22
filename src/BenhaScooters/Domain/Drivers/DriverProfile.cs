@@ -26,23 +26,7 @@ public partial struct VIN
     }
 }
 
-/// <summary>
-/// Semantic wrapper around UserId for type safety in driver contexts.
-/// Represents a UserId of a user with the Driver role.
-/// </summary>
-[ValueObject<int>]
-public partial struct DriverId
-{
-    /// <summary>
-    /// Creates a DriverId from a UserId (for users with Driver role)
-    /// </summary>
-    public static DriverId FromUserId(UserId userId) => From(userId.Value);
-    
-    /// <summary>
-    /// Converts back to UserId for database operations
-    /// </summary>
-    public UserId ToUserId() => UserId.From(Value);
-}
+
 
 public enum DriverOnboardingStatus
 {
@@ -89,8 +73,6 @@ public class DriverProfile
         OnboardingStatus = DriverOnboardingStatus.Incomplete;
         CreatedAt = DateTime.UtcNow;
     }
-
-    public DriverId GetDriverId() => DriverId.FromUserId(UserId);
 
     public ErrorOr<Success> UpdatePersonalInfo(DriverPersonalInfo personalInfo)
     {

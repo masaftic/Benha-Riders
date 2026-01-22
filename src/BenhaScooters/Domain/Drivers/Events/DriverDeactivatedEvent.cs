@@ -1,7 +1,8 @@
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Domain.Drivers.Events;
 
 public record DriverDeactivatedEvent(
-    DriverId DriverId,
+    UserId DriverId,
     string Reason) : DomainEvent;

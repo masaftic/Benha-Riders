@@ -2,12 +2,13 @@ using BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.S3;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 
-public record ListDriverDocuments(DriverId DriverId) : IRequest<ErrorOr<ListDriverDocumentsResponse>>;
+public record ListDriverDocuments(UserId DriverId) : IRequest<ErrorOr<ListDriverDocumentsResponse>>;
 
 public record ListDriverDocumentsResponse(
     List<string> RequiredDocuments,
@@ -21,7 +22,7 @@ public class ListDriverDocumentsHandler(AppDbContext db, IS3Service s3) : IReque
 
     public async Task<ErrorOr<ListDriverDocumentsResponse>> Handle(ListDriverDocuments request, CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         
         var driverDocuments = await _db.DriverProfiles
             .Where(d => d.UserId == userId)

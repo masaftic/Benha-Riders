@@ -5,6 +5,7 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.S3;
 using ErrorOr;
 using MediatR;
@@ -17,7 +18,7 @@ public record GetPendingApplicationsQuery : IRequest<ErrorOr<GetPendingApplicati
 public record GetPendingApplicationsResponse(List<PendingDriverApplicationDto> Applications);
 
 public record PendingDriverApplicationDto(
-    DriverId DriverId,
+    UserId DriverId,
     PersonalInfoDto? PersonalInfo,
     VehicleInfoDto? VehicleInfo,
     List<DocumentDto>? Documents,
@@ -72,7 +73,7 @@ public class GetPendingApplicationsQueryHandler : IRequestHandler<GetPendingAppl
             List<DocumentDto> documents = [.. await Task.WhenAll(documentTasks)];
 
             response.Add(new PendingDriverApplicationDto(
-                driverProfile.GetDriverId(),
+                driverProfile.UserId,
                 personalInfo,
                 vehicleInfo,
                 documents,

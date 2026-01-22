@@ -2,10 +2,11 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Application.Features.TripRequests.Commands;
 
-public record ConfirmTripRequestCommand(TripRequestId TripRequestId, RiderId RiderId) : IRequest<ErrorOr<Success>>;
+public record ConfirmTripRequestCommand(TripRequestId TripRequestId, UserId RiderId) : IRequest<ErrorOr<Success>>;
 
 
 public class ConfirmTripRequestCommandHandler(AppDbContext db) : IRequestHandler<ConfirmTripRequestCommand, ErrorOr<Success>>

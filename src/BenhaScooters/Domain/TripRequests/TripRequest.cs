@@ -17,8 +17,7 @@ public partial struct TripRequestId;
 public class TripRequest : AggregateRoot
 {
     public TripRequestId Id { get; private set; }
-    public UserId RiderUserId { get; private set; }
-    public RiderId RiderId => RiderId.FromUserId(RiderUserId);
+    public UserId RiderId { get; private set; }
     public Point PickupLocation { get; private set; } = null!;
     public Point DropoffLocation { get; private set; } = null!;
     public string? PickupAddress { get; private set; }
@@ -32,9 +31,7 @@ public class TripRequest : AggregateRoot
     public FareEstimate FinalFare { get; private set; } = null!;
 
     // Final matching result (set by matching system when completed)
-    public UserId? MatchedDriverUserId { get; private set; }
-    public DriverId? MatchedDriverId => MatchedDriverUserId is not null ? DriverId.FromUserId(MatchedDriverUserId.Value) : null;
-
+    public UserId? MatchedDriverId { get; private set; }
 
     public DateTime? MatchedAt { get; private set; }
     public string? CancellationReason { get; private set; }
@@ -45,10 +42,10 @@ public class TripRequest : AggregateRoot
 
     private TripRequest() { } // For EF Core
 
-    public TripRequest(RiderId riderId, Point pickupLocation, Point dropoffLocation,
+    public TripRequest(UserId riderId, Point pickupLocation, Point dropoffLocation,
         string? pickupAddress, string? dropoffAddress, FareEstimate finalFare)
     {
-        RiderUserId = riderId.ToUserId();
+        RiderId = riderId;
         PickupLocation = pickupLocation;
         DropoffLocation = dropoffLocation;
         PickupAddress = pickupAddress;
@@ -56,12 +53,8 @@ public class TripRequest : AggregateRoot
         FinalFare = finalFare;
         RequestedAt = DateTime.UtcNow;
         ExpiresAt = DateTime.UtcNow.AddMinutes(10); // 10-minute expiry
-        Status = TripRequestStatus.Pending;
+        Status = TripRequestStatus.NotConfirmed;
     }
-
-    // Helper to get UserId for database queries
-    public UserId GetRiderUserId() => RiderId.ToUserId();
-    public UserId? GetMatchedDriverUserId() => MatchedDriverId?.ToUserId();
 
     /// <summary>
     /// Call this method after the entity is saved to the database to publish the domain event
@@ -94,8 +87,8 @@ public class TripRequest : AggregateRoot
 
     public ErrorOr<Success> Confirm()
     {
-        if (Status != TripRequestStatus.Pending)
-            return TripErrors.TripRequest.NotPending;
+        if (Status != TripRequestStatus.NotConfirmed)
+            return TripErrors.TripRequest.AlreadyConfirmed;
 
         if (IsExpired)
             return TripErrors.TripRequest.Expired;
@@ -111,7 +104,7 @@ public class TripRequest : AggregateRoot
     /// <summary>
     /// Called by the matching system when a driver is successfully matched
     /// </summary>
-    public ErrorOr<Success> MarkAsMatched(DriverId driverId)
+    public ErrorOr<Success> MarkAsMatched(UserId driverId)
     {
         if (Status != TripRequestStatus.Pending)
             return TripErrors.TripRequest.NotPending;
@@ -119,7 +112,7 @@ public class TripRequest : AggregateRoot
         if (IsExpired)
             return TripErrors.TripRequest.Expired;
 
-        MatchedDriverUserId = driverId.ToUserId();
+        MatchedDriverId = driverId;
         MatchedAt = DateTime.UtcNow;
         Status = TripRequestStatus.Matched;
 

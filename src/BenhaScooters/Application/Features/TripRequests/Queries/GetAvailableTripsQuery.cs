@@ -4,13 +4,14 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.TripRequests.Enums;
 using BenhaScooters.Domain.Trips.Enums;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.TripRequests.Queries;
 
-public record GetAvailableTripsQuery(DriverId DriverId) : IRequest<ErrorOr<GetAvailableTripsResult>>;
+public record GetAvailableTripsQuery(UserId DriverId) : IRequest<ErrorOr<GetAvailableTripsResult>>;
 
 public record AvailableTripDto(
     TripRequestId TripRequestId,
@@ -32,7 +33,7 @@ public class GetAvailableTripsQueryHandler(AppDbContext db) : IRequestHandler<Ge
 {
     public async Task<ErrorOr<GetAvailableTripsResult>> Handle(GetAvailableTripsQuery request, CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         
         // Check if driver is available to see trips
         var driverStatus = await db.DriverStatuses

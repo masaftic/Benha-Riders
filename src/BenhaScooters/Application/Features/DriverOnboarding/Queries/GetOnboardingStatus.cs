@@ -11,7 +11,7 @@ using BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 
-public record GetOnboardingStatusQuery(DriverId DriverId) : IRequest<ErrorOr<GetOnboardingStatusResponse>>;
+public record GetOnboardingStatusQuery(UserId DriverId) : IRequest<ErrorOr<GetOnboardingStatusResponse>>;
 
 public record GetOnboardingStatusResponse(
     DriverOnboardingStatus Status,
@@ -31,7 +31,7 @@ public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingStat
 
     public async Task<ErrorOr<GetOnboardingStatusResponse>> Handle(GetOnboardingStatusQuery request, CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         
         var driverProfile = await _db.DriverProfiles
             .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);

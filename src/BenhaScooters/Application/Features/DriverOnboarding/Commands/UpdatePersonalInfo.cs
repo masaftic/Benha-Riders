@@ -14,7 +14,7 @@ using BenhaScooters.Domain.Users;
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
 public record UpdatePersonalInfoCommand(
-    DriverId DriverId,
+    UserId DriverId,
     string FullName,
     string NationalId,
     DateOnly DateOfBirth,
@@ -39,7 +39,7 @@ public class UpdatePersonalInfoCommandValidator : AbstractValidator<UpdatePerson
 
     private async Task<bool> BeUniqueNationalId(UpdatePersonalInfoCommand command, string nationalId, CancellationToken cancellationToken)
     {
-        var userId = command.DriverId.ToUserId();
+        var userId = command.DriverId;
         return !await _db.DriverProfiles
             .AnyAsync(x => x.PersonalInfo != null && x.PersonalInfo.NationalId == NationalId.From(nationalId) && x.UserId != userId, 
                 cancellationToken);
@@ -54,7 +54,7 @@ public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler
 
     public async Task<ErrorOr<UpdatePersonalInfoResponse>> Handle(UpdatePersonalInfoCommand request, CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         
         var driverProfile = await _db.DriverProfiles
             .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);

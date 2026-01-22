@@ -1,5 +1,6 @@
 using BenhaScooters.Application.Features.Trips.Queries;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Riok.Mapperly.Abstractions;
@@ -64,7 +65,7 @@ public class GetDriverRecentTripsEndpoint : IEndpoint
 [Mapper]
 public partial class GetDriverRecentTripsEndpointMapper
 {
-    public GetDriverRecentTripsQuery MapToQuery(Domain.Drivers.DriverId driverId, int pageNumber, int pageSize)
+    public GetDriverRecentTripsQuery MapToQuery(UserId driverId, int pageNumber, int pageSize)
     {
         return new GetDriverRecentTripsQuery(driverId, pageNumber, pageSize);
     }

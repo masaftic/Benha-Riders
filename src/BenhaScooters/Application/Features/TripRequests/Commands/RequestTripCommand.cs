@@ -4,6 +4,7 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.TripRequests.Enums;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -13,7 +14,7 @@ using NetTopologySuite.Geometries;
 namespace BenhaScooters.Application.Features.TripRequests.Commands;
 
 public record RequestTripCommand(
-    RiderId RiderId,
+    UserId RiderId,
     double PickupLatitude,
     double PickupLongitude,
     double DropoffLatitude,
@@ -72,7 +73,7 @@ public class RequestTripCommandHandler(
     {
         // Check if rider has active trip request
         var hasActiveRequest = await db.TripRequests
-            .AnyAsync(tr => tr.RiderUserId == request.RiderId.ToUserId() && 
+            .AnyAsync(tr => tr.RiderId == request.RiderId && 
                            tr.Status == TripRequestStatus.Pending && tr.ExpiresAt > DateTime.UtcNow,
                       cancellationToken);
 

@@ -1,6 +1,7 @@
 using BenhaScooters.Application.Features.Trips.Commands;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -55,7 +56,7 @@ public class CancelTripRequestEndpoint : IEndpoint
 [Mapper]
 public partial class CancelTripRequestEndpointMapper
 {
-    public CancelTripRequestCommand MapToCommand(CancelTripRequestEndpoint.CancelTripRequestRequestDto request, Domain.Riders.RiderId riderId)
+    public CancelTripRequestCommand MapToCommand(CancelTripRequestEndpoint.CancelTripRequestRequestDto request, UserId riderId)
     {
         return new CancelTripRequestCommand(
             riderId,

@@ -5,6 +5,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Domain.Trips.ValueObjects;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -13,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.Trips.Commands;
 
 public record CompleteTripCommand(
-    DriverId DriverId,
+    UserId DriverId,
     TripId TripId) : IRequest<ErrorOr<CompleteTripResult>>;
 
 public record CompleteTripResult(
@@ -69,7 +70,7 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
         }
 
         // Update driver availability back to available
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         var driverStatus = await db.DriverStatuses
             .FirstAsync(ds => ds.UserId == userId, cancellationToken);
 

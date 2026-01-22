@@ -7,7 +7,7 @@ using Humanizer;
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries.Common;
 
 public record DriverSummaryDto(
-    DriverId Id,
+    UserId Id,
     string? FullName,
     NationalId? NationalId,
     PhoneNumber PhoneNumber,

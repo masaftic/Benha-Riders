@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BenhaScooters.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260122115107_MatchAttemptRound")]
-    partial class MatchAttemptRound
+    [Migration("20260122144704_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -328,7 +328,7 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<DateTime?>("MatchedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("MatchedDriverUserId")
+                    b.Property<int?>("MatchedDriverId")
                         .HasColumnType("integer");
 
                     b.Property<string>("PickupAddress")
@@ -342,7 +342,7 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<DateTime>("RequestedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("RiderUserId")
+                    b.Property<int>("RiderId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Status")
@@ -351,11 +351,11 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MatchedDriverUserId");
+                    b.HasIndex("MatchedDriverId");
 
                     b.HasIndex("RequestedAt");
 
-                    b.HasIndex("RiderUserId");
+                    b.HasIndex("RiderId");
 
                     b.HasIndex("Status");
 
@@ -379,7 +379,7 @@ namespace BenhaScooters.Data.Migrations
                     b.Property<DateTime?>("DriverArrivedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("DriverUserId")
+                    b.Property<int>("DriverId")
                         .HasColumnType("integer");
 
                     b.Property<string>("DropoffAddress")
@@ -398,7 +398,7 @@ namespace BenhaScooters.Data.Migrations
                         .IsRequired()
                         .HasColumnType("geography (point)");
 
-                    b.Property<int>("RiderUserId")
+                    b.Property<int>("RiderId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("StartedAt")
@@ -410,9 +410,9 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DriverUserId");
+                    b.HasIndex("DriverId");
 
-                    b.HasIndex("RiderUserId");
+                    b.HasIndex("RiderId");
 
                     b.HasIndex("Status");
 
@@ -920,12 +920,12 @@ namespace BenhaScooters.Data.Migrations
                 {
                     b.HasOne("BenhaScooters.Domain.Drivers.DriverProfile", "MatchedDriverProfile")
                         .WithMany()
-                        .HasForeignKey("MatchedDriverUserId")
+                        .HasForeignKey("MatchedDriverId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("BenhaScooters.Domain.Riders.RiderProfile", "RiderProfile")
                         .WithMany()
-                        .HasForeignKey("RiderUserId")
+                        .HasForeignKey("RiderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -966,13 +966,13 @@ namespace BenhaScooters.Data.Migrations
                 {
                     b.HasOne("BenhaScooters.Domain.Drivers.DriverProfile", "DriverProfile")
                         .WithMany()
-                        .HasForeignKey("DriverUserId")
+                        .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BenhaScooters.Domain.Riders.RiderProfile", "RiderProfile")
                         .WithMany()
-                        .HasForeignKey("RiderUserId")
+                        .HasForeignKey("RiderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

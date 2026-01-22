@@ -308,7 +308,7 @@ namespace BenhaScooters.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    RiderUserId = table.Column<int>(type: "integer", nullable: false),
+                    RiderId = table.Column<int>(type: "integer", nullable: false),
                     PickupLocation = table.Column<Point>(type: "geography (point)", nullable: false),
                     DropoffLocation = table.Column<Point>(type: "geography (point)", nullable: false),
                     PickupAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
@@ -320,7 +320,7 @@ namespace BenhaScooters.Data.Migrations
                     FinalFare_Amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     FinalFare_Distance = table.Column<double>(type: "double precision", nullable: false),
                     FinalFare_Time = table.Column<double>(type: "double precision", nullable: false),
-                    MatchedDriverUserId = table.Column<int>(type: "integer", nullable: true),
+                    MatchedDriverId = table.Column<int>(type: "integer", nullable: true),
                     MatchedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CancellationReason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
                 },
@@ -328,14 +328,14 @@ namespace BenhaScooters.Data.Migrations
                 {
                     table.PrimaryKey("PK_TripRequests", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TripRequests_DriverProfiles_MatchedDriverUserId",
-                        column: x => x.MatchedDriverUserId,
+                        name: "FK_TripRequests_DriverProfiles_MatchedDriverId",
+                        column: x => x.MatchedDriverId,
                         principalTable: "DriverProfiles",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
-                        name: "FK_TripRequests_RiderProfiles_RiderUserId",
-                        column: x => x.RiderUserId,
+                        name: "FK_TripRequests_RiderProfiles_RiderId",
+                        column: x => x.RiderId,
                         principalTable: "RiderProfiles",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
@@ -347,8 +347,8 @@ namespace BenhaScooters.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    DriverUserId = table.Column<int>(type: "integer", nullable: false),
-                    RiderUserId = table.Column<int>(type: "integer", nullable: false),
+                    DriverId = table.Column<int>(type: "integer", nullable: false),
+                    RiderId = table.Column<int>(type: "integer", nullable: false),
                     PickupLocation = table.Column<Point>(type: "geography (point)", nullable: false),
                     DropoffLocation = table.Column<Point>(type: "geography (point)", nullable: false),
                     PickupAddress = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
@@ -376,14 +376,14 @@ namespace BenhaScooters.Data.Migrations
                 {
                     table.PrimaryKey("PK_Trips", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Trips_DriverProfiles_DriverUserId",
-                        column: x => x.DriverUserId,
+                        name: "FK_Trips_DriverProfiles_DriverId",
+                        column: x => x.DriverId,
                         principalTable: "DriverProfiles",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Trips_RiderProfiles_RiderUserId",
-                        column: x => x.RiderUserId,
+                        name: "FK_Trips_RiderProfiles_RiderId",
+                        column: x => x.RiderId,
                         principalTable: "RiderProfiles",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
@@ -442,6 +442,7 @@ namespace BenhaScooters.Data.Migrations
                     MatchingSessionId = table.Column<int>(type: "integer", nullable: false),
                     DriverUserId = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false),
+                    MatchingRound = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     RespondedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -620,9 +621,9 @@ namespace BenhaScooters.Data.Migrations
                 column: "TripId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TripRequests_MatchedDriverUserId",
+                name: "IX_TripRequests_MatchedDriverId",
                 table: "TripRequests",
-                column: "MatchedDriverUserId");
+                column: "MatchedDriverId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TripRequests_RequestedAt",
@@ -630,9 +631,9 @@ namespace BenhaScooters.Data.Migrations
                 column: "RequestedAt");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TripRequests_RiderUserId",
+                name: "IX_TripRequests_RiderId",
                 table: "TripRequests",
-                column: "RiderUserId");
+                column: "RiderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TripRequests_Status",
@@ -640,14 +641,14 @@ namespace BenhaScooters.Data.Migrations
                 column: "Status");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Trips_DriverUserId",
+                name: "IX_Trips_DriverId",
                 table: "Trips",
-                column: "DriverUserId");
+                column: "DriverId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Trips_RiderUserId",
+                name: "IX_Trips_RiderId",
                 table: "Trips",
-                column: "RiderUserId");
+                column: "RiderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Trips_Status",

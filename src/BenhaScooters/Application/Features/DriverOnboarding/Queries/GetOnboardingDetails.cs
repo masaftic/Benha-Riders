@@ -12,7 +12,7 @@ using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Queries;
 
-public record GetOnboardingDetailsQuery(DriverId DriverId) : IRequest<ErrorOr<GetOnboardingDetailsResponse>>;
+public record GetOnboardingDetailsQuery(UserId DriverId) : IRequest<ErrorOr<GetOnboardingDetailsResponse>>;
 
 public record GetOnboardingDetailsResponse(
     OnboardingStateDto OnboardingState,
@@ -34,12 +34,10 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
 
     public async Task<ErrorOr<GetOnboardingDetailsResponse>> Handle(GetOnboardingDetailsQuery request, CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
-        
         var driverProfile = await _db.DriverProfiles
             .Include(d => d.User)
             .Include(d => d.Documents)
-            .FirstOrDefaultAsync(dp => dp.UserId == userId, cancellationToken);
+            .FirstOrDefaultAsync(dp => dp.UserId == request.DriverId, cancellationToken);
 
         if (driverProfile == null)
         {

@@ -42,14 +42,12 @@ public class DriverMatchAttempt
     public MatchingSession MatchingSession { get; private set; } = null!;
     
     // Semantic accessor for DriverId
-    public DriverId DriverId => DriverId.FromUserId(DriverUserId);
-
     private DriverMatchAttempt() { } // For EF Core
 
-    public DriverMatchAttempt(DriverId driverId, MatchingSessionId matchingSessionId,
+    public DriverMatchAttempt(UserId driverId, MatchingSessionId matchingSessionId,
         double distanceToPickup, double estimatedArrivalTime, decimal driverScore, int matchingRound)
     {
-        DriverUserId = driverId.ToUserId();
+        DriverUserId = driverId;
         MatchingSessionId = matchingSessionId;
         DistanceToPickup = distanceToPickup;
         EstimatedArrivalTime = estimatedArrivalTime;
@@ -60,8 +58,6 @@ public class DriverMatchAttempt
         MatchingRound = matchingRound;
     }
 
-    // Helper to get UserId for database queries
-    public UserId GetDriverUserId() => DriverUserId;
 
     public void Accept()
     {

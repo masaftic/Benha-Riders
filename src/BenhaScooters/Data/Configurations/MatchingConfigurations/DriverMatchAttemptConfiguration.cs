@@ -31,9 +31,6 @@ public class DriverMatchAttemptConfiguration : IEntityTypeConfiguration<DriverMa
             .HasForeignKey(dma => dma.DriverUserId)
             .OnDelete(DeleteBehavior.Cascade);
         
-        // Ignore computed property
-        builder.Ignore(dma => dma.DriverId);
-
         builder.HasIndex(dma => dma.Status);
         builder.HasIndex(dma => dma.CreatedAt);
     }

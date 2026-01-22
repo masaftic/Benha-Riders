@@ -43,8 +43,6 @@ public class DriverStats
         TotalOnlineTime = TimeSpan.Zero;
     }
 
-    public DriverId GetDriverId() => DriverId.FromUserId(UserId);
-
     public void AddRating(decimal rating)
     {
         if (rating < 1 || rating > 5)

@@ -2,6 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -9,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Drivers.Commands;
 
-public record SetDriverAvailabilityCommand(DriverId DriverId, string DriverStatus) : IRequest<ErrorOr<SetDriverAvailabilityResponse>>;
+public record SetDriverAvailabilityCommand(UserId DriverId, string DriverStatus) : IRequest<ErrorOr<SetDriverAvailabilityResponse>>;
 
 public class SetDriverAvailabilityCommandValidator : AbstractValidator<SetDriverAvailabilityCommand>
 {
@@ -37,7 +38,7 @@ public class SetDriverAvailabilityCommandHandler : IRequestHandler<SetDriverAvai
 
     public async Task<ErrorOr<SetDriverAvailabilityResponse>> Handle(SetDriverAvailabilityCommand request, CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         
         // Get or create driver status
         var driverStatus = await _db.DriverStatuses

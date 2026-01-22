@@ -3,6 +3,7 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -10,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Matching.Queries;
 
-public record GetDriverMatchOffersQuery(DriverId DriverId) : IRequest<ErrorOr<GetDriverMatchOffersResult>>;
+public record GetDriverMatchOffersQuery(UserId DriverId) : IRequest<ErrorOr<GetDriverMatchOffersResult>>;
 
 public record GetDriverMatchOffersResult(
     List<DriverMatchOfferDto> MatchOffers);
@@ -44,7 +45,7 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
         GetDriverMatchOffersQuery request, 
         CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         
         // Check if driver exists and is available
         var driverStatus = await db.DriverStatuses
@@ -63,7 +64,7 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
         // Get pending match offers for this driver
         var matchOffers = await db.DriverMatchAttempts
             .AsNoTracking()
-            .Where(ma => ma.DriverId == request.DriverId && 
+            .Where(ma => ma.DriverUserId == request.DriverId && 
                         ma.Status == MatchAttemptStatus.Pending && 
                         ma.ExpiresAt > DateTime.UtcNow)
             .OrderBy(ma => ma.CreatedAt)

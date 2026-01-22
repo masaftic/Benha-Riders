@@ -5,6 +5,7 @@ using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.TripRequests.Enums;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -13,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.TripRequests.Queries;
 
 public record GetTripStatusQuery(
-    RiderId RiderId,
+    UserId RiderId,
     TripRequestId TripRequestId) : IRequest<ErrorOr<GetTripStatusResult>>;
 
 public record GetTripStatusResult(
@@ -43,7 +44,7 @@ public class GetTripStatusQueryHandler(AppDbContext db) : IRequestHandler<GetTri
 {
     public async Task<ErrorOr<GetTripStatusResult>> Handle(GetTripStatusQuery request, CancellationToken cancellationToken)
     {
-        var riderUserId = request.RiderId.ToUserId();
+        var riderUserId = request.RiderId;
         
         // Find the trip request
         var tripStatusInfo = await db.TripRequests

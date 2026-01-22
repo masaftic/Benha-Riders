@@ -1,4 +1,5 @@
 using BenhaScooters.Application.Features.Trips.Queries;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Presentation.Endpoints.Trips.Common;
 using MediatR;
@@ -56,7 +57,7 @@ public class GetDriverCurrentTripEndpoint : IEndpoint
 [Mapper]
 public partial class GetDriverCurrentTripEndpointMapper
 {
-    public GetDriverCurrentTripQuery MapToQuery(Domain.Drivers.DriverId driverId)
+    public GetDriverCurrentTripQuery MapToQuery(UserId driverId)
     {
         return new GetDriverCurrentTripQuery(driverId);
     }

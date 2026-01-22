@@ -3,6 +3,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -52,7 +53,7 @@ public class AcceptMatchEndpoint : IEndpoint
 [Mapper]
 public partial class AcceptMatchEndpointMapper
 {
-    public AcceptMatchCommand MapToCommand(AcceptMatchEndpoint.AcceptMatchRequestDto request, DriverId driverId) =>
+    public AcceptMatchCommand MapToCommand(AcceptMatchEndpoint.AcceptMatchRequestDto request, UserId driverId) =>
         new(driverId, DriverMatchAttemptId.From(request.DriverMatchAttemptId));
 
     public partial AcceptMatchEndpoint.AcceptMatchResponseDto MapToResponse(AcceptMatchResult result);

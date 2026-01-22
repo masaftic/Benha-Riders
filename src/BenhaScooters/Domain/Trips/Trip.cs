@@ -18,13 +18,8 @@ public class Trip : AggregateRoot
 {
     public TripId Id { get; private set; }
 
-    public UserId DriverUserId { get; private set; }
-    public UserId RiderUserId { get; private set; }
-
-
-    // Semantic IDs (wrappers around UserId) for type safety
-    public DriverId DriverId => DriverId.FromUserId(DriverUserId);
-    public RiderId RiderId => RiderId.FromUserId(RiderUserId);
+    public UserId DriverId { get; private set; }
+    public UserId RiderId { get; private set; }
 
     // Trip Details
     public Point PickupLocation { get; private set; } = null!;
@@ -53,12 +48,12 @@ public class Trip : AggregateRoot
 
     private Trip() { } // For EF Core
 
-    public Trip(DriverId driverId, RiderId riderId,
+    public Trip(UserId driverId, UserId riderId,
         Point pickupLocation, Point dropoffLocation, string? pickupAddress, string? dropoffAddress,
         FareEstimate finalFare)
     {
-        DriverUserId = driverId.ToUserId();
-        RiderUserId = riderId.ToUserId();
+        DriverId = driverId;
+        RiderId = riderId;
         PickupLocation = pickupLocation;
         DropoffLocation = dropoffLocation;
         PickupAddress = pickupAddress?.Trim();
@@ -67,10 +62,6 @@ public class Trip : AggregateRoot
         Status = TripStatus.Assigned;
         AssignedAt = DateTime.UtcNow;
     }
-
-    // Helper to get UserId for database queries
-    public UserId GetDriverUserId() => DriverId.ToUserId();
-    public UserId GetRiderUserId() => RiderId.ToUserId();
 
     /// <summary>
     /// Call this method after the entity is saved to the database to publish the domain event

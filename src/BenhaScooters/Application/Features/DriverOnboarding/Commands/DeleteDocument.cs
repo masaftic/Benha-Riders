@@ -1,13 +1,14 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.S3;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
 public record DeleteDocumentCommand(
-    DriverId DriverId,
+    UserId DriverId,
     DocumentType DocumentType) : IRequest<ErrorOr<Deleted>>;
 
 public class DeleteDocumentCommandHandler : IRequestHandler<DeleteDocumentCommand, ErrorOr<Deleted>>
@@ -23,7 +24,7 @@ public class DeleteDocumentCommandHandler : IRequestHandler<DeleteDocumentComman
 
     public async Task<ErrorOr<Deleted>> Handle(DeleteDocumentCommand request, CancellationToken cancellationToken)
     {
-        var userId = request.DriverId.ToUserId();
+        var userId = request.DriverId;
         
         var driverProfile = await _db.DriverProfiles
             .Include(d => d.Documents)

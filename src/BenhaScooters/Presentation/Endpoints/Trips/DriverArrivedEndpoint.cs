@@ -1,5 +1,6 @@
 using BenhaScooters.Application.Features.Trips.Commands;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -50,7 +51,7 @@ public class DriverArrivedEndpoint : IEndpoint
 [Mapper]
 public partial class DriverArrivedEndpointMapper
 {
-    public DriverArrivedCommand MapToCommand(int tripId, Domain.Drivers.DriverId driverId)
+    public DriverArrivedCommand MapToCommand(int tripId, UserId driverId)
     {
         return new DriverArrivedCommand(
             driverId,

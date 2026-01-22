@@ -90,20 +90,16 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
                 .HasMaxLength(100);
         });
 
-        // DriverId/RiderId are semantic wrappers around UserId
-        // Configure FK to DriverProfile (keyed by UserId)
+
         builder.HasOne(t => t.DriverProfile)
             .WithMany()
-            .HasForeignKey(t => t.DriverUserId)
+            .HasForeignKey(t => t.DriverId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(t => t.RiderProfile)
             .WithMany()
-            .HasForeignKey(t => t.RiderUserId)
+            .HasForeignKey(t => t.RiderId)
             .OnDelete(DeleteBehavior.Restrict);
-        
-        builder.Ignore(t => t.DriverId);
-        builder.Ignore(t => t.RiderId);
 
         builder.HasIndex(t => t.Status);
     }

@@ -3,6 +3,7 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
+using BenhaScooters.Domain.Users;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -11,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.Trips.Commands;
 
 public record DriverArrivedCommand(
-    DriverId DriverId,
+    UserId DriverId,
     TripId TripId) : IRequest<ErrorOr<DriverArrivedResult>>;
 
 public record DriverArrivedResult(

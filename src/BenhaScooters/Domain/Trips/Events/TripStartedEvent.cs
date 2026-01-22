@@ -2,6 +2,7 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Domain.Trips.Events;
 
@@ -10,6 +11,6 @@ namespace BenhaScooters.Domain.Trips.Events;
 /// </summary>
 public record TripStartedEvent(
     TripId TripId,
-    DriverId DriverId,
-    RiderId RiderId
+    UserId DriverId,
+    UserId RiderId
 ) : DomainEvent;

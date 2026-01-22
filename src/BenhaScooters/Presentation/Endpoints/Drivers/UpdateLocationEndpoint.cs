@@ -1,6 +1,7 @@
 using BenhaScooters.Application.Features.Drivers.Commands;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using MediatR;
@@ -53,7 +54,7 @@ public class UpdateLocationEndpoint : IEndpoint
 [Mapper]
 public partial class UpdateLocationEndpointMapper
 {
-    public UpdateLocationCommand MapToCommand(UpdateLocationEndpoint.UpdateLocationRequestDto request, DriverId driverId)
+    public UpdateLocationCommand MapToCommand(UpdateLocationEndpoint.UpdateLocationRequestDto request, UserId driverId)
     {
         return new UpdateLocationCommand(driverId, request.Latitude, request.Longitude);
     }

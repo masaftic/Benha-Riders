@@ -3,6 +3,7 @@ using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using FluentValidation;
@@ -128,7 +129,7 @@ public class UpdatePersonalInfoEndpoint : IEndpoint
 [Mapper]
 public partial class UpdatePersonalInfoEndpointMapper
 {
-    public UpdatePersonalInfoCommand MapToCommand(UpdatePersonalInfoEndpoint.UpdatePersonalInfoRequestDto request, DriverId driverId)
+    public UpdatePersonalInfoCommand MapToCommand(UpdatePersonalInfoEndpoint.UpdatePersonalInfoRequestDto request, UserId driverId)
     {
         return new UpdatePersonalInfoCommand(
             driverId,

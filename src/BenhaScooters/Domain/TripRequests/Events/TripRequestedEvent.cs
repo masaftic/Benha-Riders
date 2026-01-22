@@ -1,6 +1,7 @@
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Trips.ValueObjects;
+using BenhaScooters.Domain.Users;
 using NetTopologySuite.Geometries;
 
 namespace BenhaScooters.Domain.TripRequests.Events;
@@ -10,7 +11,7 @@ namespace BenhaScooters.Domain.TripRequests.Events;
 /// </summary>
 public record TripRequestedEvent(
     TripRequestId TripRequestId,
-    RiderId RiderId,
+    UserId RiderId,
     Point PickupLocation,
     Point DropoffLocation,
     string? PickupAddress,

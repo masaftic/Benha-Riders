@@ -7,7 +7,7 @@ using NetTopologySuite.Geometries;
 namespace BenhaScooters.Infrastructure.Matching.Services;
 
 public record DriverCandidate(
-    DriverId DriverId,
+    UserId DriverId,
     Point CurrentLocation,
     double DistanceToPickup,
     decimal Rating,
@@ -18,7 +18,7 @@ public interface IDriverRankingService
     Task<List<DriverCandidate>> FindTopNDriversAsync(
         Point pickupLocation, 
         int count = 5, 
-        List<DriverId>? excludedDrivers = null, 
+        List<UserId>? excludedDrivers = null, 
         CancellationToken cancellationToken = default);
 }
 
@@ -53,12 +53,11 @@ public class DriverRankingService : IDriverRankingService
     public async Task<List<DriverCandidate>> FindTopNDriversAsync(
         Point pickupLocation, 
         int count = 5, 
-        List<DriverId>? excludedDrivers = null, 
+        List<UserId>? excludedDrivers = null, 
         CancellationToken cancellationToken = default)
     {
         // Convert excluded DriverIds to UserIds for query
-        var excludedUserIds = excludedDrivers?.Select(d => d.ToUserId()).ToList();
-
+        var excludedUserIds = excludedDrivers?.ToList();
         // Query using new tiered structure: DriverStatus + DriverLocation + DriverStats
         // All tables are keyed by UserId
         var availableDrivers = await (
@@ -80,7 +79,7 @@ public class DriverRankingService : IDriverRankingService
         // Calculate scores and rank drivers
         var candidates = availableDrivers
             .Select(driver => new DriverCandidate(
-                DriverId.From(driver.UserId.Value),  // Convert UserId back to DriverId
+                driver.UserId, 
                 driver.CurrentLocation,
                 driver.DistanceToPickup,
                 driver.AverageRating,

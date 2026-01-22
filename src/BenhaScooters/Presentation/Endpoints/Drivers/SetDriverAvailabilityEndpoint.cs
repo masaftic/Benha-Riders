@@ -1,6 +1,7 @@
 using BenhaScooters.Application.Features.Drivers.Commands;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using MediatR;
@@ -56,7 +57,7 @@ public class SetDriverAvailabilityEndpoint : IEndpoint
 [Mapper]
 public partial class SetDriverAvailabilityEndpointMapper
 {
-    public SetDriverAvailabilityCommand MapToCommand(SetDriverAvailabilityEndpoint.SetDriverAvailabilityRequestDto request, DriverId driverId)
+    public SetDriverAvailabilityCommand MapToCommand(SetDriverAvailabilityEndpoint.SetDriverAvailabilityRequestDto request, UserId driverId)
     {
         return new SetDriverAvailabilityCommand(driverId, request.Status);
     }

@@ -33,6 +33,10 @@ public static class TripErrors
         public static readonly Error Forbidden = Error.Forbidden(
             "TRIP_REQUEST_FORBIDDEN",
             "غير مصرح لك بتأكيد طلب الرحلة هذا");
+        
+        public static readonly Error AlreadyConfirmed = Error.Conflict(
+            "TRIP_REQUEST_ALREADY_CONFIRMED",
+            "تم تأكيد طلب الرحلة بالفعل");
     }
 
     public static class Trip

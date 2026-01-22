@@ -2,6 +2,7 @@ using BenhaScooters.Application.Features.TripRequests.Commands;
 using BenhaScooters.Application.Features.Trips.Commands;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -62,7 +63,7 @@ public class RequestTripEndpoint : IEndpoint
 [Mapper]
 public partial class RequestTripEndpointMapper
 {
-    public RequestTripCommand MapToCommand(RequestTripEndpoint.RequestTripRequestDto request, RiderId riderId)
+    public RequestTripCommand MapToCommand(RequestTripEndpoint.RequestTripRequestDto request, UserId riderId)
     {
         return new RequestTripCommand(
             riderId,

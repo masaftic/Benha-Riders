@@ -1,6 +1,7 @@
 
 using BenhaScooters.Application.Features.DriverOnboarding.Queries;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Presentation.Endpoints.DriverOnboarding.AdminActions;
 
@@ -22,7 +23,7 @@ public class GetDriverDocuments : IEndpoint
 
     public async Task<IResult> GetDocuments([FromServices] ISender sender, [FromRoute] int driverId, HttpContext ctx)
     {
-        var query = new ListDriverDocuments(DriverId.From(driverId));
+        var query = new ListDriverDocuments(UserId.From(driverId));
         var result = await sender.Send(query);
 
         if (result.IsError)
