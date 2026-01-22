@@ -25,6 +25,8 @@ public static class DependencyInjection
         services.AddOptions<MatchingSessionOptions>()
             .Bind(configuration.GetSection(MatchingSessionOptions.SectionName))
             .ValidateDataAnnotations()
+            .Validate(options => options.OffersPerRound?.Length == options.NumberOfRounds,
+                "OffersPerRound length must equal NumberOfRounds")
             .ValidateOnStart();
 
         // Register application services

@@ -7,6 +7,7 @@ using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Infrastructure.Trips.Services;
 using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Infrastructure.Matching.Services;
+using BenhaScooters.Infrastructure.Matching.Settings;
 // using BenhaScooters.Infrastructure.Matching.BackgroundServices;
 using BenhaScooters.Application.Services;
 using BenhaScooters.Infrastructure.Interceptors;
@@ -47,6 +48,12 @@ public static class DependencyInjection
 
         services.AddOptions<TripFareConfiguration>()
             .Bind(configuration.GetSection(TripFareConfiguration.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        // Configure driver ranking options (search radius, etc.)
+        services.AddOptions<DriverRankingOptions>()
+            .Bind(configuration.GetSection(DriverRankingOptions.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 

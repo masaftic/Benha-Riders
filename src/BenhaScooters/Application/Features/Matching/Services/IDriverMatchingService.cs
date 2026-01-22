@@ -76,6 +76,7 @@ public class DriverMatchingService : IDriverMatchingService
             var rankedDrivers = await _driverRanking.FindTopNDriversAsync(
                 tripRequest.PickupLocation,
                 matchingSession.OffersPerRound[matchingSession.CurrentRound - 1],
+                roundNumber: matchingSession.CurrentRound - 1,
                 excludedDrivers: matchingSession.GetRejectedOrExpiredDrivers(),
                 cancellationToken: cancellationToken);
 

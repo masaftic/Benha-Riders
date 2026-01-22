@@ -1,7 +1,9 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Users;
+using BenhaScooters.Infrastructure.Matching.Settings;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NetTopologySuite.Geometries;
 
 namespace BenhaScooters.Infrastructure.Matching.Services;
@@ -17,7 +19,8 @@ public interface IDriverRankingService
 {
     Task<List<DriverCandidate>> FindTopNDriversAsync(
         Point pickupLocation, 
-        int count = 5, 
+        int count, 
+        int roundNumber,
         List<UserId>? excludedDrivers = null, 
         CancellationToken cancellationToken = default);
 }
@@ -25,14 +28,15 @@ public interface IDriverRankingService
 public class DriverRankingService : IDriverRankingService
 {
     private readonly AppDbContext _dbContext;
-    private const double MaxSearchRadius = 10000; // 10km in meters
+    private readonly DriverRankingOptions _options;
     private const double DistanceWeight = 0.7; // 70% weight for distance
     private const double RatingWeight = 0.3;   // 30% weight for rating
     private const decimal DefaultRating = 4.0m; // Default rating for new drivers
 
-    public DriverRankingService(AppDbContext dbContext)
+    public DriverRankingService(AppDbContext dbContext, IOptions<DriverRankingOptions> options)
     {
         _dbContext = dbContext;
+        _options = options.Value;
     }
 
     private static decimal CalculateDriverScore(double distanceMeters, decimal rating)
@@ -52,20 +56,23 @@ public class DriverRankingService : IDriverRankingService
 
     public async Task<List<DriverCandidate>> FindTopNDriversAsync(
         Point pickupLocation, 
-        int count = 5, 
-        List<UserId>? excludedDrivers = null, 
+        int count, 
+        int roundNumber,
+        List<UserId>? excludedDrivers = null,
         CancellationToken cancellationToken = default)
     {
         // Convert excluded DriverIds to UserIds for query
         var excludedUserIds = excludedDrivers?.ToList();
         // Query using new tiered structure: DriverStatus + DriverLocation + DriverStats
-        // All tables are keyed by UserId
+        
+        var searchRadius = _options.MaxSearchRadiusMeters + roundNumber * _options.RadiusIncrementMeters;
+
         var availableDrivers = await (
             from ds in _dbContext.DriverStatuses
             join dl in _dbContext.DriverLocations on ds.UserId equals dl.UserId
             join stats in _dbContext.DriverStats on ds.UserId equals stats.UserId
             where ds.Status == DriverAvailabilityStatus.Online
-            where dl.Location.Distance(pickupLocation) <= MaxSearchRadius
+            where dl.Location.Distance(pickupLocation) <= searchRadius
             where excludedUserIds == null || !excludedUserIds.Contains(ds.UserId)
             select new
             {

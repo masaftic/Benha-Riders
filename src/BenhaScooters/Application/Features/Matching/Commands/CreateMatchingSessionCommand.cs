@@ -3,10 +3,12 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Application.Features.Matching.Settings;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace BenhaScooters.Application.Features.Matching.Commands;
 
@@ -27,7 +29,7 @@ public class CreateMatchingSessionCommandValidator : AbstractValidator<CreateMat
     }
 }
 
-public class CreateMatchingSessionCommandHandler(AppDbContext db) 
+public class CreateMatchingSessionCommandHandler(AppDbContext db, IOptions<MatchingSessionOptions> options) 
     : IRequestHandler<CreateMatchingSessionCommand, ErrorOr<CreateMatchingSessionResult>>
 {
     public async Task<ErrorOr<CreateMatchingSessionResult>> Handle(CreateMatchingSessionCommand request, CancellationToken cancellationToken)
@@ -64,11 +66,11 @@ public class CreateMatchingSessionCommandHandler(AppDbContext db)
             db.MatchingSessions.Remove(existingSession);
         }
 
-        // Create new matching session
+        // Create new matching session using configured rounds and offers
         var matchingSessionResult = MatchingSession.Create(
             request.TripRequestId,
-            numberOfRounds: 3,
-            offersPerRound: [1, 3, 5]);
+            numberOfRounds: options.Value.NumberOfRounds,
+            offersPerRound: options.Value.OffersPerRound.ToList());
         
         if (matchingSessionResult.IsError)
             return matchingSessionResult.Errors;

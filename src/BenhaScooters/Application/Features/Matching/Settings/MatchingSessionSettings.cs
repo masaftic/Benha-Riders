@@ -12,6 +12,13 @@ public class MatchingSessionOptions
     [Range(5, 120)]
     public int TimeAfterEmptyRoundSeconds { get; set; }
 
+    [Range(1, 10)]
+    public int NumberOfRounds { get; set; }
+
+    [Required]
+    [MinLength(1)]
+    public int[] OffersPerRound { get; set; } = null!;
+
 
     public TimeSpan DriverResponseTimeout => TimeSpan.FromSeconds(DriverResponseTimeoutSeconds);
     public TimeSpan TimeAfterEmptyRound => TimeSpan.FromSeconds(TimeAfterEmptyRoundSeconds);
