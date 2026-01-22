@@ -1,4 +1,5 @@
 using BenhaScooters.Application.Abstractions;
+using BenhaScooters.Application.Features.Matching.Settings;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
@@ -12,14 +13,13 @@ using Hangfire;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace BenhaScooters.Application.Features.Matching.Services;
 
 public interface IDriverMatchingService
 {
-
     Task<ErrorOr<Success>> ProcessMatchingAsync(MatchingSessionId matchingSessionId, CancellationToken cancellationToken = default);
-
     Task HandleMatchAttemptTimeoutAsync(MatchingSessionId matchingSessionId, DriverId driverId, CancellationToken cancellationToken = default);
 }
 
@@ -29,17 +29,20 @@ public class DriverMatchingService : IDriverMatchingService
     private readonly IDriverRankingService _driverRanking;
     private readonly ILogger<DriverMatchingService> _logger;
     private readonly IHubContext<DriverHub, IDriverNotifications> _hub;
+    private readonly MatchingSessionOptions _settings;
 
     public DriverMatchingService(
         AppDbContext dbContext,
         IDriverRankingService driverRanking,
         ILogger<DriverMatchingService> logger,
-        IHubContext<DriverHub, IDriverNotifications> hub)
+        IHubContext<DriverHub, IDriverNotifications> hub,
+        IOptions<MatchingSessionOptions> options)
     {
         _dbContext = dbContext;
         _driverRanking = driverRanking;
         _logger = logger;
         _hub = hub;
+        _settings = options.Value;
     }
 
     public async Task<ErrorOr<Success>> ProcessMatchingAsync(MatchingSessionId matchingSessionId, CancellationToken cancellationToken = default)
@@ -75,15 +78,16 @@ public class DriverMatchingService : IDriverMatchingService
                 excludedDrivers: matchingSession.GetRejectedOrExpiredDrivers(),
                 cancellationToken: cancellationToken);
 
-            if (rankedDrivers.Count == 0) // TODO: Don't cancel immediately, try next rounds first
+            if (rankedDrivers.Count == 0) 
             {
-                _logger.LogInformation("No drivers found for matching session {MatchingSessionId}. Session cancelled.",
-                    matchingSessionId);
+                _logger.LogInformation("No available drivers found for matching session {MatchingSessionId} in round {CurrentRound}",
+                    matchingSessionId, matchingSession.CurrentRound);
 
-                matchingSession.Cancel("No drivers available for matching");
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
+                BackgroundJob.Schedule<IMatchingOrchestrator>(
+                    orchestrator => orchestrator.HandlePostOutcomeAsync(
+                        tripRequest.Id,
+                        cancellationToken),
+                    _settings.TimeAfterEmptyRound); // delay then advance to next round or cancel 
 
                 return Result.Success;
             }
@@ -116,7 +120,7 @@ public class DriverMatchingService : IDriverMatchingService
                         matchingSessionId,
                         driver.DriverId,
                         cancellationToken),
-                    TimeSpan.FromSeconds(30));
+                    _settings.DriverResponseTimeout); // delay then timeout
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -159,42 +163,15 @@ public class DriverMatchingService : IDriverMatchingService
                     driverId, matchingSessionId, string.Join(", ", result.Errors.Select(e => e.Description)));
                 return;
             }
-
-            var transitionResult = matchingSession.TryTransitionToNextRound();
-
-            if (transitionResult.IsError)
-            {
-                _logger.LogWarning("Failed to transition matching session {MatchingSessionId} after timeout: {Errors}",
-                    matchingSessionId, string.Join(", ", transitionResult.Errors.Select(e => e.Description)));
-                await transaction.RollbackAsync(cancellationToken);
-                return;
-            }
-
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            switch (transitionResult.Value)
-            {
-                case RoundTransitioned:
-                    _logger.LogInformation("Advancing to next round for session {MatchingSessionId}", matchingSessionId);
-                    var matchResult = await ProcessMatchingAsync(matchingSessionId, cancellationToken);
-                    if (matchResult.IsError)
-                    {
-                        _logger.LogWarning("Failed to process matching for session {MatchingSessionId}: {Errors}",
-                            matchingSessionId, string.Join(", ", matchResult.Errors.Select(e => e.Description)));
-                    }
-                    break;
-
-                case MatchingCanceled:
-                    _logger.LogInformation("Matching session {MatchingSessionId} cancelled after timeout", matchingSessionId);
-                    break;
-
-                case NoTransition:
-                case MatchingCompleted:
-                default:
-                    // Nothing to do – either still waiting on other attempts or already completed
-                    break;
-            }
+            // After the timeout and state change are persisted, let the orchestrator
+            // decide whether to advance the round, cancel, or do nothing.
+            BackgroundJob.Enqueue<IMatchingOrchestrator>(
+                orchestrator => orchestrator.HandlePostOutcomeAsync(
+                    matchingSession.TripRequestId,
+                    CancellationToken.None));
 
             return;
         }

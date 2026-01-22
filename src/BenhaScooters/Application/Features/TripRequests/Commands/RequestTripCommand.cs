@@ -72,7 +72,7 @@ public class RequestTripCommandHandler(
     {
         // Check if rider has active trip request
         var hasActiveRequest = await db.TripRequests
-            .AnyAsync(tr => tr.RiderId == request.RiderId && 
+            .AnyAsync(tr => tr.RiderUserId == request.RiderId.ToUserId() && 
                            tr.Status == TripRequestStatus.Pending && tr.ExpiresAt > DateTime.UtcNow,
                       cancellationToken);
 

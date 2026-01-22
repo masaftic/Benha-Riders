@@ -15,7 +15,7 @@ public class AcceptMatchEndpoint : IEndpoint
 {
     public record AcceptMatchRequestDto(int DriverMatchAttemptId);
 
-    public record AcceptMatchResponseDto(int TripId, string Message, DateTime AcceptedAt);
+    public record AcceptMatchResponseDto(int TripId, DateTime AcceptedAt);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -57,5 +57,5 @@ public partial class AcceptMatchEndpointMapper
 
     public partial AcceptMatchEndpoint.AcceptMatchResponseDto MapToResponse(AcceptMatchResult result);
 
-    private int MapTripId(TripId id) => id.Value;
+    public static int MapTripId(TripId tripId) => tripId.Value;
 }

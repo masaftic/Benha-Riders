@@ -1,17 +1,24 @@
-using BenhaScooters.Data;
-using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching.Events;
-using BenhaScooters.Domain.Trips;
-using BenhaScooters.Domain.Trips.Events;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Matching.EventHandlers;
 
-public class TripMatchAcceptedEventHandler(AppDbContext db) : INotificationHandler<TripMatchAcceptedEvent>
+/// <summary>
+/// Currently a no-op handler; trip creation is handled synchronously
+/// in AcceptMatchCommandHandler. This handler is kept for future
+/// analytics or notifications related to accepted matches.
+/// </summary>
+public class TripMatchAcceptedEventHandler(ILogger<TripMatchAcceptedEventHandler> logger)
+    : INotificationHandler<TripMatchAcceptedEvent>
 {
-    public async Task Handle(TripMatchAcceptedEvent notification, CancellationToken cancellationToken)
+    public Task Handle(TripMatchAcceptedEvent notification, CancellationToken cancellationToken)
     {
-        // Maybe track driver acceptance rate
+        logger.LogInformation(
+            "Trip match accepted for trip request {TripRequestId} by driver {DriverId} at {AcceptedAt}",
+            notification.TripRequestId.Value,
+            notification.DriverId.Value,
+            notification.AcceptedAt);
+
+        return Task.CompletedTask;
     }
 }

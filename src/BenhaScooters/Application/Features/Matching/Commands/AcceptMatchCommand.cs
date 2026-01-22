@@ -15,7 +15,7 @@ public record AcceptMatchCommand(
     DriverId DriverId,
     DriverMatchAttemptId DriverMatchAttemptId) : IRequest<ErrorOr<AcceptMatchResult>>;
 
-public record AcceptMatchResult(TripId TripId, string Message, DateTime AcceptedAt);
+public record AcceptMatchResult(TripId TripId, DateTime AcceptedAt);
 
 public class AcceptMatchCommandValidator : AbstractValidator<AcceptMatchCommand>
 {
@@ -31,90 +31,114 @@ public class AcceptMatchCommandValidator : AbstractValidator<AcceptMatchCommand>
     }
 }
 
-public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher) : IRequestHandler<AcceptMatchCommand, ErrorOr<AcceptMatchResult>>
+public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher, ILogger<AcceptMatchCommandHandler> logger) : IRequestHandler<AcceptMatchCommand, ErrorOr<AcceptMatchResult>>
 {
     public async Task<ErrorOr<AcceptMatchResult>> Handle(AcceptMatchCommand request, CancellationToken cancellationToken)
     {
         using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        List<Error> errors = [];
-        try
+        var now = DateTime.UtcNow;
+
+        // Locate the driver match attempt being accepted
+        var matchAttempt = await db.DriverMatchAttempts
+            .Include(ma => ma.MatchingSession)
+            .ThenInclude(ms => ms.TripRequest)
+            .FirstOrDefaultAsync(ma => ma.Id == request.DriverMatchAttemptId, cancellationToken);
+
+        if (matchAttempt is null || matchAttempt.DriverId != request.DriverId)
         {
-            var matchAttempt = await db.DriverMatchAttempts
-                .Include(ma => ma.MatchingSession)
-                .ThenInclude(ms => ms.TripRequest)
-                .Where(ma => ma.Id == request.DriverMatchAttemptId
-                            && ma.ExpiresAt > DateTime.UtcNow
-                            && ma.DriverId == request.DriverId
-                            && ma.Status == MatchAttemptStatus.Pending)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            // Find the matching session for this trip request
-            var matchingSession = matchAttempt?.MatchingSession;
-
-            if (matchingSession == null)
-            {
-                return MatchingErrors.Session.NotFound;
-            }
-
-            var acceptResult = matchingSession.AcceptMatch(request.DriverId);
-            if (acceptResult.IsError)
-            {
-                return acceptResult.Errors;
-            }
-
-            var userId = request.DriverId.ToUserId();
-            var driverStatus = await db.DriverStatuses
-                .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken);
-
-            if (driverStatus == null)
-            {
-                return DriverErrors.DriverNotFound;
-            }
-
-            var tripRequest = matchingSession.TripRequest;
-
-            var trip = new Trip(
-                driverStatus.GetDriverId(),
-                tripRequest.RiderId,
-                tripRequest.PickupLocation, tripRequest.DropoffLocation,
-                tripRequest.PickupAddress, tripRequest.DropoffAddress,
-                tripRequest.FinalFare
-            );
-
-            db.Trips.Add(trip);
-
-            // Save to get the id
-            await db.SaveChangesAsync(cancellationToken);
-
-            var result = driverStatus.StartTrip(trip.Id);
-            if (result.IsError)
-            {
-                errors = result.Errors;
-                throw new Exception();
-            }
-
-            var tripRoute = new TripRoute(trip.Id);
-            db.TripRoutes.Add(tripRoute);
-
-            result = tripRequest.MarkAsMatched(driverStatus.GetDriverId());
-            if (result.IsError)
-            {
-                errors = result.Errors;
-                throw new Exception();
-            }
-
-            await db.SaveChangesAsync(cancellationToken);
-
-            await publisher.Publish(trip.CreateTripCreatedEvent(), cancellationToken);
-
-            await transaction.CommitAsync(cancellationToken);
-
-            return new AcceptMatchResult(trip.Id, "Trip created successfully", trip.AssignedAt);
+            logger.LogWarning("Match attempt {MatchAttemptId} not found or does not belong to driver {DriverId}",
+                request.DriverMatchAttemptId.Value, request.DriverId.Value);
+            return MatchingErrors.MatchAttempt.NotFound;
         }
-        catch (Exception)
+
+        if (matchAttempt.ExpiresAt <= now)
         {
+            logger.LogWarning("Match attempt {MatchAttemptId} for driver {DriverId} is expired",
+                request.DriverMatchAttemptId.Value, request.DriverId.Value);
+            return MatchingErrors.MatchAttempt.Expired;
+        }
+
+        if (matchAttempt.Status != MatchAttemptStatus.Pending)
+        {
+            logger.LogWarning("Match attempt {MatchAttemptId} for driver {DriverId} is not pending (status: {Status})",
+                request.DriverMatchAttemptId.Value, request.DriverId.Value, matchAttempt.Status);
+            return MatchingErrors.MatchAttempt.NotFound;
+        }
+
+        var matchingSession = matchAttempt.MatchingSession;
+
+        if (matchingSession is null)
+        {
+            logger.LogWarning("No matching session found for match attempt {MatchAttemptId}",
+                request.DriverMatchAttemptId.Value);
+            return MatchingErrors.Session.NotFound;
+        }
+
+        var acceptResult = matchingSession.AcceptMatch(request.DriverId);
+        if (acceptResult.IsError)
+        {
+            logger.LogWarning("Failed to accept match for driver {DriverId}: {Errors}",
+                request.DriverId.Value, string.Join(", ", acceptResult.Errors.Select(e => e.Description)));
+            return acceptResult.Errors;
+        }
+
+        var userId = request.DriverId.ToUserId();
+        var driverStatus = await db.DriverStatuses
+            .FirstOrDefaultAsync(d => d.UserId == userId, cancellationToken);
+
+        if (driverStatus is null)
+        {
+            logger.LogWarning("Driver status not found for driver {DriverId} when accepting match", request.DriverId.Value);
+            return DriverErrors.DriverNotFound;
+        }
+
+        var tripRequest = matchingSession.TripRequest;
+
+        var trip = new Trip(
+            driverStatus.GetDriverId(),
+            tripRequest.RiderId,
+            tripRequest.PickupLocation,
+            tripRequest.DropoffLocation,
+            tripRequest.PickupAddress,
+            tripRequest.DropoffAddress,
+            tripRequest.FinalFare);
+
+        db.Trips.Add(trip);
+
+        // Save to generate TripId
+        await db.SaveChangesAsync(cancellationToken);
+
+        var startTripResult = driverStatus.StartTrip(trip.Id);
+        if (startTripResult.IsError)
+        {
+            logger.LogWarning("Failed to start trip {TripId} for driver {DriverId}: {Errors}",
+                trip.Id.Value,
+                request.DriverId.Value,
+                string.Join(", ", startTripResult.Errors.Select(e => e.Description)));
             await transaction.RollbackAsync(cancellationToken);
-            return errors;
+            return startTripResult.Errors;
         }
+
+        var tripRoute = new TripRoute(trip.Id);
+        db.TripRoutes.Add(tripRoute);
+
+        var markMatchedResult = tripRequest.MarkAsMatched(driverStatus.GetDriverId());
+        if (markMatchedResult.IsError)
+        {
+            logger.LogWarning("Failed to mark trip request {TripRequestId} as matched: {Errors}",
+                tripRequest.Id.Value,
+                string.Join(", ", markMatchedResult.Errors.Select(e => e.Description)));
+            await transaction.RollbackAsync(cancellationToken);
+            return markMatchedResult.Errors;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+
+        // Publish trip created event for downstream listeners
+        await publisher.Publish(trip.CreateTripCreatedEvent(), cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new AcceptMatchResult(trip.Id, trip.AssignedAt);
     }
 }

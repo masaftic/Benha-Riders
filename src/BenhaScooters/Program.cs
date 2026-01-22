@@ -23,7 +23,7 @@ builder.WebHost.ConfigureKestrel(o =>
 // Add infrastructure services
 builder.Services.AddPresentation();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddApplication();
+builder.Services.AddApplication(builder.Configuration);
 
 
 

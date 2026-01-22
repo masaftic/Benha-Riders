@@ -38,5 +38,7 @@ public class MatchingSessionCancelledEventHandler : INotificationHandler<Matchin
                 notification.TripRequestId.Value, string.Join(", ", result.Errors.Select(e => e.Description)));
             return;
         }
+
+        await _db.SaveChangesAsync(cancellationToken);
     }
 }
