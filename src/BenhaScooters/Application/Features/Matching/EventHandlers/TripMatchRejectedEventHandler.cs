@@ -31,16 +31,39 @@ public class TripMatchRejectedEventHandler(
             return;
         }
 
-        if (matchingSession.ShouldAdvanceToNextRound())
+        var transitionResult = matchingSession.TryTransitionToNextRound();
+
+        if (transitionResult.IsError)
         {
-            logger.LogInformation("Advancing to next round for session {MatchingSessionId}", matchingSession.Id.Value);
-            matchingSession.AdvanceToNextRound();
-            var result = await matchingService.ProcessMatchingAsync(matchingSession.Id, cancellationToken);
-            if (result.IsError)
-            {
-                logger.LogWarning("Failed to advance matching session {MatchingSessionId}: {Errors}",
-                    matchingSession.Id.Value, string.Join(", ", result.Errors.Select(e => e.Description)));
-            }
+            logger.LogWarning("Failed to transition matching session {MatchingSessionId} after rejection: {Errors}",
+                matchingSession.Id.Value, string.Join(", ", transitionResult.Errors.Select(e => e.Description)));
+            return;
+        }
+
+        switch (transitionResult.Value)
+        {
+            case RoundTransitioned:
+                logger.LogInformation("Advancing to next round for session {MatchingSessionId}", matchingSession.Id.Value);
+                await db.SaveChangesAsync(cancellationToken);
+
+                var result = await matchingService.ProcessMatchingAsync(matchingSession.Id, cancellationToken);
+                if (result.IsError)
+                {
+                    logger.LogWarning("Failed to process matching for session {MatchingSessionId}: {Errors}",
+                        matchingSession.Id.Value, string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+                break;
+
+            case MatchingCanceled:
+                logger.LogInformation("Matching session {MatchingSessionId} cancelled after rejection", matchingSession.Id.Value);
+                await db.SaveChangesAsync(cancellationToken);
+                break;
+
+            case NoTransition:
+            case MatchingCompleted:
+            default:
+                // Nothing to do – either still waiting on other attempts or already completed
+                break;
         }
     }
 }

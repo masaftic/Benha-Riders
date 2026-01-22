@@ -160,19 +160,40 @@ public class DriverMatchingService : IDriverMatchingService
                 return;
             }
 
+            var transitionResult = matchingSession.TryTransitionToNextRound();
+
+            if (transitionResult.IsError)
+            {
+                _logger.LogWarning("Failed to transition matching session {MatchingSessionId} after timeout: {Errors}",
+                    matchingSessionId, string.Join(", ", transitionResult.Errors.Select(e => e.Description)));
+                await transaction.RollbackAsync(cancellationToken);
+                return;
+            }
+
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            if (matchingSession.ShouldAdvanceToNextRound())
+            switch (transitionResult.Value)
             {
-                _logger.LogInformation("Advancing to next round for session {MatchingSessionId}", matchingSessionId);
-                matchingSession.AdvanceToNextRound();
-                var matchResult = await ProcessMatchingAsync(matchingSessionId, cancellationToken);
-                if (matchResult.IsError)
-                {
-                    _logger.LogWarning("Failed to advance matching session {MatchingSessionId}: {Errors}",
-                        matchingSessionId, string.Join(", ", matchResult.Errors.Select(e => e.Description)));
-                }
+                case RoundTransitioned:
+                    _logger.LogInformation("Advancing to next round for session {MatchingSessionId}", matchingSessionId);
+                    var matchResult = await ProcessMatchingAsync(matchingSessionId, cancellationToken);
+                    if (matchResult.IsError)
+                    {
+                        _logger.LogWarning("Failed to process matching for session {MatchingSessionId}: {Errors}",
+                            matchingSessionId, string.Join(", ", matchResult.Errors.Select(e => e.Description)));
+                    }
+                    break;
+
+                case MatchingCanceled:
+                    _logger.LogInformation("Matching session {MatchingSessionId} cancelled after timeout", matchingSessionId);
+                    break;
+
+                case NoTransition:
+                case MatchingCompleted:
+                default:
+                    // Nothing to do – either still waiting on other attempts or already completed
+                    break;
             }
 
             return;

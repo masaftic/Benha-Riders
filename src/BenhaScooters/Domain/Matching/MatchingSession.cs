@@ -116,26 +116,6 @@ public class MatchingSession : AggregateRoot
         ExpiresAt = DateTime.UtcNow.AddMinutes(10); // 10-minute session timeout
     }
 
-    public bool ShouldAdvanceToNextRound()
-    {
-        // Check if we have more rounds and if the current round is complete
-        return CurrentRound < NumberOfRounds && _matchAttempts.All(ma => ma.Status != MatchAttemptStatus.Pending);
-    }
-
-    public ErrorOr<Success> AdvanceToNextRound()
-    {
-        if (Status != MatchingSessionStatus.Active)
-            return MatchingErrors.Session.NotActive;
-
-        CurrentRound++;
-        if (CurrentRound > NumberOfRounds)
-        {
-            Status = MatchingSessionStatus.Cancelled;
-            CompletedAt = DateTime.UtcNow;
-        }
-
-        return Result.Success;
-    }
 
     public List<DriverId> GetRejectedOrExpiredDrivers()
     {
@@ -190,7 +170,8 @@ public class MatchingSession : AggregateRoot
             Id,
             distanceToPickup,
             estimatedArrivalTime,
-            driverScore);
+            driverScore,
+            CurrentRound);
 
         _matchAttempts.Add(matchAttempt);
 
@@ -206,11 +187,54 @@ public class MatchingSession : AggregateRoot
         return matchAttempt;
     }
 
-    public void RecordTimeout()
+
+    public bool IsLastRound() => CurrentRound >= NumberOfRounds;
+    public bool HasPendingAttemptsInCurrentRound()
     {
-        CurrentRound++;
-        // TODO: raise domain event for timeout
+        return _matchAttempts.Any(ma =>
+            ma.MatchingRound == CurrentRound && ma.Status == MatchAttemptStatus.Pending);
     }
+
+
+    public ErrorOr<RoundTransitionResult> TryTransitionToNextRound()
+    {
+        if (Status != MatchingSessionStatus.Active)
+            return MatchingErrors.Session.NotActive;
+
+        if (IsExpired)
+            return MatchingErrors.Session.Expired;
+        
+        var hasPending = HasPendingAttemptsInCurrentRound();
+        var isLastRound = IsLastRound();
+
+        if (isLastRound && !hasPending)
+        {
+            // No more rounds left, cancel the session
+            Status = MatchingSessionStatus.Cancelled;
+            CompletedAt = DateTime.UtcNow;
+
+            RaiseDomainEvent(new MatchingSessionCancelledEvent(
+                Id,
+                TripRequestId,
+                "All rounds completed with no successful match"));
+
+            return new MatchingCanceled();
+        }
+
+        if (!hasPending)
+        {
+            CurrentRound++;
+            return new RoundTransitioned();
+        }
+
+        // Still waiting on other attempts in the current round
+
+        return new NoTransition();
+    }
+
+
+    
+
 
     public ErrorOr<Success> AcceptMatch(DriverId driverId)
     {
@@ -309,3 +333,6 @@ public class MatchingSession : AggregateRoot
     public bool IsActive => Status == MatchingSessionStatus.Active && !IsExpired;
     public TimeSpan? Duration => CompletedAt.HasValue ? CompletedAt.Value - CreatedAt : null;
 }
+
+
+

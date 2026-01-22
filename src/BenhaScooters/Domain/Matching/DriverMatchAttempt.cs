@@ -22,6 +22,11 @@ public class DriverMatchAttempt
     public MatchingSessionId MatchingSessionId { get; private set; }
     public UserId DriverUserId { get; private set; }  // FK to DriverProfile.UserId
     public MatchAttemptStatus Status { get; private set; }
+
+    /// <summary>
+    /// The matching round in which this attempt was made
+    /// </summary>
+    public int MatchingRound { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? RespondedAt { get; private set; }
     public DateTime ExpiresAt { get; private set; }
@@ -42,7 +47,7 @@ public class DriverMatchAttempt
     private DriverMatchAttempt() { } // For EF Core
 
     public DriverMatchAttempt(DriverId driverId, MatchingSessionId matchingSessionId,
-        double distanceToPickup, double estimatedArrivalTime, decimal driverScore)
+        double distanceToPickup, double estimatedArrivalTime, decimal driverScore, int matchingRound)
     {
         DriverUserId = driverId.ToUserId();
         MatchingSessionId = matchingSessionId;
@@ -52,6 +57,7 @@ public class DriverMatchAttempt
         Status = MatchAttemptStatus.Pending;
         CreatedAt = DateTime.UtcNow;
         ExpiresAt = DateTime.UtcNow.AddSeconds(30); // 30-second response window
+        MatchingRound = matchingRound;
     }
 
     // Helper to get UserId for database queries
