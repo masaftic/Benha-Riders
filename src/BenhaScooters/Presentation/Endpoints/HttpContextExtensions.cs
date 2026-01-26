@@ -11,8 +11,6 @@ public static class HttpContextExtensions
 {
     public static UserId GetCurrentUserId(this HttpContext context)
     {
-        // Exceptions are ok here because this is an exceptional state, not error flows.
-
         if (context.User.Identity?.IsAuthenticated != true)
         {
             throw new UnauthorizedAccessException("User is not authenticated.");
@@ -29,23 +27,33 @@ public static class HttpContextExtensions
 
     public static UserId GetDriverId(this HttpContext context)
     {
-        var driverIdClaim = context.User.FindFirst(JwtClaims.DriverId);
-        if (driverIdClaim == null)
+        if (context.User.Identity?.IsAuthenticated != true)
         {
-            throw new InvalidOperationException("Driver ID claim not found. User is not a driver.");
+            throw new UnauthorizedAccessException("User is not authenticated.");
         }
 
-        return UserId.From(int.Parse(driverIdClaim.Value));
+        var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+        {
+            throw new InvalidOperationException("Name identifier claim not found.");
+        }
+
+        return UserId.From(int.Parse(userIdClaim.Value));
     }
     
     public static UserId GetRiderId(this HttpContext context)
     {
-        var riderIdClaim = context.User.FindFirst(JwtClaims.RiderId);
-        if (riderIdClaim == null)
+        if (context.User.Identity?.IsAuthenticated != true)
         {
-            throw new InvalidOperationException("Rider ID claim not found. User is not a rider.");
+            throw new UnauthorizedAccessException("User is not authenticated.");
         }
 
-        return UserId.From(int.Parse(riderIdClaim.Value));
+        var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+        {
+            throw new InvalidOperationException("Name identifier claim not found.");
+        }
+
+        return UserId.From(int.Parse(userIdClaim.Value));
     }
 }

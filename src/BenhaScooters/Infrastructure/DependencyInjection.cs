@@ -183,7 +183,6 @@ public static class DependencyInjection
             {
                 policy.RequireAuthenticatedUser();
                 policy.RequireRole("Rider");
-                policy.RequireClaim(JwtClaims.RiderId);
                 policy.RequireClaim(JwtClaims.Status, UserStatus.Active.ToString());
             });
 
@@ -191,7 +190,6 @@ public static class DependencyInjection
             {
                 policy.RequireAuthenticatedUser();
                 policy.RequireRole("Driver");
-                policy.RequireClaim(JwtClaims.DriverId);
                 policy.RequireClaim(JwtClaims.Status, UserStatus.Active.ToString());
             });
         });
