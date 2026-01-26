@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using BenhaScooters.Application.Features.DriverOnboarding.Commands;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
@@ -9,7 +10,7 @@ using BenhaScooters.Infrastructure.Authentication.Services;
 
 namespace BenhaScooters.Data;
 
-public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
+public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender sender)
 {
     public async Task SeedAsync()
     {
@@ -75,14 +76,12 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher)
                 driverProfile.AddDocument(DocumentType.VehicleRegistration, "url://image2");
                 driverProfile.AddDocument(DocumentType.DriverPhoto, "url://image3");
 
+                driverProfile.SubmitForReview();
                 db.DriverProfiles.Add(driverProfile);
+
+                await db.SaveChangesAsync();
                 
-                // Create related status and stats
-                var driverStatus = new DriverStatus(user.Id);
-                var driverStats = new DriverStats(user.Id);
-                
-                db.DriverStatuses.Add(driverStatus);
-                db.DriverStats.Add(driverStats);
+                await sender.Send(new ApproveDriverCommand(user.Id)); // automatically approve the driver
                 
                 await db.SaveChangesAsync();
             }

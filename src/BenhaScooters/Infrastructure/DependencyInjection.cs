@@ -24,6 +24,7 @@ using BenhaScooters.Shared.Security;
 using BenhaScooters.Domain.Users;
 using Microsoft.AspNetCore.Authorization;
 using BenhaScooters.Presentation.Security;
+using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Infrastructure;
 
@@ -176,7 +177,7 @@ public static class DependencyInjection
             {
                 policy.RequireAuthenticatedUser();
                 policy.RequireRole("Driver");
-                policy.RequireClaim(JwtClaims.DriverOnboardingStatus, "Completed");
+                policy.RequireClaim(JwtClaims.DriverOnboardingStatus, DriverOnboardingStatus.Approved.ToString());
             });
 
             opt.AddPolicy("RiderPolicy", policy =>

@@ -250,3 +250,26 @@ public static class DriverErrors
             "موقع السائق قديم جداً.");
     }
 }
+
+public static class WalletErrors
+{
+    public static readonly Error NotFound = Error.NotFound(
+        "WALLET_NOT_FOUND",
+        "محفظة السائق غير موجودة.");
+
+    public static readonly Error DebtLimitExceeded = Error.Conflict(
+        "WALLET_DEBT_LIMIT_EXCEEDED",
+        "لا يمكن قبول الرحلة. تجاوز الدين الحد المسموح به. يرجى تسوية المستحقات أولاً.");
+
+    public static readonly Error InvalidAmount = Error.Validation(
+        "WALLET_INVALID_AMOUNT",
+        "المبلغ غير صالح.");
+
+    public static readonly Error AdjustmentReasonRequired = Error.Validation(
+        "WALLET_ADJUSTMENT_REASON_REQUIRED",
+        "يجب تقديم سبب للتعديل.");
+
+    public static Error InsufficientBalance(decimal required, decimal available) => Error.Conflict(
+        "WALLET_INSUFFICIENT_BALANCE",
+        $"الرصيد غير كافٍ. المطلوب: {required}, المتاح: {available}");
+}

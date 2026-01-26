@@ -1,5 +1,6 @@
 using System.Reflection;
 using BenhaScooters.Application.Common.Behaviors;
+using BenhaScooters.Application.Common.Settings;
 using BenhaScooters.Application.Features.Matching.Services;
 using BenhaScooters.Application.Features.Matching.Settings;
 using BenhaScooters.Application.Services;
@@ -27,6 +28,11 @@ public static class DependencyInjection
             .ValidateDataAnnotations()
             .Validate(options => options.OffersPerRound?.Length == options.NumberOfRounds,
                 "OffersPerRound length must equal NumberOfRounds")
+            .ValidateOnStart();
+        
+        services.AddOptions<DriverWalletOptions>()
+            .Bind(configuration.GetSection(DriverWalletOptions.SectionName))
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         // Register application services

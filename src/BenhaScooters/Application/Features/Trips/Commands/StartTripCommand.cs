@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Common.Settings;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
@@ -8,6 +9,8 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace BenhaScooters.Application.Features.Trips.Commands;
 
@@ -34,7 +37,10 @@ public class StartTripCommandValidator : AbstractValidator<StartTripCommand>
     }
 }
 
-public class StartTripCommandHandler(AppDbContext db) : IRequestHandler<StartTripCommand, ErrorOr<StartTripResult>>
+public class StartTripCommandHandler(
+    AppDbContext db,
+    IOptions<DriverWalletOptions> walletOptions,
+    ILogger<StartTripCommandHandler> logger) : IRequestHandler<StartTripCommand, ErrorOr<StartTripResult>>
 {
     public async Task<ErrorOr<StartTripResult>> Handle(StartTripCommand request, CancellationToken cancellationToken)
     {
@@ -52,6 +58,33 @@ public class StartTripCommandHandler(AppDbContext db) : IRequestHandler<StartTri
         if (result.IsError)
         {
             return result.Errors;
+        }
+
+        // Charge wallet commission when trip starts
+        var wallet = await db.DriverWallets
+            .FirstOrDefaultAsync(w => w.DriverUserId == request.DriverId, cancellationToken);
+
+        if (wallet != null)
+        {
+            var commissionPercentage = (decimal)walletOptions.Value.CommissionPercentage;
+            var commission = Math.Round(trip.FinalFare.Amount * commissionPercentage / 100m, 2);
+            
+            var chargeResult = wallet.ChargeCommission(
+                commission, 
+                trip.Id, 
+                $"Trip commission ({commissionPercentage}%)");
+            
+            if (chargeResult.IsError)
+            {
+                logger.LogWarning("Failed to charge wallet for trip {TripId}: {Errors}",
+                    trip.Id.Value, string.Join(", ", chargeResult.Errors.Select(e => e.Description)));
+                // Note: We continue even if charge fails - trip already started
+            }
+        }
+        else
+        {
+            logger.LogWarning("Wallet not found for driver {DriverId} when starting trip {TripId}",
+                request.DriverId.Value, trip.Id.Value);
         }
 
         await db.SaveChangesAsync(cancellationToken);

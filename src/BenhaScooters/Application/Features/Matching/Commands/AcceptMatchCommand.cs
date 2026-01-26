@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Common.Settings;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
@@ -9,6 +10,8 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace BenhaScooters.Application.Features.Matching.Commands;
 
@@ -32,12 +35,34 @@ public class AcceptMatchCommandValidator : AbstractValidator<AcceptMatchCommand>
     }
 }
 
-public class AcceptMatchCommandHandler(AppDbContext db, IPublisher publisher, ILogger<AcceptMatchCommandHandler> logger) : IRequestHandler<AcceptMatchCommand, ErrorOr<AcceptMatchResult>>
+public class AcceptMatchCommandHandler(
+    AppDbContext db, 
+    IPublisher publisher, 
+    IOptions<DriverWalletOptions> walletOptions,
+    ILogger<AcceptMatchCommandHandler> logger) : IRequestHandler<AcceptMatchCommand, ErrorOr<AcceptMatchResult>>
 {
     public async Task<ErrorOr<AcceptMatchResult>> Handle(AcceptMatchCommand request, CancellationToken cancellationToken)
     {
         using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var now = DateTime.UtcNow;
+
+        // Check wallet debt limit before allowing match acceptance
+        var debtLimit = (decimal)walletOptions.Value.DebtLimitEgp;
+        var wallet = await db.DriverWallets
+            .FirstOrDefaultAsync(w => w.DriverUserId == request.DriverId, cancellationToken);
+
+        if (wallet is null)
+        {
+            logger.LogWarning("Wallet not found for driver {DriverId} when accepting match", request.DriverId.Value);
+            return WalletErrors.NotFound;
+        }
+
+        if (!wallet.CanAcceptMatch(debtLimit))
+        {
+            logger.LogWarning("Driver {DriverId} cannot accept match due to debt limit exceeded. Balance: {Balance}, Limit: {Limit}",
+                request.DriverId.Value, wallet.Balance, debtLimit);
+            return WalletErrors.DebtLimitExceeded;
+        }
 
         // Locate the driver match attempt being accepted
         var matchAttempt = await db.DriverMatchAttempts

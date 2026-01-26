@@ -32,4 +32,8 @@ namespace BenhaScooters.Data;
 [EfCoreConverter<DriverMatchAttemptId>]
 [EfCoreConverter<MatchingSessionId>]
 
+// Wallet
+[EfCoreConverter<DriverWalletId>]
+[EfCoreConverter<WalletTransactionId>]
+
 public partial class VogenEfCoreConverters;

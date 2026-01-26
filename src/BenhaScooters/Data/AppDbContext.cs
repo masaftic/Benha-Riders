@@ -28,6 +28,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, PublishDomainE
     public DbSet<DriverStatus> DriverStatuses => Set<DriverStatus>();    // Medium frequency
     public DbSet<DriverLocation> DriverLocations => Set<DriverLocation>(); // High frequency
     public DbSet<DriverStats> DriverStats => Set<DriverStats>();         // Medium frequency
+    public DbSet<DriverWallet> DriverWallets => Set<DriverWallet>();     // Wallet/transactions
 
     // Trips
     public DbSet<Trip> Trips => Set<Trip>();

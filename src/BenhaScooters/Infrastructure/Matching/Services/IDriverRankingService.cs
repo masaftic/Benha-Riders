@@ -72,7 +72,7 @@ public class DriverRankingService : IDriverRankingService
             join dl in _dbContext.DriverLocations on ds.UserId equals dl.UserId
             join stats in _dbContext.DriverStats on ds.UserId equals stats.UserId
             where ds.Status == DriverAvailabilityStatus.Online
-            where dl.Location.Distance(pickupLocation) <= searchRadius
+            // where dl.Location.Distance(pickupLocation) <= searchRadius
             where excludedUserIds == null || !excludedUserIds.Contains(ds.UserId)
             select new
             {
