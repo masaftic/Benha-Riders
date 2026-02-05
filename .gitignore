@@ -4,3 +4,4 @@ obj
 .idea
 .env
 *.csv
+publish-output

@@ -4,6 +4,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <SpaRoot>DashboardApp/</SpaRoot>
+    <SpaProxyServerUrl>http://localhost:4200</SpaProxyServerUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,6 +35,22 @@
     <Folder Include="Application/Features/Trips/Queries/" />
     <Folder Include="Application\Features\Authentication\Commands\" />
     <Folder Include="Application\Features\Authentication\Queries\" />
+  </ItemGroup>
+
+  <!-- Build Angular app on publish -->
+  <Target Name="PublishAngularApp" AfterTargets="ComputeFilesToPublish">
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build -- --configuration production" />
+  </Target>
+
+  <!-- Include Angular build output in publish -->
+  <ItemGroup>
+    <DistFiles Include="wwwroot/**" />
+    <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+      <RelativePath>wwwroot/%(RecursiveDir)%(FileName)%(Extension)</RelativePath>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </ResolvedFileToPublish>
   </ItemGroup>
 
 </Project>

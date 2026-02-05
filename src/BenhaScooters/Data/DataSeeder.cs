@@ -17,7 +17,24 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender
         var transaction = await db.Database.BeginTransactionAsync();
         try
         {
-            if (!db.Users.Any(u => u.Name == "Admin"))
+            // Seed Admin User with specific ID
+            if (!db.Users.Any(u => u.Email == Email.From("admin@benhascooters.com")))
+            {
+                var adminUser = new User(
+                    "Admin",
+                    Email.From("admin@benhascooters.com"),
+                    PhoneNumber.From("+201000000000"),
+                    passwordHasher.Hash("Admin@123"));
+
+                adminUser.VerifyPhoneNumber();
+                adminUser.AddRole(new UserRole(RoleName.Admin));
+
+                db.Users.Add(adminUser);
+                await db.SaveChangesAsync();
+            }
+
+            // Seed original admin user for backward compatibility
+            if (!db.Users.Any(u => u.Name == "Admin" && u.Email == Email.From("admin@gmail.com")))
             {
                 var user = new User(
                     "Admin",

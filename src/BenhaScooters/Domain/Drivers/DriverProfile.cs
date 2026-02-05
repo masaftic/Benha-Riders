@@ -154,7 +154,7 @@ public class DriverProfile
         return Result.Success;
     }
 
-    public ErrorOr<Success> Reject(string reason)
+    public ErrorOr<Success> Reject(string reason, UserId? rejectedBy = null)
     {
         if (string.IsNullOrWhiteSpace(reason))
             return DriverErrors.Profile.RejectionReasonRequired;
@@ -164,6 +164,8 @@ public class DriverProfile
 
         OnboardingStatus = DriverOnboardingStatus.Rejected;
         RejectionReason = reason;
+        if (rejectedBy != null)
+            ApprovedBy = rejectedBy;  // Reuse ApprovedBy field for audit
         return Result.Success;
     }
 
@@ -187,6 +189,17 @@ public class DriverProfile
 
         OnboardingStatus = DriverOnboardingStatus.Approved;
         RejectionReason = null;
+        return Result.Success;
+    }
+
+    public ErrorOr<Success> Unsuspend(UserId adminId)
+    {
+        if (OnboardingStatus != DriverOnboardingStatus.Suspended)
+            return DriverErrors.Profile.InvalidStatusTransition;
+
+        OnboardingStatus = DriverOnboardingStatus.Approved;
+        RejectionReason = null;
+        ApprovedBy = adminId;
         return Result.Success;
     }
 

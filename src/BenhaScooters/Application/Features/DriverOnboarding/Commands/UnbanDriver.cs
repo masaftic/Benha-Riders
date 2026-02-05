@@ -10,27 +10,30 @@ using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
-public record BanDriverCommand(UserId DriverId, string Reason) : IRequest<ErrorOr<Success>>;
+public record UnbanDriverCommand(UserId DriverId, UserId AdminId) : IRequest<ErrorOr<Success>>;
 
-public class BanDriverCommandValidator : AbstractValidator<BanDriverCommand>
+public class UnbanDriverCommandValidator : AbstractValidator<UnbanDriverCommand>
 {
-    public BanDriverCommandValidator()
+    public UnbanDriverCommandValidator()
     {
         RuleFor(x => x.DriverId.Value)
             .NotEmpty().WithMessage("Driver user ID is required.");
 
-        RuleFor(x => x.Reason)
-            .NotEmpty().WithMessage("سبب الرفض مطلوب.")
-            .MaximumLength(1000).WithMessage("سبب الرفض يجب ألا يتجاوز 1000 حرف.");
+        RuleFor(x => x.AdminId.Value)
+            .NotEmpty().WithMessage("Admin user ID is required.");
     }
 }
 
-
-public class BanDriverCommandHandler(AppDbContext db) : IRequestHandler<BanDriverCommand, ErrorOr<Success>>
+public class UnbanDriverCommandHandler : IRequestHandler<UnbanDriverCommand, ErrorOr<Success>>
 {
-    private readonly AppDbContext _db = db;
+    private readonly AppDbContext _db;
 
-    public async Task<ErrorOr<Success>> Handle(BanDriverCommand request, CancellationToken cancellationToken)
+    public UnbanDriverCommandHandler(AppDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<ErrorOr<Success>> Handle(UnbanDriverCommand request, CancellationToken cancellationToken)
     {
         var userId = request.DriverId;
         
@@ -42,10 +45,10 @@ public class BanDriverCommandHandler(AppDbContext db) : IRequestHandler<BanDrive
             return AdminErrors.DriverNotFound;
         }
 
-        var rejectResult = driverProfile.Suspend(request.Reason);
-        if (rejectResult.IsError)
+        var unsuspendResult = driverProfile.Unsuspend(request.AdminId);
+        if (unsuspendResult.IsError)
         {
-            return rejectResult.Errors;
+            return unsuspendResult.Errors;
         }
 
         await _db.SaveChangesAsync(cancellationToken);

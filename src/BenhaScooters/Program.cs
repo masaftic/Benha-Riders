@@ -33,6 +33,20 @@ app.UseCors();
 
 app.UseRateLimiter();
 
+// Serve Angular app from wwwroot/browser
+var angularPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "browser");
+app.UseDefaultFiles(new DefaultFilesOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(angularPath)
+});
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(angularPath),
+    RequestPath = ""
+});
+
+
+
 using (var scope = app.Services.CreateScope())
 {
     if (app.Environment.EnvironmentName != "Testing")
@@ -65,6 +79,8 @@ app.UseSwaggerUI();
 
 app.MapHub<DriverHub>("/hubs/driver");
 
+// SPA fallback for Angular routes
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
