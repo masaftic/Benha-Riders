@@ -1,5 +1,6 @@
 using BenhaScooters.Domain.Common;
-using Vogen;
+using Thinktecture;
+
 
 namespace BenhaScooters.Domain.Trips.ValueObjects;
 

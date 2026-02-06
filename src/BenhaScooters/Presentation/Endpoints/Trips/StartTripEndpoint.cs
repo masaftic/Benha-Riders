@@ -55,13 +55,13 @@ public partial class StartTripEndpointMapper
     {
         return new StartTripCommand(
             driverId,
-            TripId.From(tripId));
+            TripId.Create(tripId));
     }
 
     public StartTripEndpoint.StartTripResponseDto MapToResponse(StartTripResult result)
     {
         return new StartTripEndpoint.StartTripResponseDto(
-            result.TripId.Value,
+            result.TripId,
             result.Message,
             result.StartedAt);
     }

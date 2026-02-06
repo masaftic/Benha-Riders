@@ -32,7 +32,7 @@ public class GetDriverMatchOffersQueryValidator : AbstractValidator<GetDriverMat
 {
     public GetDriverMatchOffersQueryValidator()
     {
-        RuleFor(x => x.DriverId.Value)
+        RuleFor(x => x.DriverId)
             .NotEmpty()
             .WithMessage("Driver ID is required");
     }

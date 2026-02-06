@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using BenhaScooters.Shared.Validation;
 using ErrorOr;
-using Vogen;
+using Thinktecture;
 
 namespace BenhaScooters.Domain.Users;
 
@@ -10,35 +10,47 @@ public partial struct UserId;
 
 
 [ValueObject<string>]
-public partial struct Email
+[KeyMemberEqualityComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
+public partial class Email
 {
-    public static Validation Validate(string email)
+    static partial void ValidateFactoryArguments(
+        ref ValidationError? validationError,
+        ref string value)
     {
-        if (string.IsNullOrWhiteSpace(email))
-            return Validation.Invalid("Email cannot be empty.");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            validationError = new ValidationError("Email cannot be empty.");
+            return;
+        }
 
-        // Basic validation for email format
-        if (!Regex.IsMatch(email, ValidationRegex.Email))
-            return Validation.Invalid("Invalid email format.");
-
-        return Validation.Ok;
+        if (!Regex.IsMatch(value, ValidationRegex.Email))
+        {
+            validationError = new ValidationError("Invalid email format.");
+            return;
+        }
     }
 }
 
 
 [ValueObject<string>]
-public partial struct PhoneNumber
+[KeyMemberEqualityComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
+public partial class PhoneNumber
 {
-    private static Validation Validate(string phoneNumber)
+    static partial void ValidateFactoryArguments(
+        ref ValidationError? validationError,
+        ref string value)
     {
-        if (string.IsNullOrWhiteSpace(phoneNumber))
-            return Validation.Invalid("Phone number cannot be empty.");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            validationError = new ValidationError("Phone number cannot be empty.");
+            return;
+        }
 
-        // Basic validation for Egyptian phone numbers
-        if (!Regex.IsMatch(phoneNumber, ValidationRegex.PhoneNumber))
-            return Validation.Invalid("Invalid phone number format.");
-
-        return Validation.Ok;
+        if (!Regex.IsMatch(value, ValidationRegex.PhoneNumber))
+        {
+            validationError = new ValidationError("Invalid phone number format.");
+            return;
+        }
     }
 }
 
@@ -79,14 +91,14 @@ public class User
         Email = email;
         EmailNormalized = NormalizeEmail(email);
         PhoneNumber = phoneNumber;
-        PhoneNumberNormalized = phoneNumber.HasValue ? NormalizePhone(phoneNumber.Value) : null;
+        PhoneNumberNormalized = phoneNumber != null ? NormalizePhone(phoneNumber) : null;
         PasswordHash = passwordHash;
         Status = UserStatus.Registered;
     }
 
     public static PhoneNumber NormalizePhone(PhoneNumber phone)
     {
-        string normalizedPhone = phone.Value.Trim().Replace(" ", "").Replace("-", "");
+        string normalizedPhone = ((string)phone).Trim().Replace(" ", "").Replace("-", "");
         if (normalizedPhone.StartsWith("0"))
         {
             normalizedPhone = "+20" + normalizedPhone.Substring(1);
@@ -96,12 +108,12 @@ public class User
             normalizedPhone = "+20" + normalizedPhone;
         }
 
-        return Users.PhoneNumber.From(normalizedPhone);
+        return Users.PhoneNumber.Create(normalizedPhone);
     }
 
     public static Email NormalizeEmail(Email email)
     {
-        return Email.From(email.Value.ToLowerInvariant().Trim());
+        return Email.Create(((string)email).Trim().ToLowerInvariant());
     }
 
     public ErrorOr<Success> AddRole(UserRole role)
@@ -155,10 +167,10 @@ public class User
 
     public void VerifyPhoneNumber(PhoneNumber? number = null)
     {
-        if (!PhoneNumber.HasValue && number.HasValue)
+        if (PhoneNumber == null && number != null)
         {
             PhoneNumber = number;
-            PhoneNumberNormalized = NormalizePhone(number.Value);
+            PhoneNumberNormalized = NormalizePhone(number);
         }
 
         PhoneNumberVerified = true;

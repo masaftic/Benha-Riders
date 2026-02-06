@@ -31,7 +31,7 @@ public class ApproveDriverEndpoint : IEndpoint
 
     public async Task<IResult> ApproveDriver([FromServices] ISender sender, [FromRoute] int driverId, HttpContext ctx)
     {
-        var command = new ApproveDriverCommand(UserId.From(driverId));
+        var command = new ApproveDriverCommand(UserId.Create(driverId));
         var result = await sender.Send(command);
 
         if (result.IsError)

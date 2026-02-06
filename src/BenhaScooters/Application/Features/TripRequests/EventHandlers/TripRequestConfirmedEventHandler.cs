@@ -28,8 +28,8 @@ public class TripRequestConfirmedEventHandler : INotificationHandler<TripRequest
     {
         _logger.LogInformation(
             "Trip requested: {TripRequestId} by rider {RiderId} from {PickupAddress} to {DropoffAddress}. Starting matching process...",
-            notification.TripRequestId.Value,
-            notification.RiderId.Value,
+            notification.TripRequestId,
+            notification.RiderId,
             notification.PickupAddress ?? "Unknown location",
             notification.DropoffAddress ?? "Unknown location");
 
@@ -42,13 +42,13 @@ public class TripRequestConfirmedEventHandler : INotificationHandler<TripRequest
             if (sessionResult.IsError)
             {
                 _logger.LogError("Failed to create matching session for trip request {TripRequestId}: {Errors}",
-                    notification.TripRequestId.Value, string.Join(", ", sessionResult.Errors.Select(e => e.Description)));
+                    notification.TripRequestId, string.Join(", ", sessionResult.Errors.Select(e => e.Description)));
                 return;
             }
 
             _logger.LogInformation("Matching session {MatchingSessionId} created for trip request {TripRequestId}",
-                sessionResult.Value.MatchingSessionId.Value,
-                notification.TripRequestId.Value);
+                sessionResult.Value.MatchingSessionId,
+                notification.TripRequestId);
 
             // Start the actual driver matching process
             var matchingResult = await _driverMatchingService.ProcessMatchingAsync(
@@ -58,14 +58,14 @@ public class TripRequestConfirmedEventHandler : INotificationHandler<TripRequest
             if (matchingResult.IsError)
             {
                 _logger.LogError("Failed to process driver matching for session {MatchingSessionId}: {Errors}",
-                    sessionResult.Value.MatchingSessionId.Value,
+                    sessionResult.Value.MatchingSessionId,
                     string.Join(", ", matchingResult.Errors.Select(e => e.Description)));
                 return;
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while processing trip request {TripRequestId}", notification.TripRequestId.Value);
+            _logger.LogError(ex, "Error occurred while processing trip request {TripRequestId}", notification.TripRequestId);
         }
     }
 }

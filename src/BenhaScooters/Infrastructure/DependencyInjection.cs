@@ -1,5 +1,4 @@
-using Amazon.S3;
-using Amazon.Runtime;
+// Local filesystem used instead of S3
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -71,46 +70,9 @@ public static class DependencyInjection
 
         services.AddHangfireServer();
 
-        // Register S3 client
-        services.AddScoped<IAmazonS3>(sp =>
-        {
-            var s3Options = sp.GetRequiredService<IOptions<S3Options>>().Value;
-
-            AmazonS3Config config;
-
-            if (string.IsNullOrEmpty(s3Options.ServiceUrl)) // AWS S3
-            {
-                Console.WriteLine("Using AWS S3 configuration --------------------");
-                config = new AmazonS3Config
-                {
-                    RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(s3Options.Region),
-                    HttpClientFactory = new AmazonS3HttpClientFactory(new HttpClientHandler
-                    {
-                        ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-                    })
-                };
-            }
-            else // Minio for local
-            {
-                Console.WriteLine("Using MinIO configuration --------------------");
-                config = new AmazonS3Config
-                {
-                    ServiceURL = s3Options.ServiceUrl,
-                    ForcePathStyle = true, 
-                    AuthenticationRegion = s3Options.Region,
-                };
-            }
-
-            var credentials = new BasicAWSCredentials(s3Options.AccessKey, s3Options.SecretKey);
-
-            return new AmazonS3Client(credentials, config);
-        });
-
-        // Register S3 service
-        services.AddScoped<IS3Service, S3Service>();
-
-        // Register MinIO initialization service
-        services.AddScoped<IS3InitializationService, S3BucketInitializer>();
+        // Register local filesystem-based S3 replacement
+        services.AddScoped<IS3Service, LocalS3Service>();
+        services.AddScoped<IS3InitializationService, LocalS3Initializer>();
 
         // Register Google authentication service
         services.AddScoped<IGoogleAuthService, GoogleAuthService>();

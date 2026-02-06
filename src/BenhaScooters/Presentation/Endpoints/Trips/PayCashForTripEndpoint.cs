@@ -25,7 +25,7 @@ public class PayCashForTripEndpoint : IEndpoint
     {
         app.MapPost("/trips/{tripId}/pay/cash", async ([FromBody] PayCashForTripRequest request, [FromRoute] int tripId, [FromServices] IMediator mediator) =>
         {
-            var command = new PayCashForTripCommand(TripId.From(tripId), request.PaidAmount);
+            var command = new PayCashForTripCommand(TripId.Create(tripId), request.PaidAmount);
             var result = await mediator.Send(command);
 
             return result.Match(

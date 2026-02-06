@@ -16,7 +16,7 @@ public class BanDriverCommandValidator : AbstractValidator<BanDriverCommand>
 {
     public BanDriverCommandValidator()
     {
-        RuleFor(x => x.DriverId.Value)
+        RuleFor(x => x.DriverId)
             .NotEmpty().WithMessage("Driver user ID is required.");
 
         RuleFor(x => x.Reason)

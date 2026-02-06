@@ -12,7 +12,7 @@ namespace BenhaScooters.Presentation.Endpoints.Trips;
 public class GetAvailableTripsEndpoint : IEndpoint
 {
     public record AvailableTripDto(
-        int TripRequestId,
+        TripRequestId TripRequestId,
         double PickupLatitude,
         double PickupLongitude,
         double DropoffLatitude,
@@ -67,6 +67,4 @@ public partial class GetAvailableTripsEndpointMapper
     }
 
     public partial GetAvailableTripsEndpoint.GetAvailableTripsResponseDto MapToResponse(GetAvailableTripsResult result);
-
-    private int MapTripRequestId(TripRequestId id) => id.Value;
 }

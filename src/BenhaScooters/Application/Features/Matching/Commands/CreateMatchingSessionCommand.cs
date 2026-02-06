@@ -23,7 +23,7 @@ public class CreateMatchingSessionCommandValidator : AbstractValidator<CreateMat
 {
     public CreateMatchingSessionCommandValidator()
     {
-        RuleFor(x => x.TripRequestId.Value)
+        RuleFor(x => x.TripRequestId)
             .NotEmpty()
             .WithMessage("Trip request ID is required");
     }

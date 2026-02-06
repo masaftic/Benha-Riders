@@ -12,14 +12,14 @@ public class TripMatchRejectedEventHandler(
     public async Task Handle(TripMatchRejectedEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("Handling trip match rejection for trip request {TripRequestId} from driver {DriverId}",
-            notification.TripRequestId.Value, notification.DriverId.Value);
+            notification.TripRequestId, notification.DriverId);
 
         var result = await orchestrator.HandlePostOutcomeAsync(notification.TripRequestId, cancellationToken);
 
         if (result.IsError)
         {
             logger.LogWarning("Post-outcome handling failed for trip request {TripRequestId}: {Errors}",
-                notification.TripRequestId.Value,
+                notification.TripRequestId,
                 string.Join(", ", result.Errors.Select(e => e.Description)));
         }
     }

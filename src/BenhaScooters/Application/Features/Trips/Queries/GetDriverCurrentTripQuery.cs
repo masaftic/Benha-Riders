@@ -69,7 +69,7 @@ public class GetDriverCurrentTripQueryHandler : IRequestHandler<GetDriverCurrent
         }
 
         return new GetDriverCurrentTripResult(
-            tripResult.Id.Value,
+            tripResult.Id,
             tripResult.Status,
             tripResult.PickupAddress ?? "Unknown pickup location",
             tripResult.DropoffAddress ?? "Unknown dropoff location",
@@ -79,6 +79,6 @@ public class GetDriverCurrentTripQueryHandler : IRequestHandler<GetDriverCurrent
             tripResult.StartedAt,
             new RiderInfo(
                 tripResult.RiderName,
-                tripResult.RiderPhoneNumber!.Value));
+                tripResult.RiderPhoneNumber!));
     }
 }

@@ -54,5 +54,5 @@ public partial class SelectRoleEndpointMapper
         new SelectRoleCommand(userId, request.Role);
     public partial SelectRoleEndpoint.SelectRoleResponseDto MapToResponse(AuthenticatedResponse response);
 
-    private static UserId IntToUserId(int userId) => UserId.From(userId);
+    private static UserId IntToUserId(int userId) => UserId.Create(userId);
 }

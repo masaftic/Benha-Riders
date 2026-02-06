@@ -2,6 +2,7 @@ using BenhaScooters.Application.Features.Drivers.Queries;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Domain.Trips;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using MediatR;
@@ -14,10 +15,10 @@ namespace BenhaScooters.Presentation.Endpoints.Drivers;
 public class GetDriverAvailabilityEndpoint : IEndpoint
 {
     public record GetDriverAvailabilityResponseDto(
-        string Status,
+        DriverAvailabilityStatus Status,
         DateTime LastStatusChange,
         TimeSpan? OnlineSessionDuration,
-        int? CurrentTripId);
+        TripId? CurrentTripId);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -56,6 +57,4 @@ public class GetDriverAvailabilityEndpoint : IEndpoint
 public partial class GetDriverAvailabilityEndpointMapper
 {
     public partial GetDriverAvailabilityEndpoint.GetDriverAvailabilityResponseDto MapToResponse(GetDriverAvailabilityResponse response);
-
-    private static string DriverStatusToString(DriverStatus status) => status.ToString();
 }

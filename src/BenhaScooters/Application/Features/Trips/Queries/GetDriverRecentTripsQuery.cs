@@ -1,6 +1,7 @@
 using BenhaScooters.Application.Features.Trips.Queries.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Domain.Users;
 using ErrorOr;
@@ -19,7 +20,7 @@ public record GetDriverRecentTripsResult(
     bool HasNextPage);
 
 public record DriverTripSummary(
-    int TripId,
+    TripId TripId,
     TripStatus Status,
     string PickupAddress,
     string DropoffAddress,
@@ -55,7 +56,7 @@ public class GetDriverRecentTripsQueryHandler : IRequestHandler<GetDriverRecentT
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(t => new DriverTripSummary(
-                t.Id.Value,
+                t.Id,
                 t.Status,
                 t.PickupAddress ?? "Unknown pickup location",
                 t.DropoffAddress ?? "Unknown dropoff location",
@@ -68,7 +69,7 @@ public class GetDriverRecentTripsQueryHandler : IRequestHandler<GetDriverRecentT
                 t.CompletedAt,
                 new RiderInfo(
                     t.RiderProfile.PreferredName ?? "Unknown",
-                    t.RiderProfile.User.PhoneNumber!.Value)))
+                    t.RiderProfile.User.PhoneNumber!)))
             .ToListAsync(cancellationToken);
 
         var hasNextPage = (request.PageNumber * request.PageSize) < totalCount;

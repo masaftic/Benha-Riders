@@ -55,13 +55,13 @@ public partial class CompleteTripEndpointMapper
 {
     public CompleteTripCommand MapToCommand(int tripId, UserId driverId)
     {
-        return new CompleteTripCommand(driverId, TripId.From(tripId));
+        return new CompleteTripCommand(driverId, TripId.Create(tripId));
     }
 
     public CompleteTripEndpoint.CompleteTripResponseDto MapToResponse(CompleteTripResult result)
     {
         return new CompleteTripEndpoint.CompleteTripResponseDto(
-            result.TripId.Value,
+            result.TripId,
             result.Message,
             result.CompletedAt,
             result.TotalDuration,

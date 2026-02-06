@@ -22,7 +22,7 @@ public class RequestTripEndpoint : IEndpoint
         string? DropoffAddress = null);
 
     public record RequestTripResponseDto(
-        int TripRequestId,
+        TripRequestId TripRequestId,
         decimal EstimatedFare,
         double EstimatedDistance,
         double EstimatedDuration,
@@ -76,6 +76,4 @@ public partial class RequestTripEndpointMapper
     }
 
     public partial RequestTripEndpoint.RequestTripResponseDto MapToResponse(RequestTripResult result);
-
-    private int MapTripRequestId(TripRequestId id) => id.Value;
 }

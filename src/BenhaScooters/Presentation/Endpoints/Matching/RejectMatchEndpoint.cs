@@ -52,6 +52,6 @@ public class RejectMatchEndpoint : IEndpoint
 public partial class RejectMatchEndpointMapper
 {
     public RejectMatchCommand MapToCommand(RejectMatchEndpoint.RejectMatchRequestDto request, UserId driverId) =>
-        new(driverId, DriverMatchAttemptId.From(request.DriverMatchAttemptId), request.Reason);
+        new(driverId, DriverMatchAttemptId.Create(request.DriverMatchAttemptId), request.Reason);
 
 }

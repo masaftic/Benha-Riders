@@ -21,11 +21,11 @@ public class RejectMatchCommandValidator : AbstractValidator<RejectMatchCommand>
 {
     public RejectMatchCommandValidator()
     {
-        RuleFor(x => x.DriverId.Value)
+        RuleFor(x => x.DriverId)
             .NotEmpty()
             .WithMessage("Driver ID is required");
 
-        RuleFor(x => x.DriverMatchAttemptId.Value)
+        RuleFor(x => x.DriverMatchAttemptId)
             .NotEmpty()
             .WithMessage("Driver match attempt ID is required");
     }

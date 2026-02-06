@@ -8,38 +8,38 @@ using Microsoft.Extensions.Logging;
 namespace BenhaScooters.Application.Features.Trips.EventHandlers;
 
 /// <summary>
-/// Handles the DriverArrivedEvent for rider notifications
+/// Handles the TripCompletedEvent for rider notifications
 /// </summary>
-public class DriverArrivedEventHandler : INotificationHandler<DriverArrivedEvent>
+public class TripCompletedEventHandler : INotificationHandler<TripCompletedEvent>
 {
-    private readonly ILogger<DriverArrivedEventHandler> _logger;
+    private readonly ILogger<TripCompletedEventHandler> _logger;
     private readonly IHubContext<RiderHub, IRiderNotifications> _riderHub;
 
-    public DriverArrivedEventHandler(
-        ILogger<DriverArrivedEventHandler> logger,
+    public TripCompletedEventHandler(
+        ILogger<TripCompletedEventHandler> logger,
         IHubContext<RiderHub, IRiderNotifications> riderHub)
     {
         _logger = logger;
         _riderHub = riderHub;
     }
 
-    public async Task Handle(DriverArrivedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(TripCompletedEvent notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation(
-            "Driver {DriverId} arrived for trip {TripId} at {ArrivedAt}",
-            notification.DriverId,
+            "Trip {TripId} completed by driver {DriverId} at {CompletedAt}",
             notification.TripId,
+            notification.DriverId,
             notification.OccurredAt);
 
         // Notify rider via SignalR
-        var driverArrivedNotification = new DriverArrivedNotification(
+        var tripCompletedNotification = new TripCompletedNotification(
             TripId: notification.TripId,
-            ArrivedAt: notification.OccurredAt);
+            CompletedAt: notification.OccurredAt);
 
         await _riderHub.Clients.Group(notification.RiderId.ToString())
-            .NotifyDriverArrivedAsync(notification.RiderId.ToString(), driverArrivedNotification);
+            .NotifyTripCompletedAsync(notification.RiderId.ToString(), tripCompletedNotification);
 
-        _logger.LogInformation("Notified rider {RiderId} that driver has arrived for trip {TripId}",
+        _logger.LogInformation("Notified rider {RiderId} that trip {TripId} has completed",
             notification.RiderId, notification.TripId);
     }
 }

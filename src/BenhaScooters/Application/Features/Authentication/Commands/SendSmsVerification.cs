@@ -17,7 +17,7 @@ public class SendSmsVerificationCommandValidator : AbstractValidator<SendSmsVeri
 {
     public SendSmsVerificationCommandValidator()
     {
-        RuleFor(x => x.UserId.Value)
+        RuleFor(x => x.UserId)
             .NotEmpty().WithMessage("User ID is required.");
 
         RuleFor(x => x.PhoneNumber)
@@ -41,7 +41,7 @@ public class SendSmsVerificationCommandHandler : IRequestHandler<SendSmsVerifica
 
     public async Task<ErrorOr<SendSmsVerificationResponse>> Handle(SendSmsVerificationCommand request, CancellationToken cancellationToken)
     {
-        var normalizedPhone = User.NormalizePhone(PhoneNumber.From(request.PhoneNumber));
+        var normalizedPhone = User.NormalizePhone(PhoneNumber.Create(request.PhoneNumber));
         
         var user = await _db.Users
             .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);

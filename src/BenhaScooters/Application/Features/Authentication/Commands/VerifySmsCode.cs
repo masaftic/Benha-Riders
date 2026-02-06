@@ -18,7 +18,7 @@ public class VerifySmsCodeCommandValidator : AbstractValidator<VerifySmsCodeComm
 {
     public VerifySmsCodeCommandValidator()
     {
-        RuleFor(x => x.UserId.Value)
+        RuleFor(x => x.UserId)
             .NotEmpty().WithMessage("User ID is required.");
 
         RuleFor(x => x.Code)

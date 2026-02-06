@@ -22,7 +22,7 @@ public static class HttpContextExtensions
             throw new InvalidOperationException("Name identifier claim not found.");
         }
 
-        return UserId.From(int.Parse(userIdClaim.Value));
+        return UserId.Create(int.Parse(userIdClaim.Value));
     }
 
     public static UserId GetDriverId(this HttpContext context)
@@ -38,7 +38,7 @@ public static class HttpContextExtensions
             throw new InvalidOperationException("Name identifier claim not found.");
         }
 
-        return UserId.From(int.Parse(userIdClaim.Value));
+        return UserId.Create(int.Parse(userIdClaim.Value));
     }
     
     public static UserId GetRiderId(this HttpContext context)
@@ -54,6 +54,6 @@ public static class HttpContextExtensions
             throw new InvalidOperationException("Name identifier claim not found.");
         }
 
-        return UserId.From(int.Parse(userIdClaim.Value));
+        return UserId.Create(int.Parse(userIdClaim.Value));
     }
 }

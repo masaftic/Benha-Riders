@@ -27,11 +27,11 @@ public class CancelTripCommandValidator : AbstractValidator<CancelTripRequestCom
 {
     public CancelTripCommandValidator()
     {
-        RuleFor(x => x.RiderId.Value)
+        RuleFor(x => x.RiderId)
             .NotEmpty()
             .WithMessage("Rider ID is required");
 
-        RuleFor(x => x.TripRequestId.Value)
+        RuleFor(x => x.TripRequestId)
             .NotEmpty()
             .WithMessage("Trip request ID is required");
 

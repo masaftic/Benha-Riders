@@ -8,6 +8,7 @@ using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.Interceptors;
 using Microsoft.EntityFrameworkCore;
+using Thinktecture;
 
 namespace BenhaScooters.Data;
 
@@ -42,6 +43,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, PublishDomainE
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.AddThinktectureValueConverters();
         modelBuilder.HasPostgresExtension("postgis");
         modelBuilder.Ignore<List<IDomainEvent>>();
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
@@ -51,8 +53,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, PublishDomainE
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        configurationBuilder.RegisterAllInVogenEfCoreConverters();
-
         base.ConfigureConventions(configurationBuilder);
     }
 

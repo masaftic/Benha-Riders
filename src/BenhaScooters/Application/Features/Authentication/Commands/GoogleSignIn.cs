@@ -77,7 +77,7 @@ public class GoogleSignInCommandHandler : IRequestHandler<GoogleSignInCommand, E
         string googleId, 
         CancellationToken cancellationToken)
     {
-        var newUser = new User(payload.Name, Email.From(payload.Email), null, null);
+        var newUser = new User(payload.Name, Email.Create(payload.Email), null, null);
         
         if (payload.EmailVerified)
         {

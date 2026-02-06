@@ -23,7 +23,7 @@ public class GetDriverDocuments : IEndpoint
 
     public async Task<IResult> GetDocuments([FromServices] ISender sender, [FromRoute] int driverId, HttpContext ctx)
     {
-        var query = new ListDriverDocuments(UserId.From(driverId));
+        var query = new ListDriverDocuments(UserId.Create(driverId));
         var result = await sender.Send(query);
 
         if (result.IsError)

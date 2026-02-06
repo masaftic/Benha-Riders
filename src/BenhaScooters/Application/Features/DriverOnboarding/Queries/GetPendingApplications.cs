@@ -50,22 +50,22 @@ public class GetPendingApplicationsQueryHandler : IRequestHandler<GetPendingAppl
         {
             var personalInfo = driverProfile.PersonalInfo != null ? new PersonalInfoDto(
                 driverProfile.PersonalInfo.FullName,
-                driverProfile.PersonalInfo.NationalId.Value,
-                driverProfile.User.PhoneNumber!.Value,
+                driverProfile.PersonalInfo.NationalId,
+                driverProfile.User.PhoneNumber!,
                 driverProfile.PersonalInfo.DateOfBirth,
                 driverProfile.PersonalInfo.Address,
                 driverProfile.PersonalInfo.City,
                 driverProfile.PersonalInfo.EmergencyContactName,
-                driverProfile.PersonalInfo.EmergencyContactPhone.Value) : null;
+                driverProfile.PersonalInfo.EmergencyContactPhone) : null;
 
             var vehicleInfo = driverProfile.Vehicle is not null ? new VehicleInfoDto(
                 driverProfile.Vehicle.VehicleType,
                 driverProfile.Vehicle.Brand,
                 driverProfile.Vehicle.Model,
                 driverProfile.Vehicle.Color,
-                driverProfile.Vehicle.LicensePlate.Value,
+                driverProfile.Vehicle.LicensePlate,
                 driverProfile.Vehicle.Year,
-                driverProfile.Vehicle.VIN.Value,
+                driverProfile.Vehicle.VIN,
                 true,
                 driverProfile.CreatedAt) : null;
 

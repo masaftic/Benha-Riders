@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.OpenApi.Models;
+using Thinktecture.Swashbuckle;
+using Thinktecture.Text.Json.Serialization;
 
 namespace BenhaScooters.Presentation;
 
@@ -39,8 +41,6 @@ public static class DependencyInjection
         {
             options.SwaggerDoc("v1", new() { Title = "BenhaScooters API", Version = "v1" });
 
-            options.MapVogenTypesInBenhaScooters();
-
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
@@ -73,17 +73,20 @@ public static class DependencyInjection
         services.ConfigureHttpJsonOptions(options =>
         {
             options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            options.SerializerOptions.Converters.Add(new ThinktectureJsonConverterFactory());
         });
 
         services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
         {
             options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            options.JsonSerializerOptions.Converters.Add(new ThinktectureJsonConverterFactory());
         });
 
         services.AddSignalR(o => o.EnableDetailedErrors = true)
             .AddJsonProtocol(options =>
             {
                 options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                options.PayloadSerializerOptions.Converters.Add(new ThinktectureJsonConverterFactory());
             });
 
         services.AddProblemDetails(c =>
@@ -101,6 +104,7 @@ public static class DependencyInjection
             };
         });
 
+        services.AddThinktectureOpenApiFilters();
 
         services.AddCors(options =>
         {

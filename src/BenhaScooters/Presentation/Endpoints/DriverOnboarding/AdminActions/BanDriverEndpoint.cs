@@ -44,7 +44,7 @@ public class BanDriverEndpoint : IEndpoint
 
     public async Task<IResult> BanDriver([FromServices] ISender sender, [FromRoute] int driverId, [FromBody] BanDriverRequestDto rejectRequest, HttpContext ctx)
     {
-        var command = new BanDriverCommand(UserId.From(driverId), rejectRequest.Reason); 
+        var command = new BanDriverCommand(UserId.Create(driverId), rejectRequest.Reason); 
         var result = await sender.Send(command);
 
         if (result.IsError)

@@ -41,7 +41,7 @@ public class UpdatePersonalInfoCommandValidator : AbstractValidator<UpdatePerson
     {
         var userId = command.DriverId;
         return !await _db.DriverProfiles
-            .AnyAsync(x => x.PersonalInfo != null && x.PersonalInfo.NationalId == NationalId.From(nationalId) && x.UserId != userId, 
+            .AnyAsync(x => x.PersonalInfo != null && x.PersonalInfo.NationalId == NationalId.Create(nationalId) && x.UserId != userId, 
                 cancellationToken);
     }
 }
@@ -66,12 +66,12 @@ public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler
 
         var personalInfo = new DriverPersonalInfo(
             request.FullName,
-            NationalId.From(request.NationalId),
+            NationalId.Create(request.NationalId),
             request.DateOfBirth,
             request.Address,
             request.City,
             request.EmergencyContactName,
-            PhoneNumber.From(request.EmergencyContactPhone));
+            PhoneNumber.Create(request.EmergencyContactPhone));
 
         var updateResult = driverProfile.UpdatePersonalInfo(personalInfo);
 

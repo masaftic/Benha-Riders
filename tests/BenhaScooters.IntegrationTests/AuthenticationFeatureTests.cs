@@ -49,7 +49,7 @@ public class AuthenticationFeatureTests : FeatureTestBase
         result.GetProperty("nextStep").GetString().Should().Be("verify_phone");
 
         // Verify user was created in database
-        var user = await DbContext!.Users.FirstOrDefaultAsync(u => u.Email == Email.From(request.Email));
+        var user = await DbContext!.Users.FirstOrDefaultAsync(u => u.Email == Email.Create(request.Email));
         user.Should().NotBeNull();
         user!.Name.Should().Be(request.Name);
         user.Status.Should().Be(UserStatus.Registered);
@@ -292,7 +292,7 @@ public class AuthenticationFeatureTests : FeatureTestBase
 
         // Set up SMS verification code
         var code = SmsVerificationCode.GenerateCode();
-        var verificationCode = new SmsVerificationCode(user.Id, user.PhoneNumberNormalized!.Value, code, TimeSpan.FromMinutes(10));
+        var verificationCode = new SmsVerificationCode(user.Id, user.PhoneNumberNormalized!, code, TimeSpan.FromMinutes(10));
 
         DbContext!.SmsVerificationCodes.Add(verificationCode);
         await DbContext!.SaveChangesAsync();
@@ -330,7 +330,7 @@ public class AuthenticationFeatureTests : FeatureTestBase
         var onboardingToken = GenerateOnboardingTokenAsync(user.Id, user.Status, UserOnboardingStateMachine.GetNextStep(user.Status));
 
         var code = SmsVerificationCode.GenerateCode();
-        var verificationCode = new SmsVerificationCode(user.Id, user.PhoneNumberNormalized!.Value, code, TimeSpan.FromMinutes(10));
+        var verificationCode = new SmsVerificationCode(user.Id, user.PhoneNumberNormalized!, code, TimeSpan.FromMinutes(10));
 
         DbContext!.Add(verificationCode);
         await DbContext!.SaveChangesAsync();
@@ -521,8 +521,8 @@ public class AuthenticationFeatureTests : FeatureTestBase
 
         var user = new User(
             name,
-            Email.From(email),
-            PhoneNumber.From(phoneNumber),
+            Email.Create(email),
+            PhoneNumber.Create(phoneNumber),
             hashedPassword
         );
 

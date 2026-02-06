@@ -20,14 +20,14 @@ public class MatchingSessionCancelledEventHandler : INotificationHandler<Matchin
     public async Task Handle(MatchingSessionCancelledEvent notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Handling cancellation for matching session {SessionId} due to: {Reason}",
-            notification.SessionId.Value, notification.Reason);
+            notification.SessionId, notification.Reason);
 
         var tripRequest = await _db.TripRequests
             .FirstOrDefaultAsync(tr => tr.Id == notification.TripRequestId, cancellationToken);
 
         if (tripRequest is null)
         {
-            _logger.LogWarning("Trip request {TripRequestId} not found for cancellation", notification.TripRequestId.Value);
+            _logger.LogWarning("Trip request {TripRequestId} not found for cancellation", notification.TripRequestId);
             return;
         }
 
@@ -35,7 +35,7 @@ public class MatchingSessionCancelledEventHandler : INotificationHandler<Matchin
         if (result.IsError)
         {
             _logger.LogError("Failed to cancel trip request {TripRequestId}: {Errors}",
-                notification.TripRequestId.Value, string.Join(", ", result.Errors.Select(e => e.Description)));
+                notification.TripRequestId, string.Join(", ", result.Errors.Select(e => e.Description)));
             return;
         }
 

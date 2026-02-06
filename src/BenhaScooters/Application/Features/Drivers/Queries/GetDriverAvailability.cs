@@ -16,7 +16,7 @@ public record GetDriverAvailabilityResponse(
     DriverAvailabilityStatus Status,
     DateTime LastStatusChange,
     TimeSpan? OnlineSessionDuration,
-    int? CurrentTripId);
+    TripId? CurrentTripId);
 
 public class GetDriverAvailabilityQueryHandler : IRequestHandler<GetDriverAvailabilityQuery, ErrorOr<GetDriverAvailabilityResponse>>
 {
@@ -54,6 +54,6 @@ public class GetDriverAvailabilityQueryHandler : IRequestHandler<GetDriverAvaila
             driverStatus.Status,
             driverStatus.LastStatusChange,
             sessionDuration,
-            driverStatus.CurrentTripId?.Value);
+            driverStatus.CurrentTripId);
     }
 }

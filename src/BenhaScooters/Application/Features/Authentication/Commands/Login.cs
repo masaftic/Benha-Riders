@@ -51,7 +51,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
     {
         var user = await _db.Users
             .Include(u => u.Roles)
-            .FirstOrDefaultAsync(u => u.PhoneNumberNormalized == User.NormalizePhone(PhoneNumber.From(request.PhoneNumber)), cancellationToken);
+            .FirstOrDefaultAsync(u => u.PhoneNumberNormalized == User.NormalizePhone(PhoneNumber.Create(request.PhoneNumber)), cancellationToken);
 
         if (user is null || user.PasswordHash is null || !_passwordHasher.Verify(user.PasswordHash, request.Password))
         {

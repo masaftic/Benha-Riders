@@ -6,10 +6,7 @@ using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Presentation;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
-using Vogen;
-
-[assembly: VogenDefaults(
- openApiSchemaCustomizations: OpenApiSchemaCustomizations.GenerateSwashbuckleMappingExtensionMethod)]
+using Thinktecture.AspNetCore.ModelBinding;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +16,11 @@ builder.WebHost.ConfigureKestrel(o =>
 {
     o.ListenAnyIP(5000);
 });
+
+
+builder.Services.AddMvc(options => options.ModelBinderProviders
+                                           .Insert(0, new ThinktectureModelBinderProvider()));
+
 
 // Add infrastructure services
 builder.Services.AddPresentation();
@@ -32,6 +34,21 @@ var app = builder.Build();
 app.UseCors();
 
 app.UseRateLimiter();
+
+
+// Ensure uploads directory exists for PhysicalFileProvider
+var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+
+// Serve uploaded files from the local uploads folder at the '/files' path
+app.UseStaticFiles(new Microsoft.AspNetCore.Builder.StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
+    RequestPath = "/files"
+});
 
 using (var scope = app.Services.CreateScope())
 {
@@ -64,6 +81,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapHub<DriverHub>("/hubs/driver");
+app.MapHub<RiderHub>("/hubs/rider");
 
 
 app.Run();

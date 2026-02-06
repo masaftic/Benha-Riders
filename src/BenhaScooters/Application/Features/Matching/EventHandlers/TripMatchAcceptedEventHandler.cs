@@ -15,8 +15,8 @@ public class TripMatchAcceptedEventHandler(ILogger<TripMatchAcceptedEventHandler
     {
         logger.LogInformation(
             "Trip match accepted for trip request {TripRequestId} by driver {DriverId} at {AcceptedAt}",
-            notification.TripRequestId.Value,
-            notification.DriverId.Value,
+            notification.TripRequestId,
+            notification.DriverId,
             notification.AcceptedAt);
 
         return Task.CompletedTask;

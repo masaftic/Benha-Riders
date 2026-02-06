@@ -13,11 +13,11 @@ namespace BenhaScooters.Presentation.Endpoints.Authentication;
 public class MeEndpoint : IEndpoint
 {
     public record MeResponseDto(
-        int Id,
+        UserId Id,
         string Name,
-        string Email,
+        Email Email,
         bool EmailVerified,
-        string PhoneNumber,
+        PhoneNumber PhoneNumber,
         bool PhoneNumberVerified,
         DateTime CreatedAt,
         IEnumerable<string> Roles);
@@ -58,8 +58,5 @@ public partial class MeEndpointMapper
 {
     public partial MeEndpoint.MeResponseDto MapToResponse(MeResponse response);
 
-    private static int UserIdToInt(UserId userId) => userId.Value;
-    private static string EmailToString(Email email) => email.Value;
-    private static string PhoneNumberToString(PhoneNumber phoneNumber) => phoneNumber.Value;
     private static IEnumerable<string> RoleNamesToStrings(IEnumerable<RoleName> roleNames) => roleNames.Select(r => r.ToString());
 }

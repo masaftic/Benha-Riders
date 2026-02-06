@@ -50,13 +50,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<O
 
     public async Task<ErrorOr<OnboardingStatusToken>> Handle(RegisterCommand req, CancellationToken ct)
     {
-        var normalizedEmail = User.NormalizeEmail(Email.From(req.Email));
+        var normalizedEmail = User.NormalizeEmail(Email.Create(req.Email));
         if (await _db.Users.AnyAsync(x => x.EmailNormalized == normalizedEmail, ct))
         {
             return UserErrors.EmailAlreadyExists;
         }
 
-        var normalizedPhone = User.NormalizePhone(PhoneNumber.From(req.PhoneNumber));
+        var normalizedPhone = User.NormalizePhone(PhoneNumber.Create(req.PhoneNumber));
         if (await _db.Users.AnyAsync(x => x.PhoneNumberNormalized == normalizedPhone, ct))
         {
             return UserErrors.PhoneAlreadyExists;
@@ -64,8 +64,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<O
 
         var user = new User(
             req.Name,
-            Email.From(req.Email),
-            PhoneNumber.From(req.PhoneNumber),
+            Email.Create(req.Email),
+            PhoneNumber.Create(req.PhoneNumber),
             _passwordHasher.Hash(req.Password));
 
         _db.Users.Add(user);

@@ -17,9 +17,9 @@ public class TripCreatedEventHandler : INotificationHandler<TripCreatedEvent>
     public Task Handle(TripCreatedEvent notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Trip created: {TripId} for Driver {DriverId} and Rider {RiderId}",
-            notification.TripId.Value,
-            notification.DriverId.Value,
-            notification.RiderId.Value);
+            notification.TripId,
+            notification.DriverId,
+            notification.RiderId);
 
         // Additional logic can be added here, e.g., notifying other services or updating caches
 

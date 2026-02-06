@@ -1,6 +1,7 @@
 using NetTopologySuite.Geometries;
 using BenhaScooters.Domain.Drivers;
-using Vogen;
+using Thinktecture;
+
 
 namespace BenhaScooters.Domain.Trips;
 

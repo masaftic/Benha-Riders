@@ -68,11 +68,6 @@ public class SetDriverAvailabilityCommandHandler : IRequestHandler<SetDriverAvai
                     message = "Driver is now offline";
                     break;
 
-                case DriverAvailabilityStatus.Busy:
-                    result = driverStatus.SetBusy();
-                    message = "Driver is busy and not accepting requests";
-                    break;
-
                 case DriverAvailabilityStatus.OnTrip:
                     return Error.Validation("INVALID_STATUS_TRANSITION", "Cannot manually set status to OnTrip. This status is set automatically when a trip starts.");
 

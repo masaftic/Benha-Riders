@@ -63,7 +63,7 @@ public partial class GetDriverTripByIdEndpointMapper
 {
     public GetDriverTripByIdQuery MapToQuery(UserId driverId, int tripId)
     {
-        return new GetDriverTripByIdQuery(driverId, TripId.From(tripId));
+        return new GetDriverTripByIdQuery(driverId, TripId.Create(tripId));
     }
 
     public partial GetDriverTripByIdEndpoint.GetDriverTripByIdResponseDto MapToResponse(GetDriverTripByIdResult result);

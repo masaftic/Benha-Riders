@@ -19,13 +19,13 @@ public class DevSmsService : ISmsService
 
     public Task SendSmsAsync(PhoneNumber phoneNumber, string message)
     {
-        _logger.LogInformation("SMS sent to {PhoneNumber}: {Message}", phoneNumber.Value, message);
+        _logger.LogInformation("SMS sent to {PhoneNumber}: {Message}", phoneNumber, message);
         return Task.CompletedTask;
     }
 
     public Task SendVerificationCodeAsync(PhoneNumber phoneNumber, string code)
     {
-        _logger.LogInformation("SMS Verification Code sent to {PhoneNumber}: {Code}", phoneNumber.Value, code);
+        _logger.LogInformation("SMS Verification Code sent to {PhoneNumber}: {Code}", phoneNumber, code);
         return Task.CompletedTask;
     }
 }

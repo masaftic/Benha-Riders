@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Application.Common.Settings;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
@@ -6,9 +7,11 @@ using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Users;
+using BenhaScooters.Infrastructure.Notifications;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -25,11 +28,11 @@ public class AcceptMatchCommandValidator : AbstractValidator<AcceptMatchCommand>
 {
     public AcceptMatchCommandValidator()
     {
-        RuleFor(x => x.DriverId.Value)
+        RuleFor(x => x.DriverId)
             .NotEmpty()
             .WithMessage("Driver ID is required");
 
-        RuleFor(x => x.DriverMatchAttemptId.Value)
+        RuleFor(x => x.DriverMatchAttemptId)
             .NotEmpty()
             .WithMessage("Driver Match Attempt ID is required");
     }
@@ -39,6 +42,7 @@ public class AcceptMatchCommandHandler(
     AppDbContext db, 
     IPublisher publisher, 
     IOptions<DriverWalletOptions> walletOptions,
+    IHubContext<RiderHub, IRiderNotifications> riderHub,
     ILogger<AcceptMatchCommandHandler> logger) : IRequestHandler<AcceptMatchCommand, ErrorOr<AcceptMatchResult>>
 {
     public async Task<ErrorOr<AcceptMatchResult>> Handle(AcceptMatchCommand request, CancellationToken cancellationToken)
@@ -53,14 +57,14 @@ public class AcceptMatchCommandHandler(
 
         if (wallet is null)
         {
-            logger.LogWarning("Wallet not found for driver {DriverId} when accepting match", request.DriverId.Value);
+            logger.LogWarning("Wallet not found for driver {DriverId} when accepting match", request.DriverId);
             return WalletErrors.NotFound;
         }
 
         if (!wallet.CanAcceptMatch(debtLimit))
         {
             logger.LogWarning("Driver {DriverId} cannot accept match due to debt limit exceeded. Balance: {Balance}, Limit: {Limit}",
-                request.DriverId.Value, wallet.Balance, debtLimit);
+                request.DriverId, wallet.Balance, debtLimit);
             return WalletErrors.DebtLimitExceeded;
         }
 
@@ -73,21 +77,21 @@ public class AcceptMatchCommandHandler(
         if (matchAttempt is null || matchAttempt.DriverUserId != request.DriverId)
         {
             logger.LogWarning("Match attempt {MatchAttemptId} not found or does not belong to driver {DriverId}",
-                request.DriverMatchAttemptId.Value, request.DriverId.Value);
+                request.DriverMatchAttemptId, request.DriverId);
             return MatchingErrors.MatchAttempt.NotFound;
         }
 
         if (matchAttempt.ExpiresAt <= now)
         {
             logger.LogWarning("Match attempt {MatchAttemptId} for driver {DriverId} is expired",
-                request.DriverMatchAttemptId.Value, request.DriverId.Value);
+                request.DriverMatchAttemptId, request.DriverId);
             return MatchingErrors.MatchAttempt.Expired;
         }
 
         if (matchAttempt.Status != MatchAttemptStatus.Pending)
         {
             logger.LogWarning("Match attempt {MatchAttemptId} for driver {DriverId} is not pending (status: {Status})",
-                request.DriverMatchAttemptId.Value, request.DriverId.Value, matchAttempt.Status);
+                request.DriverMatchAttemptId, request.DriverId, matchAttempt.Status);
             return MatchingErrors.MatchAttempt.NotFound;
         }
 
@@ -96,7 +100,7 @@ public class AcceptMatchCommandHandler(
         if (matchingSession is null)
         {
             logger.LogWarning("No matching session found for match attempt {MatchAttemptId}",
-                request.DriverMatchAttemptId.Value);
+                request.DriverMatchAttemptId);
             return MatchingErrors.Session.NotFound;
         }
 
@@ -104,7 +108,7 @@ public class AcceptMatchCommandHandler(
         if (acceptResult.IsError)
         {
             logger.LogWarning("Failed to accept match for driver {DriverId}: {Errors}",
-                request.DriverId.Value, string.Join(", ", acceptResult.Errors.Select(e => e.Description)));
+                request.DriverId, string.Join(", ", acceptResult.Errors.Select(e => e.Description)));
             return acceptResult.Errors;
         }
 
@@ -114,7 +118,7 @@ public class AcceptMatchCommandHandler(
 
         if (driverStatus is null)
         {
-            logger.LogWarning("Driver status not found for driver {DriverId} when accepting match", request.DriverId.Value);
+            logger.LogWarning("Driver status not found for driver {DriverId} when accepting match", request.DriverId);
             return DriverErrors.DriverNotFound;
         }
 
@@ -138,8 +142,8 @@ public class AcceptMatchCommandHandler(
         if (startTripResult.IsError)
         {
             logger.LogWarning("Failed to start trip {TripId} for driver {DriverId}: {Errors}",
-                trip.Id.Value,
-                request.DriverId.Value,
+                trip.Id,
+                request.DriverId,
                 string.Join(", ", startTripResult.Errors.Select(e => e.Description)));
             await transaction.RollbackAsync(cancellationToken);
             return startTripResult.Errors;
@@ -152,7 +156,7 @@ public class AcceptMatchCommandHandler(
         if (markMatchedResult.IsError)
         {
             logger.LogWarning("Failed to mark trip request {TripRequestId} as matched: {Errors}",
-                tripRequest.Id.Value,
+                tripRequest.Id,
                 string.Join(", ", markMatchedResult.Errors.Select(e => e.Description)));
             await transaction.RollbackAsync(cancellationToken);
             return markMatchedResult.Errors;
@@ -164,6 +168,28 @@ public class AcceptMatchCommandHandler(
         await publisher.Publish(trip.CreateTripCreatedEvent(), cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
+
+        // Notify rider via SignalR about trip assignment
+        var driverProfile = await db.DriverProfiles
+            .FirstOrDefaultAsync(dp => dp.UserId == driverStatus.UserId, cancellationToken);
+
+        if (driverProfile != null)
+        {
+            var notification = new TripAssignedNotification(
+                TripId: trip.Id,
+                DriverName: driverProfile.PersonalInfo?.FullName ?? "Driver",
+                DriverPhotoUrl: driverProfile.Documents.FirstOrDefault(d => d.Type == DocumentType.DriverPhoto)?.ImageUrl,
+                VehicleModel: driverProfile.Vehicle?.Model,
+                VehiclePlateNumber: driverProfile.Vehicle?.LicensePlate,
+                EstimatedArrivalMinutes: matchAttempt.EstimatedArrivalTime / 60.0, // Convert seconds to minutes
+                AssignedAt: trip.AssignedAt);
+
+            await riderHub.Clients.Group(tripRequest.RiderId.ToString())
+                .NotifyTripAssignedAsync(tripRequest.RiderId.ToString(), notification);
+
+            logger.LogInformation("Notified rider {RiderId} about trip assignment {TripId}",
+                tripRequest.RiderId, trip.Id);
+        }
 
         return new AcceptMatchResult(trip.Id, trip.AssignedAt);
     }

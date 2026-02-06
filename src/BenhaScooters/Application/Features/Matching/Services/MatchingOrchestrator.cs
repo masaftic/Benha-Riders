@@ -33,7 +33,7 @@ public class MatchingOrchestrator(
         {
             logger.LogInformation(
                 "No active matching session found for trip request {TripRequestId} when handling post-outcome",
-                tripRequestId.Value);
+                tripRequestId);
             return MatchingErrors.Session.NotFound;
         }
 
@@ -43,7 +43,7 @@ public class MatchingOrchestrator(
         {
             logger.LogWarning(
                 "Failed to transition matching session {MatchingSessionId} after outcome: {Errors}",
-                matchingSession.Id.Value,
+                matchingSession.Id,
                 string.Join(", ", transitionResult.Errors.Select(e => e.Description)));
 
             return transitionResult.Errors;
@@ -57,14 +57,14 @@ public class MatchingOrchestrator(
             case RoundTransitioned:
                 logger.LogInformation(
                     "Advancing to next round for session {MatchingSessionId}",
-                    matchingSession.Id.Value);
+                    matchingSession.Id);
 
                 var matchResult = await driverMatchingService.ProcessMatchingAsync(matchingSession.Id, cancellationToken);
                 if (matchResult.IsError)
                 {
                     logger.LogWarning(
                         "Failed to process matching for session {MatchingSessionId}: {Errors}",
-                        matchingSession.Id.Value,
+                        matchingSession.Id,
                         string.Join(", ", matchResult.Errors.Select(e => e.Description)));
                 }
                 break;
@@ -72,7 +72,7 @@ public class MatchingOrchestrator(
             case MatchingCanceled:
                 logger.LogInformation(
                     "Matching session {MatchingSessionId} cancelled after all rounds completed with no match",
-                    matchingSession.Id.Value);
+                    matchingSession.Id);
                 break;
 
             case NoTransition:

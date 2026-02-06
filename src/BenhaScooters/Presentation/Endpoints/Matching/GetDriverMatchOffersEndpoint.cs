@@ -1,4 +1,3 @@
-using Amazon.S3.Model;
 using BenhaScooters.Application.Features.Matching.Queries;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
@@ -18,7 +17,7 @@ public class GetDriverMatchOffersEndpoint : IEndpoint
         List<DriverMatchOfferResponseDto> MatchOffers);
 
     public record DriverMatchOfferResponseDto(
-        int DriverMatchAttemptId,
+        DriverMatchAttemptId DriverMatchAttemptId,
         double PickupLatitude,
         double PickupLongitude,
         double DropoffLatitude,
@@ -68,6 +67,4 @@ public partial class GetDriverMatchOffersEndpointMapper
         new(driverId);
 
     public partial GetDriverMatchOffersEndpoint.GetDriverMatchOffersResponseDto MapToResponse(GetDriverMatchOffersResult result);
-
-    private int MapMatchAttemptId(DriverMatchAttemptId id) => id.Value;
 }

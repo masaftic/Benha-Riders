@@ -17,7 +17,7 @@ public class GetDriverRecentTripsEndpoint : IEndpoint
         bool HasNextPage);
 
     public record DriverTripSummaryDto(
-        int TripId,
+        TripId TripId,
         string Status,
         string PickupAddress,
         string DropoffAddress,
@@ -74,8 +74,6 @@ public partial class GetDriverRecentTripsEndpointMapper
     [MapperIgnoreSource(nameof(DriverTripSummary.StartedAt))]
     [MapProperty(nameof(DriverTripSummary.AssignedAt), nameof(GetDriverRecentTripsEndpoint.DriverTripSummaryDto.CreatedAt))]
     public partial GetDriverRecentTripsEndpoint.DriverTripSummaryDto MapToDto(DriverTripSummary trip);
-
-    public int MapTripId(TripId tripId) => tripId.Value;
 
     public partial GetDriverRecentTripsEndpoint.GetDriverRecentTripsResponseDto MapToResponse(GetDriverRecentTripsResult result);
 }

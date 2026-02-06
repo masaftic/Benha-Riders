@@ -48,7 +48,7 @@ public class UpdateVehicleInfoCommandValidator : AbstractValidator<UpdateVehicle
         var userId = command.DriverId;
         return !await _db.DriverProfiles
             .Where(dp => dp.Vehicle != null && dp.UserId != userId)
-            .AnyAsync(dp => dp.Vehicle!.VIN == VIN.From(vin), cancellationToken);
+            .AnyAsync(dp => dp.Vehicle!.VIN == VIN.Create(vin), cancellationToken);
     }
 
     private async Task<bool> BeUniqueLicensePlate(UpdateVehicleInfoCommand command, string licensePlate, CancellationToken cancellationToken)
@@ -56,7 +56,7 @@ public class UpdateVehicleInfoCommandValidator : AbstractValidator<UpdateVehicle
         var userId = command.DriverId;
         return !await _db.DriverProfiles
             .Where(dp => dp.Vehicle != null && dp.UserId != userId)
-            .AnyAsync(dp => dp.Vehicle!.LicensePlate == LicensePlate.From(licensePlate), cancellationToken);
+            .AnyAsync(dp => dp.Vehicle!.LicensePlate == LicensePlate.Create(licensePlate), cancellationToken);
     }
 }
 
@@ -83,9 +83,9 @@ public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<
             request.VehicleBrand,
             request.VehicleModel,
             request.VehicleColor,
-            LicensePlate.From(request.LicensePlate),
+            LicensePlate.Create(request.LicensePlate),
             request.VehicleYear,
-            VIN.From(request.VIN));
+            VIN.Create(request.VIN));
 
         var updateResult = driverProfile.UpdateVehicle(vehicleInfo);
 

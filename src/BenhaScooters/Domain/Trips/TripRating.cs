@@ -2,7 +2,8 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Users;
-using Vogen;
+using Thinktecture;
+
 
 namespace BenhaScooters.Domain.Trips;
 

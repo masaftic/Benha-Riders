@@ -15,7 +15,7 @@ namespace BenhaScooters.Presentation.Endpoints.TripRequests;
 public class GetTripRequestByIdEndpoint : IEndpoint
 {
     public record GetTripRequestByIdResponseDto(
-        int TripRequestId,
+        TripRequestId TripRequestId,
         double PickupLatitude,
         double PickupLongitude,
         double DropoffLatitude,
@@ -67,10 +67,8 @@ public partial class GetTripRequestByIdEndpointMapper
     {
         return new GetTripRequestByIdQuery(
             driverId,
-            TripRequestId.From(tripRequestId));
+            TripRequestId.Create(tripRequestId));
     }
 
     public partial GetTripRequestByIdEndpoint.GetTripRequestByIdResponseDto MapToResponse(GetTripRequestByIdResult result);
-
-    private int MapTripRequestId(TripRequestId id) => id.Value;
 }

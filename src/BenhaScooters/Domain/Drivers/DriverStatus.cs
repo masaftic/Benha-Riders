@@ -8,8 +8,7 @@ public enum DriverAvailabilityStatus
 {
     Offline = 0,
     Online = 1,
-    OnTrip = 2,
-    Busy = 3  // Temporarily unavailable (e.g., reviewing a match offer)
+    OnTrip = 2
 }
 
 /// <summary>
@@ -66,7 +65,7 @@ public class DriverStatus
 
     public ErrorOr<Success> StartTrip(TripId tripId)
     {
-        if (Status != DriverAvailabilityStatus.Online && Status != DriverAvailabilityStatus.Busy)
+        if (Status != DriverAvailabilityStatus.Online)
             return DriverErrors.Status.MustBeOnlineToStartTrip;
 
         Status = DriverAvailabilityStatus.OnTrip;
@@ -85,27 +84,4 @@ public class DriverStatus
         LastStatusChange = DateTime.UtcNow;
         return Result.Success;
     }
-
-    public ErrorOr<Success> SetBusy()
-    {
-        if (Status != DriverAvailabilityStatus.Online)
-            return DriverErrors.Status.MustBeOnlineToSetBusy;
-
-        Status = DriverAvailabilityStatus.Busy;
-        LastStatusChange = DateTime.UtcNow;
-        return Result.Success;
-    }
-
-    public ErrorOr<Success> ClearBusy()
-    {
-        if (Status != DriverAvailabilityStatus.Busy)
-            return Result.Success;
-
-        Status = DriverAvailabilityStatus.Online;
-        LastStatusChange = DateTime.UtcNow;
-        return Result.Success;
-    }
-
-    public bool IsAvailableForMatching => Status == DriverAvailabilityStatus.Online;
-    public bool IsOnline => Status == DriverAvailabilityStatus.Online || Status == DriverAvailabilityStatus.Busy;
 }

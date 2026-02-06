@@ -1,6 +1,7 @@
 ﻿using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Domain.Users;
 using FluentAssertions;
 
 namespace BenhaScooters.UnitTests.Matching;
@@ -11,7 +12,7 @@ public class MatchingUnitTests
         int numberOfRounds,
         params int[] offersPerRound)
     {
-        var tripRequestId = TripRequestId.From(1);
+        var tripRequestId = TripRequestId.Create(1);
         var result = MatchingSession.Create(tripRequestId, numberOfRounds, offersPerRound.ToList());
         result.IsError.Should().BeFalse("session creation should succeed in tests");
         return result.Value;
@@ -22,7 +23,7 @@ public class MatchingUnitTests
     {
         // Arrange
         var session = CreateSession(2, 1, 1);
-        var driverId = DriverId.From(1);
+        var driverId = UserId.Create(1);
 
         var attemptResult = session.CreateDriverMatchAttempt(driverId, 100, 60, 1.0m);
         attemptResult.IsError.Should().BeFalse();
@@ -42,7 +43,7 @@ public class MatchingUnitTests
     {
         // Arrange
         var session = CreateSession(2, 1, 1);
-        var driverId = DriverId.From(1);
+        var driverId = UserId.Create(1);
 
         var attemptResult = session.CreateDriverMatchAttempt(driverId, 100, 60, 1.0m);
         attemptResult.IsError.Should().BeFalse();
@@ -66,7 +67,7 @@ public class MatchingUnitTests
     {
         // Arrange
         var session = CreateSession(1, 1);
-        var driverId = DriverId.From(1);
+        var driverId = UserId.Create(1);
 
         var attemptResult = session.CreateDriverMatchAttempt(driverId, 100, 60, 1.0m);
         attemptResult.IsError.Should().BeFalse();

@@ -24,11 +24,11 @@ public class DriverArrivedCommandValidator : AbstractValidator<DriverArrivedComm
 {
     public DriverArrivedCommandValidator()
     {
-        RuleFor(x => x.DriverId.Value)
+        RuleFor(x => x.DriverId)
             .NotEmpty()
             .WithMessage("Driver ID is required");
 
-        RuleFor(x => x.TripId.Value)
+        RuleFor(x => x.TripId)
             .NotEmpty()
             .WithMessage("Trip ID is required");
     }

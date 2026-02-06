@@ -5,7 +5,7 @@ using BenhaScooters.Domain.Trips.ValueObjects;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Users;
 using ErrorOr;
-using Vogen;
+using Thinktecture;
 using BenhaScooters.Domain.TripRequests.Enums;
 using BenhaScooters.Domain.TripRequests.Events;
 

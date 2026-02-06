@@ -14,9 +14,9 @@ namespace BenhaScooters.Presentation.Endpoints.Matching;
 
 public class AcceptMatchEndpoint : IEndpoint
 {
-    public record AcceptMatchRequestDto(int DriverMatchAttemptId);
+    public record AcceptMatchRequestDto(DriverMatchAttemptId DriverMatchAttemptId);
 
-    public record AcceptMatchResponseDto(int TripId, DateTime AcceptedAt);
+    public record AcceptMatchResponseDto(TripId TripId, DateTime AcceptedAt);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -54,9 +54,7 @@ public class AcceptMatchEndpoint : IEndpoint
 public partial class AcceptMatchEndpointMapper
 {
     public AcceptMatchCommand MapToCommand(AcceptMatchEndpoint.AcceptMatchRequestDto request, UserId driverId) =>
-        new(driverId, DriverMatchAttemptId.From(request.DriverMatchAttemptId));
+        new(driverId, DriverMatchAttemptId.Create(request.DriverMatchAttemptId));
 
     public partial AcceptMatchEndpoint.AcceptMatchResponseDto MapToResponse(AcceptMatchResult result);
-
-    public static int MapTripId(TripId tripId) => tripId.Value;
 }

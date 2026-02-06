@@ -27,11 +27,11 @@ public class StartTripCommandValidator : AbstractValidator<StartTripCommand>
 {
     public StartTripCommandValidator()
     {
-        RuleFor(x => x.DriverId.Value)
+        RuleFor(x => x.DriverId)
             .NotEmpty()
             .WithMessage("Driver ID is required");
 
-        RuleFor(x => x.TripId.Value)
+        RuleFor(x => x.TripId)
             .NotEmpty()
             .WithMessage("Trip ID is required");
     }
@@ -77,14 +77,14 @@ public class StartTripCommandHandler(
             if (chargeResult.IsError)
             {
                 logger.LogWarning("Failed to charge wallet for trip {TripId}: {Errors}",
-                    trip.Id.Value, string.Join(", ", chargeResult.Errors.Select(e => e.Description)));
+                    trip.Id, string.Join(", ", chargeResult.Errors.Select(e => e.Description)));
                 // Note: We continue even if charge fails - trip already started
             }
         }
         else
         {
             logger.LogWarning("Wallet not found for driver {DriverId} when starting trip {TripId}",
-                request.DriverId.Value, trip.Id.Value);
+                request.DriverId, trip.Id);
         }
 
         await db.SaveChangesAsync(cancellationToken);

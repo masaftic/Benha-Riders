@@ -18,7 +18,7 @@ public class ApproveDriverCommandValidator : AbstractValidator<ApproveDriverComm
 {
     public ApproveDriverCommandValidator()
     {
-        RuleFor(x => x.DriverId.Value)
+        RuleFor(x => x.DriverId)
             .NotEmpty().WithMessage("Driver user ID is required.");
     }
 }
@@ -46,7 +46,7 @@ public class ApproveDriverCommandHandler : IRequestHandler<ApproveDriverCommand,
         }
 
         // Admin approves the driver profile
-        var adminUserId = UserId.From(1); // TODO: Get from current user context
+        var adminUserId = UserId.Create(1); // TODO: Get from current user context
         var approveResult = driverProfile.Approve(adminUserId);
         if (approveResult.IsError)
         {

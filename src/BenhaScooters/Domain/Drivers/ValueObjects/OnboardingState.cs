@@ -1,6 +1,7 @@
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers.Enums;
-using Vogen;
+using Thinktecture;
+
 
 namespace BenhaScooters.Domain.Drivers.ValueObjects;
 

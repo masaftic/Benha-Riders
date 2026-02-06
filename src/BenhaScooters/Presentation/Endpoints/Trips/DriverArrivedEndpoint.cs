@@ -55,13 +55,13 @@ public partial class DriverArrivedEndpointMapper
     {
         return new DriverArrivedCommand(
             driverId,
-            TripId.From(tripId));
+            TripId.Create(tripId));
     }
 
     public DriverArrivedEndpoint.DriverArrivedResponseDto MapToResponse(DriverArrivedResult result)
     {
         return new DriverArrivedEndpoint.DriverArrivedResponseDto(
-            result.TripId.Value,
+            result.TripId,
             result.Message,
             result.ArrivedAt);
     }

@@ -1,19 +1,27 @@
-using Vogen;
+using Thinktecture;
+
 
 namespace BenhaScooters.Domain.Drivers.ValueObjects;
 
 [ValueObject<string>]
-public partial struct LicensePlate
+[KeyMemberEqualityComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
+public partial class LicensePlate
 {
-    private static Validation Validate(string licensePlate)
+    static partial void ValidateFactoryArguments(
+        ref ValidationError? validationError,
+        ref string value)
     {
-        if (string.IsNullOrWhiteSpace(licensePlate))
-            return Validation.Invalid("License plate cannot be empty.");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            validationError = new ValidationError("License plate cannot be empty.");
+            return;
+        }
 
-        // Basic Egyptian license plate validation
-        if (licensePlate.Length < 3 || licensePlate.Length > 10)
-            return Validation.Invalid("License plate must be between 3 and 10 characters.");
-
-        return Validation.Ok;
+        if (value.Length < 3 || value.Length > 10)
+        {
+            validationError = new ValidationError(
+                "License plate must be between 3 and 10 characters.");
+            return;
+        }
     }
 }

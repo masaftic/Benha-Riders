@@ -55,5 +55,5 @@ public partial class RegisterEndpointMapper
     public partial RegisterCommand MapToCommand(RegisterEndpoint.RegisterRequestDto request);
     public partial RegisterEndpoint.RegisterResponseDto MapToResponse(OnboardingStatusToken response);
 
-    private static int UserIdToInt(UserId userId) => userId.Value;
+    private static int UserIdToInt(UserId userId) => userId;
 }

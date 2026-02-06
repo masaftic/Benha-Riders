@@ -11,7 +11,7 @@ namespace BenhaScooters.Presentation.Endpoints.Trips;
 public class GetTripStatusEndpoint : IEndpoint
 {
     public record GetTripStatusResponseDto(
-        int TripRequestId,
+        TripRequestId TripRequestId,
         TripRequestStatus Status,
         string? MatchedDriverName,
         DateTime RequestedAt,
@@ -57,10 +57,8 @@ public partial class GetTripStatusEndpointMapper
     {
         return new GetTripStatusQuery(
             riderId,
-            TripRequestId.From(tripRequestId));
+            TripRequestId.Create(tripRequestId));
     }
 
     public partial GetTripStatusEndpoint.GetTripStatusResponseDto MapToResponse(GetTripStatusResult result);
-
-    private int MapTripRequestId(TripRequestId id) => id.Value;
 }

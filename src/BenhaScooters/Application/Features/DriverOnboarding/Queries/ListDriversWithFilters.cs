@@ -50,7 +50,7 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
             d.Id,
             d.FullName,
             d.NationalId,
-            d.PhoneNumber!.Value,
+            d.PhoneNumber!,
             d.Brand,
             d.Year,
             d.Status,

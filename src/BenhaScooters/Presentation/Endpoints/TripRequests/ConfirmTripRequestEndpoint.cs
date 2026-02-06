@@ -25,7 +25,7 @@ public class ConfirmTripRequestEndpoint : IEndpoint
     public async Task<IResult> ConfirmTripRequest([FromServices] ISender sender, [FromRoute] int tripRequestId, HttpContext ctx)
     {
         var riderId = ctx.GetRiderId();
-        var command = new ConfirmTripRequestCommand(TripRequestId.From(tripRequestId), riderId);
+        var command = new ConfirmTripRequestCommand(TripRequestId.Create(tripRequestId), riderId);
         var result = await sender.Send(command);
 
         if (result.IsError)

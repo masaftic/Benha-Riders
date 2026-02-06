@@ -1,5 +1,8 @@
+using BenhaScooters.Application.Abstractions;
+using BenhaScooters.Infrastructure.Notifications;
 using BenhaScooters.Domain.Trips.Events;
 using MediatR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
 namespace BenhaScooters.Application.Features.Trips.EventHandlers;
@@ -10,25 +13,33 @@ namespace BenhaScooters.Application.Features.Trips.EventHandlers;
 public class TripStartedEventHandler : INotificationHandler<TripStartedEvent>
 {
     private readonly ILogger<TripStartedEventHandler> _logger;
+    private readonly IHubContext<RiderHub, IRiderNotifications> _riderHub;
 
-    public TripStartedEventHandler(ILogger<TripStartedEventHandler> logger)
+    public TripStartedEventHandler(
+        ILogger<TripStartedEventHandler> logger,
+        IHubContext<RiderHub, IRiderNotifications> riderHub)
     {
         _logger = logger;
+        _riderHub = riderHub;
     }
 
-    public Task Handle(TripStartedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(TripStartedEvent notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation(
             "Trip {TripId} started by driver {DriverId} at {StartedAt}",
-            notification.TripId.Value,
-            notification.DriverId.Value,
+            notification.TripId,
+            notification.DriverId,
             notification.OccurredAt);
 
-        // TODO: In later phases, this will:
-        // - Begin GPS tracking for route building
-        // - Notify rider that trip has started
-        // - Initialize real-time tracking
-        
-        return Task.CompletedTask;
+        // Notify rider via SignalR
+        var tripStartedNotification = new TripStartedNotification(
+            TripId: notification.TripId,
+            StartedAt: notification.OccurredAt);
+
+        await _riderHub.Clients.Group(notification.RiderId.ToString())
+            .NotifyTripStartedAsync(notification.RiderId.ToString(), tripStartedNotification);
+
+        _logger.LogInformation("Notified rider {RiderId} that trip {TripId} has started",
+            notification.RiderId, notification.TripId);
     }
 }

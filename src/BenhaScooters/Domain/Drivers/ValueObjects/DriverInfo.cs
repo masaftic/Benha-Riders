@@ -1,24 +1,32 @@
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Users;
-using Vogen;
+using Thinktecture;
+
 
 namespace BenhaScooters.Domain.Drivers.ValueObjects;
 
 [ValueObject<string>]
-public partial struct NationalId
+[KeyMemberEqualityComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
+public partial class NationalId
 {
-    private static Validation Validate(string nationalId)
+    static partial void ValidateFactoryArguments(
+        ref ValidationError? validationError,
+        ref string value)
     {
-        if (string.IsNullOrWhiteSpace(nationalId))
-            return Validation.Invalid("National ID cannot be empty.");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            validationError = new ValidationError("National ID cannot be empty.");
+            return;
+        }
 
-        // Egyptian national ID validation (14 digits)
-        if (!System.Text.RegularExpressions.Regex.IsMatch(nationalId, @"^[0-9]{14}$"))
-            return Validation.Invalid("National ID must be 14 digits.");
-
-        return Validation.Ok;
+        if (value.Length != 14 || !value.All(char.IsDigit))
+        {
+            validationError = new ValidationError("National ID must be exactly 14 digits.");
+            return;
+        }
     }
 }
+
 
 public class DriverInfo : ValueObject
 {
@@ -77,7 +85,7 @@ public class DriverInfo : ValueObject
                 FullName = value;
                 break;
             case nameof(NationalId):
-                NationalId = NationalId.From(value);
+                NationalId = NationalId.Create(value);
                 break;
             case nameof(DateOfBirth):
                 DateOfBirth = DateOnly.Parse(value);
@@ -92,7 +100,7 @@ public class DriverInfo : ValueObject
                 EmergencyContactName = value;
                 break;
             case nameof(EmergencyContactPhone):
-                EmergencyContactPhone = PhoneNumber.From(value);
+                EmergencyContactPhone = PhoneNumber.Create(value);
                 break;
             default:
                 return Error.Validation("UNKNOWN_FIELD_NAME", $"Unknown field: {name}");

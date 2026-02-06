@@ -3,29 +3,35 @@ using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Users;
 using NetTopologySuite.Geometries;
-using Vogen;
+using Thinktecture;
 
 namespace BenhaScooters.Domain.Drivers;
 
 /// <summary>
 /// Vehicle Identification Number - 17 character code
 /// </summary>
+
 [ValueObject<string>]
-public partial struct VIN
+[KeyMemberEqualityComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
+public partial class VIN
 {
-    private static Validation Validate(string vin)
+    static partial void ValidateFactoryArguments(
+        ref ValidationError? validationError,
+        ref string value)
     {
-        if (string.IsNullOrWhiteSpace(vin))
-            return Validation.Invalid("VIN cannot be empty.");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            validationError = new ValidationError("VIN cannot be empty.");
+            return;
+        }
 
-        // Basic VIN validation (17 characters for modern vehicles)
-        if (vin.Length != 17)
-            return Validation.Invalid("VIN must be 17 characters.");
-
-        return Validation.Ok;
+        if (value.Length != 17)
+        {
+            validationError = new ValidationError("VIN must be 17 characters.");
+            return;
+        }
     }
 }
-
 
 
 public enum DriverOnboardingStatus

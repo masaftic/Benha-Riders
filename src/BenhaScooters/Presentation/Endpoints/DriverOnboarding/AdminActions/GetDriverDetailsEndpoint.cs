@@ -24,7 +24,7 @@ public class GetDriverDetailsEndpoint : IEndpoint
 
     public async Task<IResult> GetDriverDetails([FromServices] ISender sender, [FromRoute] int driverId, HttpContext ctx)
     {
-        var query = new GetOnboardingDetailsQuery(UserId.From(driverId));
+        var query = new GetOnboardingDetailsQuery(UserId.Create(driverId));
         var result = await sender.Send(query);
 
         if (result.IsError)

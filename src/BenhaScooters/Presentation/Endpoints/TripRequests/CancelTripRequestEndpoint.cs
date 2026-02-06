@@ -13,11 +13,11 @@ namespace BenhaScooters.Presentation.Endpoints.Trips;
 public class CancelTripRequestEndpoint : IEndpoint
 {
     public record CancelTripRequestRequestDto(
-        int TripRequestId,
+        TripRequestId TripRequestId,
         string? CancellationReason = null);
 
     public record CancelTripRequestResponseDto(
-        int TripRequestId,
+        TripRequestId TripRequestId,
         string Message,
         DateTime CancelledAt);
 
@@ -60,11 +60,9 @@ public partial class CancelTripRequestEndpointMapper
     {
         return new CancelTripRequestCommand(
             riderId,
-            TripRequestId.From(request.TripRequestId),
+            TripRequestId.Create(request.TripRequestId),
             request.CancellationReason);
     }
 
     public partial CancelTripRequestEndpoint.CancelTripRequestResponseDto MapToResponse(CancelTripRequestResult result);
-
-    private int MapTripRequestId(TripRequestId id) => id.Value;
 }

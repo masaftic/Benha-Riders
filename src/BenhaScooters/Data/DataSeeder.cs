@@ -21,8 +21,8 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender
             {
                 var user = new User(
                     "Admin",
-                    Email.From("admin@gmail.com"),
-                    PhoneNumber.From("01234567890"),
+                    Email.Create("admin@gmail.com"),
+                    PhoneNumber.Create("01234567890"),
                     passwordHasher.Hash("password"));
 
                 user.VerifyPhoneNumber();
@@ -39,8 +39,8 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender
             {
                 var user = new User(
                     "Driver",
-                    Email.From("driver@gmail.com"),
-                    PhoneNumber.From("01234567891"),
+                    Email.Create("driver@gmail.com"),
+                    PhoneNumber.Create("01234567891"),
                     passwordHasher.Hash("password"));
 
                 user.VerifyPhoneNumber();
@@ -54,21 +54,21 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender
                 
                 var personalInfo = new DriverPersonalInfo(
                     "Sample Driver", 
-                    NationalId.From("12345678901234"), 
+                    NationalId.Create("12345678901234"), 
                     new DateOnly(1990, 1, 1), 
                     "123 Street", 
                     "City", 
                     "Emergency Contact", 
-                    PhoneNumber.From("09876543213"));
+                    PhoneNumber.Create("09876543213"));
                 
                 var vehicleInfo = new DriverVehicleInfo(
                     VehicleType.Scooter, 
                     "Brand", 
                     "Model", 
                     "Color", 
-                    LicensePlate.From("ABC1234"), 
+                    LicensePlate.Create("ABC1234"), 
                     2020, 
-                    VIN.From("12345678901234567"));
+                    VIN.Create("12345678901234567"));
                 
                 driverProfile.UpdatePersonalInfo(personalInfo);
                 driverProfile.UpdateVehicle(vehicleInfo);
@@ -90,8 +90,8 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender
             {
                 var user = new User(
                     "Rider",
-                    Email.From("rider@gmail.com"),
-                    PhoneNumber.From("01234567893"),
+                    Email.Create("rider@gmail.com"),
+                    PhoneNumber.Create("01234567893"),
                     passwordHasher.Hash("password"));
 
                 user.VerifyPhoneNumber();

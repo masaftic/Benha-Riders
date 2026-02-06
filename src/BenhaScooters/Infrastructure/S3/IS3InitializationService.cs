@@ -1,5 +1,4 @@
 using Amazon.S3;
-using Amazon.S3.Model;
 using Microsoft.Extensions.Options;
 
 namespace BenhaScooters.Infrastructure.S3;

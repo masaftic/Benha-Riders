@@ -83,11 +83,11 @@
 //             try
 //             {
 //                 await matchingService.HandleMatchTimeoutAsync(sessionId, cancellationToken);
-//                 _logger.LogDebug("Processed timeout for matching session {SessionId}", sessionId.Value);
+//                 _logger.LogDebug("Processed timeout for matching session {SessionId}", sessionId);
 //             }
 //             catch (Exception ex)
 //             {
-//                 _logger.LogError(ex, "Error processing timeout for matching session {SessionId}", sessionId.Value);
+//                 _logger.LogError(ex, "Error processing timeout for matching session {SessionId}", sessionId);
 //             }
 //         }
 //     }
