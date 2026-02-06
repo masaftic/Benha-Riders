@@ -18,6 +18,7 @@ public record GetDriverMatchOffersResult(
 
 public record DriverMatchOfferDto(
     DriverMatchAttemptId DriverMatchAttemptId,
+    string RiderName,
     double PickupLatitude,
     double PickupLongitude,
     double DropoffLatitude,
@@ -25,6 +26,10 @@ public record DriverMatchOfferDto(
     string? PickupAddress,
     string? DropoffAddress,
     decimal EstimatedFare,
+    double EstimatedDistance,
+    double EstimatedDuration,
+    double DistanceToPickup,
+    double EstimatedArrivalTime,
     DateTime OfferedAt,
     DateTime ExpiresAt);
 
@@ -71,11 +76,16 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
             .Select(ma =>  new
             {
                 ma.Id,
+                RiderName = ma.MatchingSession.TripRequest.RiderProfile.PreferredName ?? ma.MatchingSession.TripRequest.RiderProfile.User.Name,
                 ma.MatchingSession.TripRequest.PickupLocation,
                 ma.MatchingSession.TripRequest.DropoffLocation,
                 ma.MatchingSession.TripRequest.PickupAddress,
                 ma.MatchingSession.TripRequest.DropoffAddress,
                 ma.MatchingSession.TripRequest.FinalFare.Amount,
+                ma.MatchingSession.TripRequest.FinalFare.Distance,
+                ma.MatchingSession.TripRequest.FinalFare.Time,
+                ma.DistanceToPickup,
+                ma.EstimatedArrivalTime,
                 ma.CreatedAt,
                 ma.ExpiresAt
             })
@@ -84,6 +94,7 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
 
         return new GetDriverMatchOffersResult(matchOffers.Select(x => new DriverMatchOfferDto(
             x.Id,
+            x.RiderName,
             x.PickupLocation.Y, // Latitude
             x.PickupLocation.X, // Longitude
             x.DropoffLocation.Y, // Latitude
@@ -91,6 +102,10 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
             x.PickupAddress,
             x.DropoffAddress,
             x.Amount,
+            x.Distance,
+            x.Time,
+            x.DistanceToPickup,
+            x.EstimatedArrivalTime,
             x.CreatedAt,
             x.ExpiresAt)).ToList());
     }

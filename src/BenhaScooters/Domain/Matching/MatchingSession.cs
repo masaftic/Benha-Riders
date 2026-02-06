@@ -159,7 +159,8 @@ public class MatchingSession : AggregateRoot
         UserId driverId,
         double distanceToPickup,
         double estimatedArrivalTime,
-        decimal driverScore)
+        decimal driverScore,
+        TimeSpan matchAttemptExpirationDuration)
     {
         if (Status != MatchingSessionStatus.Active)
             return MatchingErrors.Session.NotActive;
@@ -173,7 +174,8 @@ public class MatchingSession : AggregateRoot
             distanceToPickup,
             estimatedArrivalTime,
             driverScore,
-            CurrentRound);
+            CurrentRound,
+            matchAttemptExpirationDuration);
 
         _matchAttempts.Add(matchAttempt);
 

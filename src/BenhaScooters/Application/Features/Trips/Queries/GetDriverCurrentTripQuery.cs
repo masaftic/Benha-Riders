@@ -11,9 +11,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Trips.Queries;
 
-public record GetDriverCurrentTripQuery(UserId DriverId) : IRequest<ErrorOr<GetDriverCurrentTripResult>>;
+public record GetCurrentTripQuery(UserId UserId) : IRequest<ErrorOr<GetCurrentTripResult>>;
 
-public record GetDriverCurrentTripResult(
+public record GetCurrentTripResult(
     int TripId,
     TripStatus Status,
     string PickupAddress,
@@ -22,24 +22,29 @@ public record GetDriverCurrentTripResult(
     DateTime CreatedAt,
     DateTime? DriverArrivedAt,
     DateTime? StartedAt,
-    RiderInfo Rider);
+    RiderInfo? Rider,
+    DriverInfo? Driver);
 
 
 
-public class GetDriverCurrentTripQueryHandler : IRequestHandler<GetDriverCurrentTripQuery, ErrorOr<GetDriverCurrentTripResult>>
+public class GetCurrentTripQueryHandler : IRequestHandler<GetCurrentTripQuery, ErrorOr<GetCurrentTripResult>>
 {
     private readonly AppDbContext _db;
 
-    public GetDriverCurrentTripQueryHandler(AppDbContext db)
+    public GetCurrentTripQueryHandler(AppDbContext db)
     {
         _db = db;
     }
 
-    public async Task<ErrorOr<GetDriverCurrentTripResult>> Handle(GetDriverCurrentTripQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<GetCurrentTripResult>> Handle(GetCurrentTripQuery request, CancellationToken cancellationToken)
     {
+        // Active trip statuses: Assigned, DriverArrived, InProgress
+        var activeStatuses = new[] { TripStatus.Assigned, TripStatus.DriverArrived, TripStatus.InProgress };
+
         var tripResult = await _db.Trips
             .AsNoTracking()
-            .Where(t => t.DriverId == request.DriverId)
+            .Where(t => (t.DriverId == request.UserId || t.RiderId == request.UserId) 
+                     && activeStatuses.Contains(t.Status))
             .Select(t => new
             {
                 t.Id,
@@ -47,20 +52,18 @@ public class GetDriverCurrentTripQueryHandler : IRequestHandler<GetDriverCurrent
                 t.PickupAddress,
                 t.DropoffAddress,
                 t.FinalFare,
-                TripFare = t.TripFare,
-                IsPaid = t.TripPayment,
                 t.AssignedAt,
                 t.DriverArrivedAt,
                 t.StartedAt,
-                t.CompletedAt,
-                TotalDuration = t.CompletedAt.HasValue ?
-                    (t.CompletedAt - t.AssignedAt) :
-                    (t.StartedAt.HasValue ?
-                        (t.StartedAt - t.AssignedAt) : null),
-                RiderName = t.RiderProfile.PreferredName ?? "Unknown",
-                RiderPhoneNumber = t.RiderProfile.User.PhoneNumber
+                RiderName = t.RiderProfile.PreferredName ?? t.RiderProfile.User.Name,
+                RiderPhoneNumber = t.RiderProfile.User.PhoneNumber,
+                DriverName = t.DriverProfile.PersonalInfo!.FullName,
+                DriverPhoneNumber = t.DriverProfile.User.PhoneNumber,
+                DriverVehicleColor = t.DriverProfile.Vehicle!.Color,
+                DriverVehicleModel = t.DriverProfile.Vehicle!.Model,
+                DriverVehicleLicensePlate = t.DriverProfile.Vehicle!.LicensePlate
             })
-            .OrderBy(t => t.AssignedAt)
+            .OrderByDescending(t => t.AssignedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (tripResult is null)
@@ -68,7 +71,7 @@ public class GetDriverCurrentTripQueryHandler : IRequestHandler<GetDriverCurrent
             return TripErrors.Trip.NotFound;
         }
 
-        return new GetDriverCurrentTripResult(
+        return new GetCurrentTripResult(
             tripResult.Id,
             tripResult.Status,
             tripResult.PickupAddress ?? "Unknown pickup location",
@@ -79,6 +82,12 @@ public class GetDriverCurrentTripQueryHandler : IRequestHandler<GetDriverCurrent
             tripResult.StartedAt,
             new RiderInfo(
                 tripResult.RiderName,
-                tripResult.RiderPhoneNumber!));
+                tripResult.RiderPhoneNumber!),
+            new DriverInfo(
+                tripResult.DriverName,
+                tripResult.DriverPhoneNumber!,
+                tripResult.DriverVehicleModel,
+                tripResult.DriverVehicleColor,
+                tripResult.DriverVehicleLicensePlate));
     }
 }

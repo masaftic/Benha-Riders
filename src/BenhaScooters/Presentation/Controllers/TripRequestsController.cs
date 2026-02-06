@@ -87,6 +87,22 @@ public class TripRequestsController : BaseApiController
     }
 
     /// <summary>
+    /// Get current active trip request for the rider
+    /// </summary>
+    [HttpGet("current")]
+    [Authorize(Policy = "RiderPolicy")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCurrentTripRequest()
+    {
+        var query = new GetCurrentTripRequestQuery(HttpContext.GetCurrentUserId());
+        var result = await _sender.Send(query);
+
+        return result.Match(Ok, HandleErrors);
+    }
+
+    /// <summary>
     /// Get trip request by ID
     /// </summary>
     [HttpGet("{tripRequestId}")]
@@ -117,19 +133,19 @@ public class TripRequestsController : BaseApiController
         return result.Match(Ok, HandleErrors);
     }
 
-    /// <summary>
-    /// Get available trips (for admins to see all pending trip requests)
-    /// </summary>
-    [HttpGet("available")]
-    [Authorize(Roles = "Admin")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetAvailableTrips()
-    {
-        var query = new GetAvailableTripsQuery(HttpContext.GetCurrentUserId());
-        var result = await _sender.Send(query);
+    // /// <summary>
+    // /// Get available trips (for admins to see all pending trip requests)
+    // /// </summary>
+    // [HttpGet("available")]
+    // [Authorize(Roles = "Admin")]
+    // [ProducesResponseType(StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    // [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    // public async Task<IActionResult> GetAvailableTrips()
+    // {
+    //     var query = new GetAvailableTripsQuery(HttpContext.GetCurrentUserId());
+    //     var result = await _sender.Send(query);
 
-        return result.Match(Ok, HandleErrors);
-    }
+    //     return result.Match(Ok, HandleErrors);
+    // }
 }

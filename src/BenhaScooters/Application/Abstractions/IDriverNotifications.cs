@@ -2,7 +2,26 @@ namespace BenhaScooters.Application.Abstractions;
 
 public interface IDriverNotifications
 {
-    Task NotifyDriver(string driverId, string message);
-    Task NotifyRideRequestOffer(string driverId, string offerId);
-    Task NotifyRideRequestOfferExpired(string driverId, string offerId);
+    Task NotifyRideRequestOffer(string driverId, RideRequestOfferNotification notification);
+    Task NotifyRideRequestOfferExpired(string driverId, RideOfferExpiredNotification notification);
 }
+
+public record RideRequestOfferNotification(
+    string DriverMatchAttemptId,
+    string RiderName,
+    double PickupLatitude,
+    double PickupLongitude,
+    double DropoffLatitude,
+    double DropoffLongitude,
+    string? PickupAddress,
+    string? DropoffAddress,
+    decimal EstimatedFare,
+    double EstimatedDistance,
+    double DistanceToPickup,
+    double EstimatedArrivalTime,
+    DateTime OfferedAt,
+    DateTime ExpiresAt);
+
+public record RideOfferExpiredNotification(
+    string DriverMatchAttemptId,
+    DateTime ExpiredAt);

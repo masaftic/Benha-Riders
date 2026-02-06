@@ -56,6 +56,8 @@ public class DriverMatchingService : IDriverMatchingService
             var matchingSession = await _dbContext.MatchingSessions
                 .Include(ms => ms.MatchAttempts)
                 .Include(ms => ms.TripRequest)
+                    .ThenInclude(tr => tr.RiderProfile)
+                        .ThenInclude(rp => rp.User)
                 .FirstOrDefaultAsync(ms => ms.Id == matchingSessionId, cancellationToken);
 
             if (matchingSession == null)
@@ -103,7 +105,8 @@ public class DriverMatchingService : IDriverMatchingService
                     driver.DriverId,
                     driver.DistanceToPickup,
                     EstimateArrivalTime(driver.DistanceToPickup),
-                    driver.Score);
+                    driver.Score,
+                    _settings.DriverResponseTimeout); // pass the configured expiration duration
 
                 if (attemptResult.IsError)
                 {
@@ -128,8 +131,28 @@ public class DriverMatchingService : IDriverMatchingService
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            await Task.WhenAll(matchAttempts.Select(async match => await _hub.Clients.Groups(match.DriverUserId.ToString())
-                    .NotifyRideRequestOffer(match.DriverUserId.ToString(), match.Id.ToString())));
+            // Send notifications to drivers with full trip details
+            await Task.WhenAll(matchAttempts.Select(async match =>
+            {
+                var notification = new RideRequestOfferNotification(
+                    match.Id.ToString(),
+                    tripRequest.RiderProfile.PreferredName ?? tripRequest.RiderProfile.User.Name,
+                    tripRequest.PickupLocation.Y,
+                    tripRequest.PickupLocation.X,
+                    tripRequest.DropoffLocation.Y,
+                    tripRequest.DropoffLocation.X,
+                    tripRequest.PickupAddress,
+                    tripRequest.DropoffAddress,
+                    tripRequest.FinalFare.Amount,
+                    tripRequest.FinalFare.Distance,
+                    match.DistanceToPickup,
+                    match.EstimatedArrivalTime,
+                    match.CreatedAt,
+                    match.ExpiresAt);
+
+                await _hub.Clients.Groups(match.DriverUserId.ToString())
+                    .NotifyRideRequestOffer(match.DriverUserId.ToString(), notification);
+            }));
 
             return Result.Success;
         }
@@ -165,8 +188,19 @@ public class DriverMatchingService : IDriverMatchingService
                     driverId, matchingSessionId, string.Join(", ", result.Errors.Select(e => e.Description)));
                 return;
             }
+
+            var expiredMatch = matchingSession.MatchAttempts.First(m => m.DriverUserId == driverId);
+            
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
+
+            // Notify driver that their offer expired
+            var expiredNotification = new RideOfferExpiredNotification(
+                expiredMatch.Id.ToString(),
+                DateTime.UtcNow);
+            
+            await _hub.Clients.Groups(driverId.ToString())
+                .NotifyRideRequestOfferExpired(driverId.ToString(), expiredNotification);
 
             // After the timeout and state change are persisted, let the orchestrator
             // decide whether to advance the round, cancel, or do nothing.

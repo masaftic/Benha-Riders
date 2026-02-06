@@ -6,7 +6,7 @@ public class MatchingSessionOptions
 {
     public const string SectionName = "MatchingSession";
 
-    [Range(10, 300)]
+    [Range(10, 3000)]
     public int DriverResponseTimeoutSeconds { get; set; }
 
     [Range(5, 120)]

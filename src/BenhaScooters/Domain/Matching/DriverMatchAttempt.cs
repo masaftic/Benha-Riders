@@ -46,7 +46,7 @@ public class DriverMatchAttempt
     private DriverMatchAttempt() { } // For EF Core
 
     public DriverMatchAttempt(UserId driverId, MatchingSessionId matchingSessionId,
-        double distanceToPickup, double estimatedArrivalTime, decimal driverScore, int matchingRound)
+        double distanceToPickup, double estimatedArrivalTime, decimal driverScore, int matchingRound, TimeSpan expirationDuration)
     {
         DriverUserId = driverId;
         MatchingSessionId = matchingSessionId;
@@ -55,7 +55,7 @@ public class DriverMatchAttempt
         DriverScore = driverScore;
         Status = MatchAttemptStatus.Pending;
         CreatedAt = DateTime.UtcNow;
-        ExpiresAt = DateTime.UtcNow.AddSeconds(30); // 30-second response window
+        ExpiresAt = DateTime.UtcNow.Add(expirationDuration);
         MatchingRound = matchingRound;
     }
 

@@ -22,19 +22,6 @@ public record CompleteTripResult(
     TimeSpan? TotalDuration,
     decimal FinalFare);
 
-public class CompleteTripCommandValidator : AbstractValidator<CompleteTripCommand>
-{
-    public CompleteTripCommandValidator()
-    {
-        RuleFor(x => x.DriverId)
-            .NotEmpty()
-            .WithMessage("Driver ID is required");
-
-        RuleFor(x => x.TripId)
-            .NotEmpty()
-            .WithMessage("Trip ID is required");
-    }
-}
 
 public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFareService) : IRequestHandler<CompleteTripCommand, ErrorOr<CompleteTripResult>>
 {

@@ -6,19 +6,15 @@ const HUB_URL = "http://localhost:5000/hubs/driver";
 const connection = createConnection(HUB_URL, JWT_TOKEN);
 
 // ---- handlers ----
-connection.on("NotifyDriver", (driverId, message) => {
-  console.log("📢 Driver notification");
-  console.log({ driverId, message });
-});
 
-connection.on("NotifyRideRequestOffer", (driverId, offerId) => {
+connection.on("NotifyRideRequestOffer", (driverId, notification) => {
   console.log("🆕 Ride offer");
-  console.log({ driverId, offerId });
+  console.log({ driverId, notification });
 });
 
-connection.on("NotifyRideRequestOfferExpired", (driverId, offerId) => {
+connection.on("NotifyRideRequestOfferExpired", (driverId, notification) => {
   console.log("⏰ Offer expired");
-  console.log({ driverId, offerId });
+  console.log({ driverId, notification });
 });
 
 // ---- start ----
