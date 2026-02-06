@@ -11,20 +11,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Authentication.Commands;
 
-public record SendSmsVerificationCommand(UserId UserId, string PhoneNumber) : IRequest<ErrorOr<SendSmsVerificationResponse>>;
+public record SendSmsVerificationCommand(UserId UserId, PhoneNumber PhoneNumber) : IRequest<ErrorOr<SendSmsVerificationResponse>>;
 
-public class SendSmsVerificationCommandValidator : AbstractValidator<SendSmsVerificationCommand>
-{
-    public SendSmsVerificationCommandValidator()
-    {
-        RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage("User ID is required.");
-
-        RuleFor(x => x.PhoneNumber)
-            .NotEmpty().WithMessage("رقم الهاتف مطلوب.")
-            .Matches(ValidationRegex.PhoneNumber).WithMessage("تنسيق رقم الهاتف غير صحيح.");
-    }
-}
 
 public record SendSmsVerificationResponse(string Message);
 
@@ -41,7 +29,7 @@ public class SendSmsVerificationCommandHandler : IRequestHandler<SendSmsVerifica
 
     public async Task<ErrorOr<SendSmsVerificationResponse>> Handle(SendSmsVerificationCommand request, CancellationToken cancellationToken)
     {
-        var normalizedPhone = User.NormalizePhone(PhoneNumber.Create(request.PhoneNumber));
+        var normalizedPhone = request.PhoneNumber;
         
         var user = await _db.Users
             .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);

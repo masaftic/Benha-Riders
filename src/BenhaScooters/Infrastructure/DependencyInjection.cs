@@ -155,6 +155,17 @@ public static class DependencyInjection
                 policy.RequireRole("Driver");
                 policy.RequireClaim(JwtClaims.Status, UserStatus.Active.ToString());
             });
+
+
+            opt.AddPolicy("PhoneVerified", policy =>
+            {
+                policy.AddRequirements(new UserOnboardingRequirement(OnboardingSteps.VerifyPhone));
+            });
+
+            opt.AddPolicy("RoleSelected", policy =>
+            {
+                policy.AddRequirements(new UserOnboardingRequirement(OnboardingSteps.SelectRole));
+            });
         });
 
         services.AddSingleton<IAuthorizationHandler, UserOnboardingRequirementHandler>();

@@ -14,8 +14,8 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.TripRequests.Queries;
 
 public record GetTripStatusQuery(
-    UserId RiderId,
-    TripRequestId TripRequestId) : IRequest<ErrorOr<GetTripStatusResult>>;
+    
+    TripRequestId TripRequestId,UserId RiderId) : IRequest<ErrorOr<GetTripStatusResult>>;
 
 public record GetTripStatusResult(
     TripRequestId TripRequestId,

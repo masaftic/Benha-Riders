@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Trips.Queries;
 
-public record GetDriverTripByIdQuery(UserId DriverId, TripId TripId) : IRequest<ErrorOr<GetDriverTripByIdResult>>;
+public record GetDriverTripByIdQuery(TripId TripId, UserId DriverId) : IRequest<ErrorOr<GetDriverTripByIdResult>>;
 
 public record GetDriverTripByIdResult(
     int TripId,

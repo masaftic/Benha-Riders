@@ -14,8 +14,8 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.Trips.Commands;
 
 public record CancelTripRequestCommand(
-    UserId RiderId,
     TripRequestId TripRequestId,
+    UserId RiderId,
     string? CancellationReason = null) : IRequest<ErrorOr<CancelTripRequestResult>>;
 
 public record CancelTripRequestResult(

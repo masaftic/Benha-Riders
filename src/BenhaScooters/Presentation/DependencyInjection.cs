@@ -1,6 +1,9 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.OpenApi.Models;
+using Thinktecture.AspNetCore.ModelBinding;
 using Thinktecture.Swashbuckle;
 using Thinktecture.Text.Json.Serialization;
 
@@ -12,6 +15,25 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
+        services.AddControllers(options =>
+        {
+            options.ModelBinderProviders.Insert(0, new ThinktectureModelBinderProvider());
+        }).AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+            options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+            options.JsonSerializerOptions.Converters.Add(new ThinktectureJsonConverterFactory());
+        });
+
+        services.Configure<RouteOptions>(options =>
+        {
+            options.LowercaseUrls = true;
+        });
+
+        // Add FluentValidation
+        services.AddFluentValidationAutoValidation();
+        services.AddValidatorsFromAssemblyContaining<Program>();
+
         services.AddRateLimiter(options =>
         {
             options.OnRejected = (context, cancellationToken) =>
@@ -35,7 +57,6 @@ public static class DependencyInjection
 
 
         services.AddEndpoints();
-
 
         services.AddSwaggerGen(options =>
         {
@@ -69,18 +90,6 @@ public static class DependencyInjection
         });
 
         services.AddOpenApi();
-
-        services.ConfigureHttpJsonOptions(options =>
-        {
-            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            options.SerializerOptions.Converters.Add(new ThinktectureJsonConverterFactory());
-        });
-
-        services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
-        {
-            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            options.JsonSerializerOptions.Converters.Add(new ThinktectureJsonConverterFactory());
-        });
 
         services.AddSignalR(o => o.EnableDetailedErrors = true)
             .AddJsonProtocol(options =>

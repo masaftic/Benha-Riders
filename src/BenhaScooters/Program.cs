@@ -6,8 +6,6 @@ using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Presentation;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
-using Thinktecture.AspNetCore.ModelBinding;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,10 +14,6 @@ builder.WebHost.ConfigureKestrel(o =>
 {
     o.ListenAnyIP(5000);
 });
-
-
-builder.Services.AddMvc(options => options.ModelBinderProviders
-                                           .Insert(0, new ThinktectureModelBinderProvider()));
 
 
 // Add infrastructure services
@@ -74,6 +68,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapEndpoints();
 
 app.MapOpenApi();

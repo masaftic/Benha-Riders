@@ -12,8 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.Trips.Commands;
 
 public record DriverArrivedCommand(
-    UserId DriverId,
-    TripId TripId) : IRequest<ErrorOr<DriverArrivedResult>>;
+    TripId TripId, UserId DriverId) : IRequest<ErrorOr<DriverArrivedResult>>;
 
 public record DriverArrivedResult(
     TripId TripId,

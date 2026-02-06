@@ -15,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.Authentication.Commands;
 
 
-public record RegisterCommand(string Name, string Email, string PhoneNumber, string Password) : IRequest<ErrorOr<OnboardingStatusToken>>;
+public record RegisterCommand(string Name, Email Email, PhoneNumber PhoneNumber, string Password) : IRequest<ErrorOr<OnboardingStatusToken>>;
 
 
 public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
@@ -23,12 +23,6 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
     public RegisterCommandValidator()
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("اسم المستخدم مطلوب.");
-
-        RuleFor(x => x.Email).NotEmpty()
-            .Matches(ValidationRegex.Email).WithMessage("بريد إلكتروني صحيح مطلوب.");
-        
-        RuleFor(x => x.PhoneNumber).NotEmpty()
-            .Matches(ValidationRegex.PhoneNumber).WithMessage("رقم هاتف صحيح مطلوب.");
         
         RuleFor(x => x.Password).NotEmpty().MinimumLength(6).WithMessage("كلمة المرور يجب أن تكون 6 أحرف على الأقل.");
     }
@@ -50,13 +44,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<O
 
     public async Task<ErrorOr<OnboardingStatusToken>> Handle(RegisterCommand req, CancellationToken ct)
     {
-        var normalizedEmail = User.NormalizeEmail(Email.Create(req.Email));
+        var normalizedEmail = req.Email;
         if (await _db.Users.AnyAsync(x => x.EmailNormalized == normalizedEmail, ct))
         {
             return UserErrors.EmailAlreadyExists;
         }
 
-        var normalizedPhone = User.NormalizePhone(PhoneNumber.Create(req.PhoneNumber));
+        var normalizedPhone = req.PhoneNumber;
         if (await _db.Users.AnyAsync(x => x.PhoneNumberNormalized == normalizedPhone, ct))
         {
             return UserErrors.PhoneAlreadyExists;
@@ -64,8 +58,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<O
 
         var user = new User(
             req.Name,
-            Email.Create(req.Email),
-            PhoneNumber.Create(req.PhoneNumber),
+            req.Email,
+            req.PhoneNumber,
             _passwordHasher.Hash(req.Password));
 
         _db.Users.Add(user);

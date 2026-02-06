@@ -11,6 +11,7 @@ public partial struct UserId;
 
 [ValueObject<string>]
 [KeyMemberEqualityComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
+[KeyMemberComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
 public partial class Email
 {
     static partial void ValidateFactoryArguments(
@@ -28,12 +29,15 @@ public partial class Email
             validationError = new ValidationError("Invalid email format.");
             return;
         }
+
+        value = value.Trim().ToLowerInvariant();
     }
 }
 
 
 [ValueObject<string>]
 [KeyMemberEqualityComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
+[KeyMemberComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
 public partial class PhoneNumber
 {
     static partial void ValidateFactoryArguments(
@@ -42,15 +46,27 @@ public partial class PhoneNumber
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            validationError = new ValidationError("Phone number cannot be empty.");
+            validationError = new ValidationError("رقم الهاتف مطلوب.");
             return;
         }
 
         if (!Regex.IsMatch(value, ValidationRegex.PhoneNumber))
         {
-            validationError = new ValidationError("Invalid phone number format.");
+            validationError = new ValidationError("رقم الهاتف غير صالح. يجب أن يكون رقمًا مصريًا.");
             return;
         }
+
+        string normalizedPhone = value.Trim().Replace(" ", "").Replace("-", "");
+        if (normalizedPhone.StartsWith("0"))
+        {
+            normalizedPhone = "+20" + normalizedPhone.Substring(1);
+        }
+        else if (!normalizedPhone.StartsWith("+20"))
+        {
+            normalizedPhone = "+20" + normalizedPhone;
+        }
+
+        value = normalizedPhone;
     }
 }
 
@@ -89,32 +105,13 @@ public class User
 
         Name = name;
         Email = email;
-        EmailNormalized = NormalizeEmail(email);
+        EmailNormalized = email;
         PhoneNumber = phoneNumber;
-        PhoneNumberNormalized = phoneNumber != null ? NormalizePhone(phoneNumber) : null;
+        PhoneNumberNormalized = phoneNumber;
         PasswordHash = passwordHash;
         Status = UserStatus.Registered;
     }
 
-    public static PhoneNumber NormalizePhone(PhoneNumber phone)
-    {
-        string normalizedPhone = ((string)phone).Trim().Replace(" ", "").Replace("-", "");
-        if (normalizedPhone.StartsWith("0"))
-        {
-            normalizedPhone = "+20" + normalizedPhone.Substring(1);
-        }
-        else if (!normalizedPhone.StartsWith("+20"))
-        {
-            normalizedPhone = "+20" + normalizedPhone;
-        }
-
-        return Users.PhoneNumber.Create(normalizedPhone);
-    }
-
-    public static Email NormalizeEmail(Email email)
-    {
-        return Email.Create(((string)email).Trim().ToLowerInvariant());
-    }
 
     public ErrorOr<Success> AddRole(UserRole role)
     {
@@ -170,7 +167,7 @@ public class User
         if (PhoneNumber == null && number != null)
         {
             PhoneNumber = number;
-            PhoneNumberNormalized = NormalizePhone(number);
+            PhoneNumberNormalized = number;
         }
 
         PhoneNumberVerified = true;

@@ -15,8 +15,8 @@ using Microsoft.Extensions.Options;
 namespace BenhaScooters.Application.Features.Trips.Commands;
 
 public record StartTripCommand(
-    UserId DriverId,
-    TripId TripId) : IRequest<ErrorOr<StartTripResult>>;
+     TripId TripId, UserId DriverId
+   ) : IRequest<ErrorOr<StartTripResult>>;
 
 public record StartTripResult(
     TripId TripId,
@@ -68,12 +68,12 @@ public class StartTripCommandHandler(
         {
             var commissionPercentage = (decimal)walletOptions.Value.CommissionPercentage;
             var commission = Math.Round(trip.FinalFare.Amount * commissionPercentage / 100m, 2);
-            
+
             var chargeResult = wallet.ChargeCommission(
-                commission, 
-                trip.Id, 
+                commission,
+                trip.Id,
                 $"Trip commission ({commissionPercentage}%)");
-            
+
             if (chargeResult.IsError)
             {
                 logger.LogWarning("Failed to charge wallet for trip {TripId}: {Errors}",
