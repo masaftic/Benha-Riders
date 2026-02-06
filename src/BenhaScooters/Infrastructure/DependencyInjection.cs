@@ -123,7 +123,7 @@ public static class DependencyInjection
                     OnMessageReceived = context =>
                     {
                         // Allow JWT tokens to be received from query string for SignalR hubs
-                        if (context.Request.Path.StartsWithSegments("/hubs/driver") &&
+                        if (context.Request.Path.StartsWithSegments("/hubs") &&
                             context.Request.Query.ContainsKey("access_token"))
                         {
                             context.Token = context.Request.Query["access_token"];

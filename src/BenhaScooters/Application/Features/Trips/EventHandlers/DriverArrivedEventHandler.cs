@@ -37,7 +37,7 @@ public class DriverArrivedEventHandler : INotificationHandler<DriverArrivedEvent
             ArrivedAt: notification.OccurredAt);
 
         await _riderHub.Clients.Group(notification.RiderId.ToString())
-            .NotifyDriverArrivedAsync(notification.RiderId.ToString(), driverArrivedNotification);
+            .NotifyDriverArrived(notification.RiderId.ToString(), driverArrivedNotification);
 
         _logger.LogInformation("Notified rider {RiderId} that driver has arrived for trip {TripId}",
             notification.RiderId, notification.TripId);

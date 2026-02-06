@@ -129,7 +129,7 @@ public class DriverMatchingService : IDriverMatchingService
             await transaction.CommitAsync(cancellationToken);
 
             await Task.WhenAll(matchAttempts.Select(async match => await _hub.Clients.Groups(match.DriverUserId.ToString())
-                    .NotifyRideRequestOfferAsync(match.DriverUserId.ToString(), match.Id.ToString())));
+                    .NotifyRideRequestOffer(match.DriverUserId.ToString(), match.Id.ToString())));
 
             return Result.Success;
         }

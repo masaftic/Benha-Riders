@@ -53,7 +53,7 @@ public class DriversController : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetDriverAvailability([FromBody] SetDriverAvailabilityRequest request)
     {
-        var command = new SetDriverAvailabilityCommand(HttpContext.GetDriverId(), request.Status);
+        var command = new SetDriverAvailabilityCommand(HttpContext.GetDriverId(), request.Status.ToString());
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);

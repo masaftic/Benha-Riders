@@ -37,7 +37,7 @@ public class TripCompletedEventHandler : INotificationHandler<TripCompletedEvent
             CompletedAt: notification.OccurredAt);
 
         await _riderHub.Clients.Group(notification.RiderId.ToString())
-            .NotifyTripCompletedAsync(notification.RiderId.ToString(), tripCompletedNotification);
+            .NotifyTripCompleted(notification.RiderId.ToString(), tripCompletedNotification);
 
         _logger.LogInformation("Notified rider {RiderId} that trip {TripId} has completed",
             notification.RiderId, notification.TripId);

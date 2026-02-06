@@ -8,6 +8,7 @@ using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.Notifications;
+using BenhaScooters.Infrastructure.S3;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -43,6 +44,7 @@ public class AcceptMatchCommandHandler(
     IPublisher publisher, 
     IOptions<DriverWalletOptions> walletOptions,
     IHubContext<RiderHub, IRiderNotifications> riderHub,
+    IS3Service s3Service,
     ILogger<AcceptMatchCommandHandler> logger) : IRequestHandler<AcceptMatchCommand, ErrorOr<AcceptMatchResult>>
 {
     public async Task<ErrorOr<AcceptMatchResult>> Handle(AcceptMatchCommand request, CancellationToken cancellationToken)
@@ -178,14 +180,14 @@ public class AcceptMatchCommandHandler(
             var notification = new TripAssignedNotification(
                 TripId: trip.Id,
                 DriverName: driverProfile.PersonalInfo?.FullName ?? "Driver",
-                DriverPhotoUrl: driverProfile.Documents.FirstOrDefault(d => d.Type == DocumentType.DriverPhoto)?.ImageUrl,
+                DriverPhotoUrl: await s3Service.GetPreSignedUrlAsync(driverProfile.Documents.FirstOrDefault(d => d.Type == DocumentType.DriverPhoto)?.ImageUrl, TimeSpan.FromMinutes(30)),
                 VehicleModel: driverProfile.Vehicle?.Model,
                 VehiclePlateNumber: driverProfile.Vehicle?.LicensePlate,
                 EstimatedArrivalMinutes: matchAttempt.EstimatedArrivalTime / 60.0, // Convert seconds to minutes
                 AssignedAt: trip.AssignedAt);
 
             await riderHub.Clients.Group(tripRequest.RiderId.ToString())
-                .NotifyTripAssignedAsync(tripRequest.RiderId.ToString(), notification);
+                .NotifyTripAssigned(tripRequest.RiderId.ToString(), notification);
 
             logger.LogInformation("Notified rider {RiderId} about trip assignment {TripId}",
                 tripRequest.RiderId, trip.Id);

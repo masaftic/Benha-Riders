@@ -2,11 +2,11 @@ namespace BenhaScooters.Application.Abstractions;
 
 public interface IRiderNotifications
 {
-    Task NotifyTripAssignedAsync(string riderId, TripAssignedNotification notification);
-    Task NotifyDriverArrivedAsync(string riderId, DriverArrivedNotification notification);
-    Task NotifyTripStartedAsync(string riderId, TripStartedNotification notification);
-    Task NotifyTripCompletedAsync(string riderId, TripCompletedNotification notification);
-    Task NotifyDriverLocationUpdateAsync(string riderId, DriverLocationUpdate locationUpdate);
+    Task NotifyTripAssigned(string riderId, TripAssignedNotification notification);
+    Task NotifyDriverArrived(string riderId, DriverArrivedNotification notification);
+    Task NotifyTripStarted(string riderId, TripStartedNotification notification);
+    Task NotifyTripCompleted(string riderId, TripCompletedNotification notification);
+    Task NotifyDriverLocationUpdate(string riderId, DriverLocationUpdate locationUpdate);
 }
 
 public record TripAssignedNotification(

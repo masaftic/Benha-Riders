@@ -43,7 +43,7 @@ public class DriverRankingService : IDriverRankingService
     {
         // Normalize distance score (closer = higher score)
         // Use exponential decay for distance penalty
-        var distanceScore = Math.Exp(-distanceMeters / 2000.0); // 2km decay factor
+        var distanceScore = Math.Exp(-distanceMeters / 3000.0); // 3km decay factor
 
         // Normalize rating score (higher rating = higher score)
         var ratingScore = (double)(rating / 5.0m); // Normalize to 0-1 scale
@@ -71,7 +71,7 @@ public class DriverRankingService : IDriverRankingService
             from ds in _dbContext.DriverStatuses
             join dl in _dbContext.DriverLocations on ds.UserId equals dl.UserId
             join stats in _dbContext.DriverStats on ds.UserId equals stats.UserId
-            where ds.Status == DriverAvailabilityStatus.Online
+            // where ds.Status == DriverAvailabilityStatus.Online
             // where dl.Location.Distance(pickupLocation) <= searchRadius
             where excludedUserIds == null || !excludedUserIds.Contains(ds.UserId)
             select new

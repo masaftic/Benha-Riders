@@ -109,7 +109,7 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
 
             var riderIdString = riderId.ToString();
             await _riderHub.Clients.Group(riderIdString)
-                .NotifyDriverLocationUpdateAsync(riderIdString, locationUpdate);
+                .NotifyDriverLocationUpdate(riderIdString, locationUpdate);
         }
 
         return new UpdateLocationResponse(request.Latitude, request.Longitude);

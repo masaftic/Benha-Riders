@@ -1,6 +1,4 @@
 using BenhaScooters.Domain.Common;
-using BenhaScooters.Domain.Drivers.Enums;
-using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Users;
 using NetTopologySuite.Geometries;
 using Thinktecture;
@@ -13,6 +11,7 @@ namespace BenhaScooters.Domain.Drivers;
 
 [ValueObject<string>]
 [KeyMemberEqualityComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
+[KeyMemberComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
 public partial class VIN
 {
     static partial void ValidateFactoryArguments(
@@ -21,13 +20,13 @@ public partial class VIN
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            validationError = new ValidationError("VIN cannot be empty.");
+            validationError = new ValidationError("الرقم التسلسلي للمركبة (VIN) مطلوب.");
             return;
         }
 
         if (value.Length != 17)
         {
-            validationError = new ValidationError("VIN must be 17 characters.");
+            validationError = new ValidationError("يجب أن يكون الرقم التسلسلي للمركبة (VIN) مكونًا من 17 حرفًا.");
             return;
         }
     }
@@ -207,145 +206,6 @@ public class DriverProfile
         DocumentType.VehicleRegistration,
         DocumentType.DriverPhoto
     ];
-}
-
-/// <summary>
-/// Value object for driver personal information
-/// </summary>
-public class DriverPersonalInfo : ValueObject
-{
-    public string FullName { get; private set; } = null!;
-    public NationalId NationalId { get; private set; }
-    public DateOnly DateOfBirth { get; private set; }
-    public string Address { get; private set; } = null!;
-    public string City { get; private set; } = null!;
-    public string EmergencyContactName { get; private set; } = null!;
-    public PhoneNumber EmergencyContactPhone { get; private set; }
-
-    private DriverPersonalInfo() { } // For EF Core
-
-    public DriverPersonalInfo(
-        string fullName, 
-        NationalId nationalId, 
-        DateOnly dateOfBirth,
-        string address, 
-        string city, 
-        string emergencyContactName, 
-        PhoneNumber emergencyContactPhone)
-    {
-        if (string.IsNullOrWhiteSpace(fullName))
-            throw new ArgumentException("Full name is required.", nameof(fullName));
-        if (string.IsNullOrWhiteSpace(address))
-            throw new ArgumentException("Address is required.", nameof(address));
-        if (string.IsNullOrWhiteSpace(city))
-            throw new ArgumentException("City is required.", nameof(city));
-        if (string.IsNullOrWhiteSpace(emergencyContactName))
-            throw new ArgumentException("Emergency contact name is required.", nameof(emergencyContactName));
-
-        FullName = fullName;
-        NationalId = nationalId;
-        DateOfBirth = dateOfBirth;
-        Address = address;
-        City = city;
-        EmergencyContactName = emergencyContactName;
-        EmergencyContactPhone = emergencyContactPhone;
-    }
-
-    protected override IEnumerable<object> GetEqualityComponents()
-    {
-        yield return FullName;
-        yield return NationalId;
-        yield return DateOfBirth;
-        yield return Address;
-        yield return City;
-        yield return EmergencyContactName;
-        yield return EmergencyContactPhone;
-    }
-}
-
-/// <summary>
-/// Value object for driver vehicle information
-/// </summary>
-public class DriverVehicleInfo : ValueObject
-{
-    public VehicleType VehicleType { get; private set; }
-    public string Brand { get; private set; } = null!;
-    public string Model { get; private set; } = null!;
-    public string Color { get; private set; } = null!;
-    public LicensePlate LicensePlate { get; private set; }
-    public int Year { get; private set; }
-    public VIN VIN { get; private set; }
-
-    private DriverVehicleInfo() { } // For EF Core
-
-    public DriverVehicleInfo(
-        VehicleType vehicleType,
-        string brand,
-        string model,
-        string color,
-        LicensePlate licensePlate,
-        int year,
-        VIN vin)
-    {
-        if (string.IsNullOrWhiteSpace(brand))
-            throw new ArgumentException("Vehicle brand is required.", nameof(brand));
-        if (string.IsNullOrWhiteSpace(model))
-            throw new ArgumentException("Vehicle model is required.", nameof(model));
-        if (string.IsNullOrWhiteSpace(color))
-            throw new ArgumentException("Vehicle color is required.", nameof(color));
-        if (year < 1980 || year > DateTime.Now.Year + 1)
-            throw new ArgumentException("Invalid vehicle year.", nameof(year));
-
-        VehicleType = vehicleType;
-        Brand = brand;
-        Model = model;
-        Color = color;
-        LicensePlate = licensePlate;
-        Year = year;
-        VIN = vin;
-    }
-
-    public string DisplayName => $"{Brand} {Model} ({Year})";
-
-    protected override IEnumerable<object> GetEqualityComponents()
-    {
-        yield return VehicleType;
-        yield return Brand;
-        yield return Model;
-        yield return Color;
-        yield return LicensePlate;
-        yield return Year;
-        yield return VIN;
-    }
-}
-
-/// <summary>
-/// Driver document (owned by DriverProfile)
-/// </summary>
-public class DriverDocument
-{
-    public int Id { get; private set; }  // Auto-generated
-    public UserId DriverUserId { get; private set; }
-    public DocumentType Type { get; private set; }
-    public string ImageUrl { get; private set; } = null!;
-    public DateTime UploadedAt { get; private set; }
-    public DateOnly? ExpiryDate { get; private set; }
-
-    private DriverDocument() { } // For EF Core
-
-    public DriverDocument(UserId driverUserId, DocumentType type, string imageUrl, DateOnly? expiryDate = null)
-    {
-        if (string.IsNullOrWhiteSpace(imageUrl))
-            throw new ArgumentException("Image URL is required.", nameof(imageUrl));
-
-        DriverUserId = driverUserId;
-        Type = type;
-        ImageUrl = imageUrl;
-        UploadedAt = DateTime.UtcNow;
-        ExpiryDate = expiryDate;
-    }
-
-    public bool IsExpired => ExpiryDate.HasValue && ExpiryDate.Value <= DateOnly.FromDateTime(DateTime.UtcNow);
 }
 
 public enum DocumentType

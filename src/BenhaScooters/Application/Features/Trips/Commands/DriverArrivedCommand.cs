@@ -11,27 +11,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Trips.Commands;
 
-public record DriverArrivedCommand(
-    TripId TripId, UserId DriverId) : IRequest<ErrorOr<DriverArrivedResult>>;
+public record DriverArrivedCommand(TripId TripId, UserId DriverId) : IRequest<ErrorOr<DriverArrivedResult>>;
 
 public record DriverArrivedResult(
     TripId TripId,
     string Message,
     DateTime ArrivedAt);
 
-public class DriverArrivedCommandValidator : AbstractValidator<DriverArrivedCommand>
-{
-    public DriverArrivedCommandValidator()
-    {
-        RuleFor(x => x.DriverId)
-            .NotEmpty()
-            .WithMessage("Driver ID is required");
-
-        RuleFor(x => x.TripId)
-            .NotEmpty()
-            .WithMessage("Trip ID is required");
-    }
-}
 
 public class DriverArrivedCommandHandler(AppDbContext db) : IRequestHandler<DriverArrivedCommand, ErrorOr<DriverArrivedResult>>
 {

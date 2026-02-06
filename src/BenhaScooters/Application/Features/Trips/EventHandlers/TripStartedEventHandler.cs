@@ -37,7 +37,7 @@ public class TripStartedEventHandler : INotificationHandler<TripStartedEvent>
             StartedAt: notification.OccurredAt);
 
         await _riderHub.Clients.Group(notification.RiderId.ToString())
-            .NotifyTripStartedAsync(notification.RiderId.ToString(), tripStartedNotification);
+            .NotifyTripStarted(notification.RiderId.ToString(), tripStartedNotification);
 
         _logger.LogInformation("Notified rider {RiderId} that trip {TripId} has started",
             notification.RiderId, notification.TripId);
