@@ -194,13 +194,7 @@ public class DriverMatchingService : IDriverMatchingService
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            // Notify driver that their offer expired
-            var expiredNotification = new RideOfferExpiredNotification(
-                expiredMatch.Id.ToString(),
-                DateTime.UtcNow);
-            
-            await _hub.Clients.Groups(driverId.ToString())
-                .NotifyRideRequestOfferExpired(driverId.ToString(), expiredNotification);
+            // Domain event will notify driver that their offer expired
 
             // After the timeout and state change are persisted, let the orchestrator
             // decide whether to advance the round, cancel, or do nothing.

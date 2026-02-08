@@ -1,4 +1,6 @@
+using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Matching.Events;
 using BenhaScooters.Domain.Users;
 using Thinktecture;
 
@@ -17,7 +19,7 @@ public enum MatchAttemptStatus
     Cancelled = 5
 }
 
-public class DriverMatchAttempt
+public class DriverMatchAttempt : AggregateRoot
 {
     public DriverMatchAttemptId Id { get; private set; }
     public MatchingSessionId MatchingSessionId { get; private set; }
@@ -89,6 +91,12 @@ public class DriverMatchAttempt
 
         Status = MatchAttemptStatus.Expired;
         RespondedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(new MatchAttemptExpiredEvent(
+            Id,
+            DriverUserId,
+            MatchingSessionId,
+            DateTime.UtcNow));
     }
 
     public void Cancel()
@@ -98,6 +106,12 @@ public class DriverMatchAttempt
 
         Status = MatchAttemptStatus.Cancelled;
         RespondedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(new MatchAttemptCancelledEvent(
+            Id,
+            DriverUserId,
+            MatchingSessionId,
+            DateTime.UtcNow));
     }
 
     // Calculated properties
