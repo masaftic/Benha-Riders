@@ -147,6 +147,11 @@ public class MatchingSession : AggregateRoot
         Status = MatchingSessionStatus.Cancelled;
         CompletedAt = DateTime.UtcNow;
 
+        foreach (var attempt in _matchAttempts.Where(ma => ma.Status == MatchAttemptStatus.Pending))
+        {
+            attempt.Cancel();
+        }
+
         RaiseDomainEvent(new MatchingSessionCancelledEvent(
             Id,
             TripRequestId,

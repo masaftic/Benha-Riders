@@ -4,6 +4,7 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.TripRequests.Enums;
+using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Domain.Users;
 using ErrorOr;
 using FluentValidation;
@@ -73,7 +74,7 @@ public class RequestTripCommandHandler(
     {
         // Check if rider has active trip request
         var hasActiveRequest = await db.TripRequests
-            .AnyAsync(tr => tr.RiderId == request.RiderId && 
+            .AnyAsync(tr => tr.RiderId == request.RiderId &&
                            tr.Status == TripRequestStatus.Pending && tr.ExpiresAt > DateTime.UtcNow,
                       cancellationToken);
 
@@ -81,6 +82,17 @@ public class RequestTripCommandHandler(
         {
             return TripErrors.Rider.HasActiveTripRequest;
         }
+
+        // check if rider has active trip
+        var hasActiveTrip = await db.Trips
+            .AnyAsync(t => t.RiderId == request.RiderId &&
+                           t.Status == TripStatus.Assigned || t.Status == TripStatus.DriverArrived || t.Status == TripStatus.InProgress, cancellationToken);
+
+        if (hasActiveTrip)
+        {
+            return TripErrors.Rider.HasActiveTrip;
+        }
+
 
         // Create location points
         var pickupLocation = new Point(request.PickupLongitude, request.PickupLatitude) { SRID = 4326 };

@@ -110,5 +110,9 @@ public static class TripErrors
         public static readonly Error HasActiveTripRequest = Error.Conflict(
             "RIDER_HAS_ACTIVE_TRIP_REQUEST",
             "الراكب لديه طلب رحلة نشط بالفعل");
+        
+        public static readonly Error HasActiveTrip = Error.Conflict(
+            "RIDER_HAS_ACTIVE_TRIP",
+            "الراكب في رحلة نشطة بالفعل");
     }
 }

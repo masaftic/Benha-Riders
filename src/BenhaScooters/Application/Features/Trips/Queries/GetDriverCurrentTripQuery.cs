@@ -14,7 +14,7 @@ namespace BenhaScooters.Application.Features.Trips.Queries;
 public record GetCurrentTripQuery(UserId UserId) : IRequest<ErrorOr<GetCurrentTripResult>>;
 
 public record GetCurrentTripResult(
-    int TripId,
+    TripId TripId,
     TripStatus Status,
     string PickupAddress,
     string DropoffAddress,

@@ -66,6 +66,7 @@ public class CancelTripCommandHandler(AppDbContext db) : IRequestHandler<CancelT
 
             // Also cancel any associated matching session
             var matchingSession = await db.MatchingSessions
+                .Include(ms => ms.MatchAttempts)
                 .FirstOrDefaultAsync(ms => ms.TripRequestId == request.TripRequestId, cancellationToken);
 
             if (matchingSession != null && matchingSession.IsActive)
