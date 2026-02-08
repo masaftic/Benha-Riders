@@ -25,7 +25,7 @@ public class MatchingUnitTests
         var session = CreateSession(2, 1, 1);
         var driverId = UserId.Create(1);
 
-        var attemptResult = session.CreateDriverMatchAttempt(driverId, 100, 60, 1.0m);
+        var attemptResult = session.CreateDriverMatchAttempt(driverId, 100, 60, 1.0m, TimeSpan.FromMinutes(5));
         attemptResult.IsError.Should().BeFalse();
 
         // Act
@@ -45,7 +45,7 @@ public class MatchingUnitTests
         var session = CreateSession(2, 1, 1);
         var driverId = UserId.Create(1);
 
-        var attemptResult = session.CreateDriverMatchAttempt(driverId, 100, 60, 1.0m);
+        var attemptResult = session.CreateDriverMatchAttempt(driverId, 100, 60, 1.0m, TimeSpan.FromMinutes(5));
         attemptResult.IsError.Should().BeFalse();
 
         // Resolve attempt as rejected
@@ -69,7 +69,7 @@ public class MatchingUnitTests
         var session = CreateSession(1, 1);
         var driverId = UserId.Create(1);
 
-        var attemptResult = session.CreateDriverMatchAttempt(driverId, 100, 60, 1.0m);
+        var attemptResult = session.CreateDriverMatchAttempt(driverId, 100, 60, 1.0m, TimeSpan.FromMinutes(5));
         attemptResult.IsError.Should().BeFalse();
 
         // Resolve attempt as rejected in the only round

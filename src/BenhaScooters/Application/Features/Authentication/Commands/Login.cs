@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Features.Authentication.Commands.Common;
 using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
@@ -12,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Authentication.Commands;
 
-public record LoginCommand(PhoneNumber PhoneNumber, string Password) : IRequest<ErrorOr<LoginResponse>>;
+public record LoginCommand(PhoneNumber PhoneNumber, string Password) : IRequest<ErrorOr<AuthenticationResponse>>;
 
 public class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
@@ -23,13 +24,7 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
     }
 }
 
-public record LoginResponse(string Type, object Result);
-
-public record LoginSuccess(string AccessToken, string RefreshToken, DateTime ExpiresAt);
-public record OnboardingRequired(string OnboardingToken, string NextStep);
-
-
-public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginResponse>>
+public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<AuthenticationResponse>>
 {
     private readonly AppDbContext _db;
     private readonly IPasswordHasher _passwordHasher;
@@ -44,7 +39,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
         _authenticationService = authenticationService;
     }
 
-    public async Task<ErrorOr<LoginResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<AuthenticationResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         var user = await _db.Users
             .Include(u => u.Roles)
@@ -59,7 +54,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
         {
             var nextStep = UserOnboardingStateMachine.GetNextStep(user.Status);
             var token = _jwtService.GenerateOnboardingToken(user.Id, user.Status, nextStep);
-            return new LoginResponse("onboarding_required", new OnboardingRequired(token, nextStep));
+            return new AuthenticationResponse("onboarding_required", new OnboardingRequired(token, nextStep));
         }
 
         var driverProfile = await _db.DriverProfiles
@@ -71,7 +66,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<LoginRe
             .FirstOrDefaultAsync(r => r.UserId == user.Id, cancellationToken);
 
         var authenticatedResponse = await _authenticationService.GenerateAuthenticatedResponseAsync(user, driverProfile, riderProfile, cancellationToken);
-        var result = new LoginSuccess(authenticatedResponse.AccessToken, authenticatedResponse.RefreshToken, authenticatedResponse.ExpiresAt);
-        return new LoginResponse("success", result);
+        var result = new AuthenticationSuccess(authenticatedResponse.AccessToken, authenticatedResponse.RefreshToken, authenticatedResponse.ExpiresAt);
+        return new AuthenticationResponse("success", result);
     }
 }
