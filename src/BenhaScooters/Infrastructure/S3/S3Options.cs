@@ -17,5 +17,9 @@ public class S3Options
 
     [Required]
     public string BucketName { get; set; } = null!;
+    
     public string ServiceUrl { get; set; } = string.Empty; // Minio, or s3 compatible storage
+    
+    [Required]
+    public string BaseUrl { get; set; } = null!; // Public base URL for direct file access
 }

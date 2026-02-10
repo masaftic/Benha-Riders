@@ -3,12 +3,14 @@ using BenhaScooters.Application.Common.Settings;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Matching;
+using BenhaScooters.Infrastructure.S3;
+using DriverInfoDto = BenhaScooters.Application.Features.Trips.Queries.Common.DriverInfo;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.Notifications;
-using BenhaScooters.Infrastructure.S3;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
@@ -177,12 +179,21 @@ public class AcceptMatchCommandHandler(
 
         if (driverProfile != null)
         {
+            var driverPhotoUrl = driverProfile.Documents.FirstOrDefault(d => d.Type == DocumentType.DriverPhoto)?.ImageUrl;
+            var fullDriverPhotoUrl = await s3Service.GetPreSignedUrlAsync(driverPhotoUrl!, TimeSpan.FromHours(1), cancellationToken);
+            
+            var driverInfo = new DriverInfoDto(
+                driverProfile.PersonalInfo?.FullName ?? "Driver",
+                driverProfile.User.PhoneNumber!,
+                fullDriverPhotoUrl,
+                driverProfile.Vehicle?.Model ?? "Unknown",
+                driverProfile.Vehicle?.Brand ?? "Unknown",
+                driverProfile.Vehicle?.Color ?? "Unknown",
+                driverProfile.Vehicle?.LicensePlate ?? LicensePlate.Create("UNKNOWN"));
+
             var notification = new TripAssignedNotification(
                 TripId: trip.Id,
-                DriverName: driverProfile.PersonalInfo?.FullName ?? "Driver",
-                DriverPhotoUrl: await s3Service.GetPreSignedUrlAsync(driverProfile.Documents.FirstOrDefault(d => d.Type == DocumentType.DriverPhoto)?.ImageUrl, TimeSpan.FromMinutes(30)),
-                VehicleModel: driverProfile.Vehicle?.Model,
-                VehiclePlateNumber: driverProfile.Vehicle?.LicensePlate,
+                Driver: driverInfo,
                 EstimatedArrivalMinutes: matchAttempt.EstimatedArrivalTime / 60.0, // Convert seconds to minutes
                 AssignedAt: trip.AssignedAt);
 

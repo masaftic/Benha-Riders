@@ -42,7 +42,7 @@ public class CancelTripCommandValidator : AbstractValidator<CancelTripRequestCom
     }
 }
 
-public class CancelTripCommandHandler(AppDbContext db) : IRequestHandler<CancelTripRequestCommand, ErrorOr<CancelTripRequestResult>>
+public class CancelTripRequestCommandHandler(AppDbContext db) : IRequestHandler<CancelTripRequestCommand, ErrorOr<CancelTripRequestResult>>
 {
     public async Task<ErrorOr<CancelTripRequestResult>> Handle(CancelTripRequestCommand request, CancellationToken cancellationToken)
     {

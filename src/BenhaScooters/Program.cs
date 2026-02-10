@@ -6,8 +6,29 @@ using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Presentation;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+// Configure Serilog for file logging with 14-day retention
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .WriteTo.Console()
+    .WriteTo.File(
+        path: "logs/benha-scooters-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 14,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
+
+try
+{
+    Log.Information("Starting Benha Scooters application");
+
+
+// Use Serilog for logging
+builder.Host.UseSerilog();
 
 // Add infrastructure services
 builder.Services.AddPresentation();
@@ -73,6 +94,16 @@ app.MapHub<RiderHub>("/hubs/rider");
 
 
 app.Run();
+
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 // Make the implicit Program class public for integration tests
 namespace BenhaScooters

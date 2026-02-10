@@ -47,12 +47,7 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
         var personalInfo = driverProfile.PersonalInfo != null ? new PersonalInfoDto(
             driverProfile.PersonalInfo.FullName,
             driverProfile.PersonalInfo.NationalId,
-            driverProfile.User.PhoneNumber!,
-            driverProfile.PersonalInfo.DateOfBirth,
-            driverProfile.PersonalInfo.Address,
-            driverProfile.PersonalInfo.City,
-            driverProfile.PersonalInfo.EmergencyContactName,
-            driverProfile.PersonalInfo.EmergencyContactPhone) : null;
+            driverProfile.User.PhoneNumber!) : null;
 
         var vehicleInfo = driverProfile.Vehicle != null ? new VehicleInfoDto(
             driverProfile.Vehicle.VehicleType,
@@ -61,7 +56,6 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
             driverProfile.Vehicle.Color,
             driverProfile.Vehicle.LicensePlate,
             driverProfile.Vehicle.Year,
-            driverProfile.Vehicle.VIN,
             true, // Vehicle is part of profile, always active
             driverProfile.CreatedAt) : null;
 

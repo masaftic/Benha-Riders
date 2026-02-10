@@ -5,9 +5,11 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Domain.Users;
+using BenhaScooters.Infrastructure.S3;
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace BenhaScooters.Application.Features.Trips.Queries;
 
@@ -30,10 +32,12 @@ public record GetCurrentTripResult(
 public class GetCurrentTripQueryHandler : IRequestHandler<GetCurrentTripQuery, ErrorOr<GetCurrentTripResult>>
 {
     private readonly AppDbContext _db;
+    private readonly IS3Service _s3Service;
 
-    public GetCurrentTripQueryHandler(AppDbContext db)
+    public GetCurrentTripQueryHandler(AppDbContext db, IS3Service s3Service)
     {
         _db = db;
+        _s3Service = s3Service;
     }
 
     public async Task<ErrorOr<GetCurrentTripResult>> Handle(GetCurrentTripQuery request, CancellationToken cancellationToken)
@@ -43,7 +47,7 @@ public class GetCurrentTripQueryHandler : IRequestHandler<GetCurrentTripQuery, E
 
         var tripResult = await _db.Trips
             .AsNoTracking()
-            .Where(t => (t.DriverId == request.UserId || t.RiderId == request.UserId) 
+            .Where(t => (t.DriverId == request.UserId || t.RiderId == request.UserId)
                      && activeStatuses.Contains(t.Status))
             .Select(t => new
             {
@@ -59,6 +63,8 @@ public class GetCurrentTripQueryHandler : IRequestHandler<GetCurrentTripQuery, E
                 RiderPhoneNumber = t.RiderProfile.User.PhoneNumber,
                 DriverName = t.DriverProfile.PersonalInfo!.FullName,
                 DriverPhoneNumber = t.DriverProfile.User.PhoneNumber,
+                DriverPhotoUrl = t.DriverProfile.Documents.FirstOrDefault(d => d.Type == Domain.Drivers.DocumentType.DriverPhoto)!.ImageUrl,
+                DriverVehicleBrand = t.DriverProfile.Vehicle!.Brand,
                 DriverVehicleColor = t.DriverProfile.Vehicle!.Color,
                 DriverVehicleModel = t.DriverProfile.Vehicle!.Model,
                 DriverVehicleLicensePlate = t.DriverProfile.Vehicle!.LicensePlate
@@ -70,6 +76,10 @@ public class GetCurrentTripQueryHandler : IRequestHandler<GetCurrentTripQuery, E
         {
             return TripErrors.Trip.NotFound;
         }
+
+        var driverPhotoUrl = tripResult.DriverPhotoUrl != null
+            ? await _s3Service.GetPreSignedUrlAsync(tripResult.DriverPhotoUrl, TimeSpan.FromHours(1), cancellationToken)
+            : null;
 
         return new GetCurrentTripResult(
             tripResult.Id,
@@ -86,7 +96,9 @@ public class GetCurrentTripQueryHandler : IRequestHandler<GetCurrentTripQuery, E
             new DriverInfo(
                 tripResult.DriverName,
                 tripResult.DriverPhoneNumber!,
+                driverPhotoUrl,
                 tripResult.DriverVehicleModel,
+                tripResult.DriverVehicleBrand,
                 tripResult.DriverVehicleColor,
                 tripResult.DriverVehicleLicensePlate));
     }

@@ -15,7 +15,6 @@ public class DriverVehicleInfo : ValueObject
     public string Color { get; private set; } = null!;
     public LicensePlate LicensePlate { get; private set; }
     public int Year { get; private set; }
-    public VIN VIN { get; private set; }
 
     private DriverVehicleInfo() { } // For EF Core
 
@@ -25,8 +24,7 @@ public class DriverVehicleInfo : ValueObject
         string model,
         string color,
         LicensePlate licensePlate,
-        int year,
-        VIN vin)
+        int year)
     {
         if (string.IsNullOrWhiteSpace(brand))
             throw new ArgumentException("Vehicle brand is required.", nameof(brand));
@@ -43,7 +41,6 @@ public class DriverVehicleInfo : ValueObject
         Color = color;
         LicensePlate = licensePlate;
         Year = year;
-        VIN = vin;
     }
 
     public string DisplayName => $"{Brand} {Model} ({Year})";
@@ -56,6 +53,5 @@ public class DriverVehicleInfo : ValueObject
         yield return Color;
         yield return LicensePlate;
         yield return Year;
-        yield return VIN;
     }
 }

@@ -94,12 +94,7 @@ public class DriverOnboardingController : BaseApiController
         var command = new UpdatePersonalInfoCommand(
             driverId,
             request.FullName,
-            request.NationalId,
-            request.DateOfBirth,
-            request.Address,
-            request.City,
-            request.EmergencyContactName,
-            request.EmergencyContactPhone);
+            request.NationalId);
 
         var result = await _sender.Send(command);
 
@@ -128,8 +123,7 @@ public class DriverOnboardingController : BaseApiController
             request.VehicleModel,
             request.VehicleColor,
             request.LicensePlate,
-            request.VehicleYear,
-            request.VIN);
+            request.VehicleYear);
 
         var result = await _sender.Send(command);
 
@@ -154,11 +148,17 @@ public class DriverOnboardingController : BaseApiController
     public async Task<IActionResult> UpdateDocuments([FromForm] UpdateDocumentsRequest request)
     {
         var driverId = HttpContext.GetDriverId();
-        var command = new UpdateDocumentsCommand(
-            driverId,
-            request.LicenseImage,
-            request.VehicleRegistrationImage,
-            request.DriverImage);
+        
+        // Build dictionary of document types to files
+        var documents = new Dictionary<DocumentType, IFormFile>();
+        if (request.LicenseImage != null)
+            documents[DocumentType.DrivingLicense] = request.LicenseImage;
+        if (request.VehicleRegistrationImage != null)
+            documents[DocumentType.VehicleRegistration] = request.VehicleRegistrationImage;
+        if (request.DriverImage != null)
+            documents[DocumentType.DriverPhoto] = request.DriverImage;
+        
+        var command = new UpdateDocumentsCommand(driverId, documents);
 
         var result = await _sender.Send(command);
 

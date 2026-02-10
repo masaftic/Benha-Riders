@@ -43,7 +43,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<Authent
     {
         var user = await _db.Users
             .Include(u => u.Roles)
-            .FirstOrDefaultAsync(u => u.PhoneNumberNormalized == request.PhoneNumber, cancellationToken);
+            .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber, cancellationToken);
 
         if (user is null || user.PasswordHash is null || !_passwordHasher.Verify(user.PasswordHash, request.Password))
         {

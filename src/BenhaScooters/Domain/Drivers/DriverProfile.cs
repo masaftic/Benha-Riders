@@ -212,5 +212,5 @@ public enum DocumentType
 {
     DrivingLicense,
     VehicleRegistration,
-    DriverPhoto
+    DriverPhoto,
 }

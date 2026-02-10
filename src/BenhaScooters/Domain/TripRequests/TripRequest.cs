@@ -131,9 +131,6 @@ public class TripRequest : AggregateRoot
             return TripErrors.TripRequest.AlreadyMatched;
         }
 
-        if (Status != TripRequestStatus.Pending)
-            return TripErrors.TripRequest.NotPending;
-
         Status = TripRequestStatus.Cancelled;
         CancellationReason = reason;
         return Result.Success;

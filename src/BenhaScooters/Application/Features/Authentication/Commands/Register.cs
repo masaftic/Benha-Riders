@@ -45,13 +45,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<O
     public async Task<ErrorOr<OnboardingStatusToken>> Handle(RegisterCommand req, CancellationToken ct)
     {
         var normalizedEmail = req.Email;
-        if (await _db.Users.AnyAsync(x => x.EmailNormalized == normalizedEmail, ct))
+        if (await _db.Users.AnyAsync(x => x.Email == normalizedEmail, ct))
         {
             return UserErrors.EmailAlreadyExists;
         }
 
         var normalizedPhone = req.PhoneNumber;
-        if (await _db.Users.AnyAsync(x => x.PhoneNumberNormalized == normalizedPhone, ct))
+        if (await _db.Users.AnyAsync(x => x.PhoneNumber == normalizedPhone, ct))
         {
             return UserErrors.PhoneAlreadyExists;
         }

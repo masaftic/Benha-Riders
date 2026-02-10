@@ -23,50 +23,6 @@ public class UpdatePersonalInfoRequestValidator : AbstractValidator<UpdatePerson
             .WithMessage("الرقم القومي مطلوب.")
             .Matches(@"^[0-9]{14}$")
             .WithMessage("الرقم القومي يجب أن يكون 14 رقم بالضبط.");
-
-        RuleFor(x => x.DateOfBirth)
-            .NotEmpty()
-            .WithMessage("تاريخ الميلاد مطلوب.")
-            .Must(BeValidAge)
-            .WithMessage("يجب أن يكون عمر السائق بين 18 و 80 سنة.");
-
-        RuleFor(x => x.Address)
-            .NotEmpty()
-            .WithMessage("العنوان مطلوب.")
-            .MinimumLength(10)
-            .WithMessage("العنوان يجب أن يكون على الأقل 10 أحرف.")
-            .MaximumLength(200)
-            .WithMessage("العنوان لا يمكن أن يتجاوز 200 حرف.");
-
-        RuleFor(x => x.City)
-            .NotEmpty()
-            .WithMessage("المدينة مطلوبة.")
-            .MinimumLength(2)
-            .WithMessage("المدينة يجب أن تكون على الأقل حرفين.")
-            .MaximumLength(50)
-            .WithMessage("المدينة لا يمكن أن تتجاوز 50 حرف.");
-
-        RuleFor(x => x.EmergencyContactName)
-            .NotEmpty()
-            .WithMessage("اسم جهة الاتصال في حالة الطوارئ مطلوب.")
-            .MinimumLength(2)
-            .WithMessage("اسم جهة الاتصال في حالة الطوارئ يجب أن يكون على الأقل حرفين.")
-            .MaximumLength(100)
-            .WithMessage("اسم جهة الاتصال في حالة الطوارئ لا يمكن أن يتجاوز 100 حرف.");
-
-        RuleFor(x => x.EmergencyContactPhone)
-            .NotEmpty()
-            .WithMessage("رقم هاتف جهة الاتصال في حالة الطوارئ مطلوب.")
-            .Matches(@"^(\+201|01)[0-9]{9}$")
-            .WithMessage("رقم هاتف جهة الاتصال في حالة الطوارئ يجب أن يكون رقم هاتف مصري صحيح.");
-    }
-
-    private static bool BeValidAge(DateOnly dateOfBirth)
-    {
-        var today = DateOnly.FromDateTime(DateTime.Today);
-        var age = today.Year - dateOfBirth.Year;
-        if (dateOfBirth > today.AddYears(-age)) age--;
-        return age >= 18 && age <= 80;
     }
 }
 
@@ -111,12 +67,6 @@ public class UpdateVehicleInfoRequestValidator : AbstractValidator<UpdateVehicle
         RuleFor(x => x.VehicleYear)
             .InclusiveBetween(1980, DateTime.Now.Year + 1)
             .WithMessage($"سنة المركبة يجب أن تكون بين 1980 و {DateTime.Now.Year + 1}.");
-
-        RuleFor(x => x.VIN)
-            .NotEmpty()
-            .WithMessage("رقم الهيكل (VIN) مطلوب.")
-            .Length(17)
-            .WithMessage("رقم الهيكل (VIN) يجب أن يكون 17 حرف بالضبط.");
     }
 }
 

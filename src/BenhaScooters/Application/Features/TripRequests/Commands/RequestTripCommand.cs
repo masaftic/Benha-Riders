@@ -86,7 +86,7 @@ public class RequestTripCommandHandler(
         // check if rider has active trip
         var hasActiveTrip = await db.Trips
             .AnyAsync(t => t.RiderId == request.RiderId &&
-                           t.Status == TripStatus.Assigned || t.Status == TripStatus.DriverArrived || t.Status == TripStatus.InProgress, cancellationToken);
+                           (t.Status == TripStatus.Assigned || t.Status == TripStatus.DriverArrived || t.Status == TripStatus.InProgress), cancellationToken);
 
         if (hasActiveTrip)
         {

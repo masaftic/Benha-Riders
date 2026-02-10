@@ -292,7 +292,7 @@ public class AuthenticationFeatureTests : FeatureTestBase
 
         // Set up SMS verification code
         var code = SmsVerificationCode.GenerateCode();
-        var verificationCode = new SmsVerificationCode(user.Id, user.PhoneNumberNormalized!, code, TimeSpan.FromMinutes(10));
+        var verificationCode = new SmsVerificationCode(user.Id, user.PhoneNumber!, code, TimeSpan.FromMinutes(10));
 
         DbContext!.SmsVerificationCodes.Add(verificationCode);
         await DbContext!.SaveChangesAsync();
@@ -330,7 +330,7 @@ public class AuthenticationFeatureTests : FeatureTestBase
         var onboardingToken = GenerateOnboardingTokenAsync(user.Id, user.Status, UserOnboardingStateMachine.GetNextStep(user.Status));
 
         var code = SmsVerificationCode.GenerateCode();
-        var verificationCode = new SmsVerificationCode(user.Id, user.PhoneNumberNormalized!, code, TimeSpan.FromMinutes(10));
+        var verificationCode = new SmsVerificationCode(user.Id, user.PhoneNumber!, code, TimeSpan.FromMinutes(10));
 
         DbContext!.Add(verificationCode);
         await DbContext!.SaveChangesAsync();

@@ -70,8 +70,9 @@ public class LocalS3Service : IS3Service
 
     public Task<string> GetPreSignedUrlAsync(string key, TimeSpan expiry, CancellationToken cancellationToken = default)
     {
-        // Map to the static files endpoint path
-        var url = $"/files/{_options.BucketName}/{key}".Replace("\\", "/").Replace("//", "/");
-        return Task.FromResult(url);
+        // Construct full URL using BaseUrl from options
+        var relativePath = $"/files/{_options.BucketName}/{key}".Replace("\\", "/").Replace("//", "/");
+        var fullUrl = $"{_options.BaseUrl}{relativePath}";
+        return Task.FromResult(fullUrl);
     }
 }

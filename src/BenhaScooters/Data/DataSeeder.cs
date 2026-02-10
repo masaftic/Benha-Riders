@@ -54,12 +54,7 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender
                 
                 var personalInfo = new DriverPersonalInfo(
                     "Sample Driver", 
-                    NationalId.Create("12345678901234"), 
-                    new DateOnly(1990, 1, 1), 
-                    "123 Street", 
-                    "City", 
-                    "Emergency Contact", 
-                    PhoneNumber.Create("09876543213"));
+                    NationalId.Create("12345678901234"));
                 
                 var vehicleInfo = new DriverVehicleInfo(
                     VehicleType.Scooter, 
@@ -67,8 +62,7 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender
                     "Model", 
                     "Color", 
                     LicensePlate.Create("ABC1234"), 
-                    2020, 
-                    VIN.Create("12345678901234567"));
+                    2020);
                 
                 driverProfile.UpdatePersonalInfo(personalInfo);
                 driverProfile.UpdateVehicle(vehicleInfo);

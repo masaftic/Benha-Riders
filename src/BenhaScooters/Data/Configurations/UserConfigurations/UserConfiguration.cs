@@ -20,15 +20,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(x => x.EmailNormalized)
-            .IsRequired()
-            .HasMaxLength(100);
-
         builder.Property(x => x.PhoneNumber)
             .HasMaxLength(20);
-        
-        builder.Property(x => x.PhoneNumberNormalized)
-            .HasMaxLength(20);
+
 
         builder.Property(x => x.PasswordHash)
             .HasMaxLength(256);
@@ -36,9 +30,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.Status)
             .IsRequired()
             .HasConversion<string>();
-        
-        builder.HasIndex(x => x.EmailNormalized);
-        builder.HasIndex(x => x.PhoneNumberNormalized);
+
+        builder.HasIndex(x => x.Email);
+
+        builder.HasIndex(x => x.PhoneNumber);
 
         builder.HasMany(x => x.Roles)
             .WithOne()

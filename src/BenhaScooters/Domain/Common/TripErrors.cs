@@ -84,6 +84,10 @@ public static class TripErrors
         public static readonly Error PaymentNotSet = Error.Conflict(
             "TRIP_PAYMENT_NOT_SET",
             "لم يتم تحديد طريقة الدفع للرحلة بعد");
+        
+        public static readonly Error CannotCancel = Error.Conflict(
+            "TRIP_CANNOT_CANCEL",
+            "لا يمكن إلغاء الرحلة بعد بدئها أو إذا كانت ملغاة أو مكتملة بالفعل");
     }
 
     public static class Driver

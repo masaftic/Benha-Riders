@@ -40,29 +40,6 @@ public class DriverProfileConfiguration : IEntityTypeConfiguration<DriverProfile
             personalInfo.Property(p => p.NationalId)
                 .HasColumnName("PersonalInfo_NationalId")
                 .IsRequired();
-
-            personalInfo.Property(p => p.DateOfBirth)
-                .HasColumnName("PersonalInfo_DateOfBirth")
-                .IsRequired();
-
-            personalInfo.Property(p => p.Address)
-                .HasColumnName("PersonalInfo_Address")
-                .HasMaxLength(500)
-                .IsRequired();
-
-            personalInfo.Property(p => p.City)
-                .HasColumnName("PersonalInfo_City")
-                .HasMaxLength(100)
-                .IsRequired();
-
-            personalInfo.Property(p => p.EmergencyContactName)
-                .HasColumnName("PersonalInfo_EmergencyContactName")
-                .HasMaxLength(100)
-                .IsRequired();
-
-            personalInfo.Property(p => p.EmergencyContactPhone)
-                .HasColumnName("PersonalInfo_EmergencyContactPhone")
-                .IsRequired();
         });
 
         // Configure Vehicle as owned entity
@@ -94,10 +71,6 @@ public class DriverProfileConfiguration : IEntityTypeConfiguration<DriverProfile
 
             vehicle.Property(v => v.Year)
                 .HasColumnName("Vehicle_Year")
-                .IsRequired();
-
-            vehicle.Property(v => v.VIN)
-                .HasColumnName("Vehicle_VIN")
                 .IsRequired();
         });
 

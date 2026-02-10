@@ -16,12 +16,7 @@ namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 public record UpdatePersonalInfoCommand(
     UserId DriverId,
     string FullName,
-    string NationalId,
-    DateOnly DateOfBirth,
-    string Address,
-    string City,
-    string EmergencyContactName,
-    string EmergencyContactPhone) : IRequest<ErrorOr<UpdatePersonalInfoResponse>>;
+    string NationalId) : IRequest<ErrorOr<UpdatePersonalInfoResponse>>;
 
 public class UpdatePersonalInfoCommandValidator : AbstractValidator<UpdatePersonalInfoCommand>
 {
@@ -66,12 +61,7 @@ public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler
 
         var personalInfo = new DriverPersonalInfo(
             request.FullName,
-            NationalId.Create(request.NationalId),
-            request.DateOfBirth,
-            request.Address,
-            request.City,
-            request.EmergencyContactName,
-            PhoneNumber.Create(request.EmergencyContactPhone));
+            NationalId.Create(request.NationalId));
 
         var updateResult = driverProfile.UpdatePersonalInfo(personalInfo);
 

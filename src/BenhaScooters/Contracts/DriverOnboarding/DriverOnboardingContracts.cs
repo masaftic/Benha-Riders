@@ -4,12 +4,7 @@ namespace BenhaScooters.Contracts.DriverOnboarding;
 
 public record UpdatePersonalInfoRequest(
     string FullName,
-    string NationalId,
-    DateOnly DateOfBirth,
-    string Address,
-    string City,
-    string EmergencyContactName,
-    string EmergencyContactPhone);
+    string NationalId);
 
 public record UpdateVehicleInfoRequest(
     VehicleType VehicleType,
@@ -17,8 +12,7 @@ public record UpdateVehicleInfoRequest(
     string VehicleModel,
     string VehicleColor,
     string LicensePlate,
-    int VehicleYear,
-    string VIN);
+    int VehicleYear);
 
 public record UpdateDocumentsRequest(
     IFormFile LicenseImage,

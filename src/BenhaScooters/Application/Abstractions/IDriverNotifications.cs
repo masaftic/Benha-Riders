@@ -1,9 +1,12 @@
+using BenhaScooters.Application.Abstractions;
+
 namespace BenhaScooters.Application.Abstractions;
 
 public interface IDriverNotifications
 {
     Task NotifyRideRequestOffer(string driverId, RideRequestOfferNotification notification);
     Task NotifyRideRequestOfferExpired(string driverId, RideOfferExpiredNotification notification);
+    Task NotifyTripCancelled(string driverId, TripCancelledNotification notification);
 }
 
 public record RideRequestOfferNotification(

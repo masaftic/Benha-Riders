@@ -20,8 +20,7 @@ public record UpdateVehicleInfoCommand(
     string VehicleModel,
     string VehicleColor,
     string LicensePlate,
-    int VehicleYear,
-    string VIN) : IRequest<ErrorOr<UpdateVehicleInfoResponse>>;
+    int VehicleYear) : IRequest<ErrorOr<UpdateVehicleInfoResponse>>;
 
 public class UpdateVehicleInfoCommandValidator : AbstractValidator<UpdateVehicleInfoCommand>
 {
@@ -32,23 +31,10 @@ public class UpdateVehicleInfoCommandValidator : AbstractValidator<UpdateVehicle
         _db = db;
         
         // Only business logic validations here
-        RuleFor(x => x.VIN)
-            .MustAsync(BeUniqueVIN)
-            .WithMessage("هذا الرقم التسلسلي للمركبة مسجل مع سائق آخر.")
-            .When(x => !string.IsNullOrEmpty(x.VIN));
-
         RuleFor(x => x.LicensePlate)
             .MustAsync(BeUniqueLicensePlate)
             .WithMessage("رقم لوحة الترخيص هذا مسجل مع مركبة أخرى.")
             .When(x => !string.IsNullOrEmpty(x.LicensePlate));
-    }
-
-    private async Task<bool> BeUniqueVIN(UpdateVehicleInfoCommand command, string vin, CancellationToken cancellationToken)
-    {
-        var userId = command.DriverId;
-        return !await _db.DriverProfiles
-            .Where(dp => dp.Vehicle != null && dp.UserId != userId)
-            .AnyAsync(dp => dp.Vehicle!.VIN == VIN.Create(vin), cancellationToken);
     }
 
     private async Task<bool> BeUniqueLicensePlate(UpdateVehicleInfoCommand command, string licensePlate, CancellationToken cancellationToken)
@@ -84,8 +70,7 @@ public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<
             request.VehicleModel,
             request.VehicleColor,
             LicensePlate.Create(request.LicensePlate),
-            request.VehicleYear,
-            VIN.Create(request.VIN));
+            request.VehicleYear);
 
         var updateResult = driverProfile.UpdateVehicle(vehicleInfo);
 

@@ -20,12 +20,7 @@ public record DriverSummaryDto(
 public record PersonalInfoDto(
     string FullName,
     string NationalId,
-    PhoneNumber PhoneNumber,
-    DateOnly DateOfBirth,
-    string Address,
-    string City,
-    string EmergencyContactName,
-    string EmergencyContactPhone);
+    PhoneNumber PhoneNumber);
 
 public record VehicleInfoDto(
     VehicleType VehicleType,
@@ -34,7 +29,6 @@ public record VehicleInfoDto(
     string Color,
     string LicensePlate,
     int Year,
-    string VIN,
     bool IsActive,
     DateTime CreatedAt);
 

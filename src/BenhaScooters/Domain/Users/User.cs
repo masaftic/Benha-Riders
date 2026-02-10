@@ -76,10 +76,8 @@ public class User
     public UserId Id { get; private set; }
     public string Name { get; private set; } = null!;
     public Email Email { get; private set; }
-    public Email EmailNormalized { get; private set; }
     public bool EmailVerified { get; private set; } = false;
     public PhoneNumber? PhoneNumber { get; private set; }
-    public PhoneNumber? PhoneNumberNormalized { get; private set; }
     public bool PhoneNumberVerified { get; private set; } = false;
     public string? PasswordHash { get; private set; } = null;
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
@@ -105,9 +103,7 @@ public class User
 
         Name = name;
         Email = email;
-        EmailNormalized = email;
         PhoneNumber = phoneNumber;
-        PhoneNumberNormalized = phoneNumber;
         PasswordHash = passwordHash;
         Status = UserStatus.Registered;
     }
@@ -167,7 +163,6 @@ public class User
         if (PhoneNumber == null && number != null)
         {
             PhoneNumber = number;
-            PhoneNumberNormalized = number;
         }
 
         PhoneNumberVerified = true;
