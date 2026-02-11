@@ -118,20 +118,17 @@ public class TripsController : BaseApiController
         return result.Match(Ok, HandleErrors);
     }
 
-    // /// <summary>
-    // /// Pay cash for trip
-    // /// </summary>
-    // [HttpPost("{tripId}/pay/cash")]
-    // [Authorize(Policy = "OnboardedDriver")]
-    // [ProducesResponseType(StatusCodes.Status200OK)]
-    // [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    // [ProducesResponseType(StatusCodes.Status404NotFound)]
-    // public async Task<IActionResult> PayCashForTrip([FromRoute] int tripId, [FromBody] PayCashForTripRequest request)
-    // {
-    //     var command = new PayCashForTripCommand(TripId.Create(tripId), request.PaidAmount);
-    //     var result = await _sender.Send(command);
+    [HttpPost("{tripId}/cancel")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CancelTrip([FromRoute] TripId tripId, [FromBody] CancelTripRequest request)
+    {
+        var command = new CancelTripCommand(tripId, HttpContext.GetCurrentUserId(), request.CancellationReason);
+        var result = await _sender.Send(command);
 
-    //     return result.Match(Ok, HandleErrors);
-    // }
+        return result.Match(Ok, HandleErrors);
+    }
 }

@@ -11,7 +11,7 @@ namespace BenhaScooters.Application.Features.Trips.Commands;
 public record CancelTripCommand(
     TripId TripId,
     UserId UserId,
-    string? CancellationReason = null) : IRequest<ErrorOr<CancelTripResult>>;
+    string CancellationReason) : IRequest<ErrorOr<CancelTripResult>>;
 
 public record CancelTripResult(
     TripId TripId,

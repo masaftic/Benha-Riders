@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Application.Features.Trips.Queries.Common;
 using BenhaScooters.Infrastructure.S3;
+using BenhaScooters.Infrastructure.Trips.Services;
 
 namespace BenhaScooters.Application.Features.Riders.Queries;
 
@@ -29,7 +30,8 @@ public record InTripDetails(
     string PickupAddress,
     string DropoffAddress,
     decimal EstimatedFare,
-    DateTime CreatedAt,
+    double EstimatedArrivalMinutes,
+    DateTime AssignedAt,
     DateTime? DriverArrivedAt,
     DateTime? StartedAt,
     DriverInfo? Driver);
@@ -78,8 +80,10 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
                 t.AssignedAt,
                 t.DriverArrivedAt,
                 t.StartedAt,
+                t.DropoffLocation,
                 RiderName = t.RiderProfile.PreferredName ?? t.RiderProfile.User.Name,
                 RiderPhoneNumber = t.RiderProfile.User.PhoneNumber,
+                DriverId = t.DriverId,
                 DriverName = t.DriverProfile.PersonalInfo!.FullName,
                 DriverPhoneNumber = t.DriverProfile.User.PhoneNumber,
                 DriverPhotoUrl = t.DriverProfile.Documents.FirstOrDefault(d => d.Type == Domain.Drivers.DocumentType.DriverPhoto)!.ImageUrl,
@@ -91,11 +95,25 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
             .OrderByDescending(t => t.AssignedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
+
+
+
         if (tripResult is not null)
         {
             var driverPhotoUrl = tripResult.DriverPhotoUrl != null
                 ? await _s3Service.GetPreSignedUrlAsync(tripResult.DriverPhotoUrl, TimeSpan.FromHours(1), cancellationToken)
                 : null;
+
+            var driverLocation = await _db.DriverLocations
+                .AsNoTracking()
+                .Where(dl => dl.UserId == tripResult.DriverId)
+                .Select(dl => new
+                {
+                    dl.Location
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+            
+            var distance = GeoUtils.CalculateDistance(driverLocation!.Location, tripResult.DropoffLocation); // Rider location is not stored here
 
             var details = new InTripDetails(
                 tripResult.Id,
@@ -103,6 +121,7 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
                 tripResult.PickupAddress ?? "Unknown",
                 tripResult.DropoffAddress ?? "Unknown",
                 tripResult.FinalFare.Amount,
+                distance / 1000 / 0.5, // Assuming average speed of 30 km/h
                 tripResult.AssignedAt,
                 tripResult.DriverArrivedAt,
                 tripResult.StartedAt,
@@ -157,8 +176,8 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
                 tripRequestResult.PickupAddress ?? "Unknown pickup location",
                 tripRequestResult.DropoffAddress ?? "Unknown dropoff location",
                 tripRequestResult.FinalFare.Amount,
-                tripRequestResult.FinalFare.Distance,
-                tripRequestResult.FinalFare.Time,
+                tripRequestResult.FinalFare.DistanceKm, // TODO: Future - Update DTO to use Distance value object
+                tripRequestResult.FinalFare.TimeMinutes, // TODO: Future - Update DTO to use Duration value object
                 tripRequestResult.RequestedAt,
                 tripRequestResult.ExpiresAt,
                 tripRequestResult.ConfirmedAt,

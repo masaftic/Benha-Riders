@@ -109,6 +109,20 @@ public class Trip : AggregateRoot
         return Result.Success;
     }
 
+    public ErrorOr<Success> CancelTrip(UserId cancelledBy, string cancellationReason)
+    {
+        // Can only cancel if trip hasn't started yet
+        if (Status == TripStatus.InProgress || Status == TripStatus.Completed || Status == TripStatus.Cancelled)
+            return TripErrors.Trip.CannotCancel;
+
+        Status = TripStatus.Cancelled;
+        CompletedAt = DateTime.UtcNow;
+
+        RaiseDomainEvent(new TripCancelledEvent(Id, DriverId, RiderId, cancelledBy, cancellationReason));
+
+        return Result.Success;
+    }
+
     public ErrorOr<Success> SetTripFare(TripFare tripFare)
     {
         if (tripFare == null)

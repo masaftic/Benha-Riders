@@ -175,6 +175,9 @@ public class AcceptMatchCommandHandler(
 
         // Notify rider via SignalR about trip assignment
         var driverProfile = await db.DriverProfiles
+            .Include(dp => dp.User)
+            .Include(dp => dp.Vehicle)
+            .Include(dp => dp.Documents)
             .FirstOrDefaultAsync(dp => dp.UserId == driverStatus.UserId, cancellationToken);
 
         if (driverProfile != null)

@@ -1,4 +1,5 @@
 using BenhaScooters.Application.Features.Trips.Queries.Common;
+using BenhaScooters.Application.Features.Riders.Queries;
 
 namespace BenhaScooters.Application.Abstractions;
 
@@ -10,6 +11,7 @@ public interface IRiderNotifications
     Task NotifyTripCompleted(string riderId, TripCompletedNotification notification);
     Task NotifyTripCancelled(string riderId, TripCancelledNotification notification);
     Task NotifyDriverLocationUpdate(string riderId, DriverLocationUpdate locationUpdate);
+    Task ReceiveRiderStatus(GetRiderStatusResult status);
 }
 
 public record TripAssignedNotification(
@@ -32,7 +34,7 @@ public record TripCompletedNotification(
 
 public record TripCancelledNotification(
     int TripId,
-    string? CancellationReason,
+    string CancellationReason,
     DateTime CancelledAt);
 
 public record DriverLocationUpdate(
