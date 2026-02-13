@@ -30,8 +30,7 @@ public record DriverMatchOfferDto(
     double EstimatedDuration,
     double DistanceToPickup,
     double EstimatedArrivalTime,
-    DateTime OfferedAt,
-    DateTime ExpiresAt);
+    DateTime OfferedAt);
 
 public class GetDriverMatchOffersQueryValidator : AbstractValidator<GetDriverMatchOffersQuery>
 {
@@ -70,8 +69,7 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
         var matchOffers = await db.DriverMatchAttempts
             .AsNoTracking()
             .Where(ma => ma.DriverUserId == request.DriverId && 
-                        ma.Status == MatchAttemptStatus.Pending && 
-                        ma.ExpiresAt > DateTime.UtcNow)
+                        ma.Status == MatchAttemptStatus.Pending)
             .OrderBy(ma => ma.CreatedAt)
             .Select(ma =>  new
             {
@@ -86,8 +84,7 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
                 Duration = ma.MatchingSession.TripRequest.FinalFare.Time.ToMinutes(), // TODO: Future - Update DTO to use Duration value object
                 ma.DistanceToPickup,
                 ma.EstimatedArrivalTime,
-                ma.CreatedAt,
-                ma.ExpiresAt
+                ma.CreatedAt
             })
             .ToListAsync(cancellationToken);
 
@@ -106,7 +103,6 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
             x.Duration,
             x.DistanceToPickup,
             x.EstimatedArrivalTime,
-            x.CreatedAt,
-            x.ExpiresAt)).ToList());
+            x.CreatedAt)).ToList()); // No expiration
     }
 }

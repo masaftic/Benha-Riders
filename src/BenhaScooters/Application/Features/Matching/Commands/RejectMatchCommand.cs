@@ -39,7 +39,6 @@ public class RejectMatchCommandHandler(AppDbContext db) : IRequestHandler<Reject
         var matchAttempt = await db.DriverMatchAttempts
             .Include(ma => ma.MatchingSession)
             .Where(ma => ma.Id == request.DriverMatchAttemptId
-                        && ma.ExpiresAt > DateTime.UtcNow
                         && ma.DriverUserId == request.DriverId
                         && ma.Status == MatchAttemptStatus.Pending)
             .FirstOrDefaultAsync(cancellationToken);

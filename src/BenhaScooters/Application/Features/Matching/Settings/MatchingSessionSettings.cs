@@ -6,11 +6,17 @@ public class MatchingSessionOptions
 {
     public const string SectionName = "MatchingSession";
 
-    [Range(10, 3000)]
-    public int DriverResponseTimeoutSeconds { get; set; }
+    /// <summary>
+    /// How long to wait in each round before advancing to the next round
+    /// </summary>
+    [Range(10, 300)]
+    public int RoundTimeoutSeconds { get; set; }
 
-    [Range(5, 120)]
-    public int TimeAfterEmptyRoundSeconds { get; set; }
+    /// <summary>
+    /// How long to wait after the last round before cancelling the session if no one accepted
+    /// </summary>
+    [Range(10, 600)]
+    public int FinalRoundWaitSeconds { get; set; }
 
     [Range(1, 10)]
     public int NumberOfRounds { get; set; }
@@ -20,6 +26,6 @@ public class MatchingSessionOptions
     public int[] OffersPerRound { get; set; } = null!;
 
 
-    public TimeSpan DriverResponseTimeout => TimeSpan.FromSeconds(DriverResponseTimeoutSeconds);
-    public TimeSpan TimeAfterEmptyRound => TimeSpan.FromSeconds(TimeAfterEmptyRoundSeconds);
+    public TimeSpan RoundTimeout => TimeSpan.FromSeconds(RoundTimeoutSeconds);
+    public TimeSpan FinalRoundWait => TimeSpan.FromSeconds(FinalRoundWaitSeconds);
 }

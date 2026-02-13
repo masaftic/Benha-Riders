@@ -2,7 +2,9 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Infrastructure.Notifications;
 using ErrorOr;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -37,6 +39,16 @@ public class MatchingOrchestrator(
             return MatchingErrors.Session.NotFound;
         }
 
+        // Check if anyone has accepted the match
+        var hasAcceptedMatch = matchingSession.MatchAttempts.Any(ma => ma.Status == MatchAttemptStatus.Accepted);
+        if (hasAcceptedMatch)
+        {
+            logger.LogInformation(
+                "Match already accepted for session {MatchingSessionId}, no further action needed",
+                matchingSession.Id);
+            return new MatchingCompleted();
+        }
+
         var transitionResult = matchingSession.TryTransitionToNextRound();
 
         if (transitionResult.IsError)
@@ -56,7 +68,8 @@ public class MatchingOrchestrator(
         {
             case RoundTransitioned:
                 logger.LogInformation(
-                    "Advancing to next round for session {MatchingSessionId}",
+                    "Advancing to round {CurrentRound} for session {MatchingSessionId}",
+                    matchingSession.CurrentRound,
                     matchingSession.Id);
 
                 var matchResult = await driverMatchingService.ProcessMatchingAsync(matchingSession.Id, cancellationToken);
@@ -70,6 +83,8 @@ public class MatchingOrchestrator(
                 break;
 
             case MatchingCanceled:
+                matchingSession.Cancel("No drivers accepted the match after all rounds");
+                await dbContext.SaveChangesAsync(cancellationToken);
                 logger.LogInformation(
                     "Matching session {MatchingSessionId} cancelled after all rounds completed with no match",
                     matchingSession.Id);

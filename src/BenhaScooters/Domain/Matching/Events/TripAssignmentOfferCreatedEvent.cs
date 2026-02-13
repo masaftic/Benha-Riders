@@ -13,6 +13,5 @@ public record DriverMatchOfferCreatedEvent(
     UserId DriverId,
     double DistanceToPickup,
     double EstimatedArrivalTime,
-    decimal DriverScore,
-    DateTime OfferExpiresAt
+    decimal DriverScore
 ) : DomainEvent;

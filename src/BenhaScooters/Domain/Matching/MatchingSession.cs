@@ -119,10 +119,10 @@ public class MatchingSession : AggregateRoot
     }
 
 
-    public List<UserId> GetRejectedOrExpiredDrivers()
+    public List<UserId> GetRejectedOrPendingDrivers()
     {
         return _matchAttempts
-            .Where(ma => ma.Status == MatchAttemptStatus.Rejected || ma.Status == MatchAttemptStatus.Expired)
+            .Where(ma => ma.Status == MatchAttemptStatus.Rejected || ma.Status == MatchAttemptStatus.Pending)
             .Select(ma => ma.DriverUserId)
             .Distinct()
             .ToList();
@@ -164,8 +164,7 @@ public class MatchingSession : AggregateRoot
         UserId driverId,
         double distanceToPickup,
         double estimatedArrivalTime,
-        decimal driverScore,
-        TimeSpan matchAttemptExpirationDuration)
+        decimal driverScore)
     {
         if (Status != MatchingSessionStatus.Active)
             return MatchingErrors.Session.NotActive;
@@ -179,8 +178,7 @@ public class MatchingSession : AggregateRoot
             distanceToPickup,
             estimatedArrivalTime,
             driverScore,
-            CurrentRound,
-            matchAttemptExpirationDuration);
+            CurrentRound);
 
         _matchAttempts.Add(matchAttempt);
 
@@ -190,8 +188,7 @@ public class MatchingSession : AggregateRoot
             driverId,
             distanceToPickup,
             estimatedArrivalTime,
-            driverScore,
-            matchAttempt.ExpiresAt));
+            driverScore)); // No expiration time since offers don't expire
 
         return matchAttempt;
     }
@@ -213,32 +210,17 @@ public class MatchingSession : AggregateRoot
         if (IsExpired)
             return MatchingErrors.Session.Expired;
         
-        var hasPending = HasPendingAttemptsInCurrentRound();
         var isLastRound = IsLastRound();
 
-        if (isLastRound && !hasPending)
+        if (isLastRound)
         {
-            // No more rounds left, cancel the session
-            Status = MatchingSessionStatus.Cancelled;
-            CompletedAt = DateTime.UtcNow;
-
-            RaiseDomainEvent(new MatchingSessionCancelledEvent(
-                Id,
-                TripRequestId,
-                "All rounds completed with no successful match"));
-
+            Cancel("No drivers accepted the match after all rounds completed");
             return new MatchingCanceled();
         }
 
-        if (!hasPending)
-        {
-            CurrentRound++;
-            return new RoundTransitioned();
-        }
-
-        // Still waiting on other attempts in the current round
-
-        return new NoTransition();
+        // Advance to next round
+        CurrentRound++;
+        return new RoundTransitioned();
     }
 
 
@@ -259,9 +241,6 @@ public class MatchingSession : AggregateRoot
 
         if (matchAttempt == null)
             return MatchingErrors.MatchAttempt.NotFound;
-
-        if (matchAttempt.IsExpired)
-            return MatchingErrors.MatchAttempt.Expired;
 
         // Accept the match attempt
         matchAttempt.Accept();
@@ -310,29 +289,6 @@ public class MatchingSession : AggregateRoot
             driverId,
             reason,
             DateTime.UtcNow));
-
-        return Result.Success;
-    }
-
-    public ErrorOr<Success> ExpireMatch(UserId driverId)
-    {
-        if (Status != MatchingSessionStatus.Active)
-            return MatchingErrors.Session.NotActive;
-
-        // Find the pending match attempt for this driver
-        var matchAttempt = _matchAttempts.FirstOrDefault(ma =>
-            ma.DriverUserId == driverId && ma.Status == MatchAttemptStatus.Pending);
-
-        if (matchAttempt == null)
-            return MatchingErrors.MatchAttempt.NotFound;
-
-        // Expire the match attempt
-        matchAttempt.Expire();
-
-        // Raise domain event for expiration
-        RaiseDomainEvent(new TripMatchExpiredEvent(
-            TripRequestId,
-            driverId));
 
         return Result.Success;
     }

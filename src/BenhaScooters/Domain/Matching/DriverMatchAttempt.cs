@@ -15,7 +15,6 @@ public enum MatchAttemptStatus
     Pending = 1,
     Accepted = 2,
     Rejected = 3,
-    Expired = 4,
     Cancelled = 5
 }
 
@@ -32,7 +31,6 @@ public class DriverMatchAttempt : AggregateRoot
     public int MatchingRound { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? RespondedAt { get; private set; }
-    public DateTime ExpiresAt { get; private set; }
     public string? RejectionReason { get; private set; }
     
     // Matching metrics
@@ -48,7 +46,7 @@ public class DriverMatchAttempt : AggregateRoot
     private DriverMatchAttempt() { } // For EF Core
 
     public DriverMatchAttempt(UserId driverId, MatchingSessionId matchingSessionId,
-        double distanceToPickup, double estimatedArrivalTime, decimal driverScore, int matchingRound, TimeSpan expirationDuration)
+        double distanceToPickup, double estimatedArrivalTime, decimal driverScore, int matchingRound)
     {
         DriverUserId = driverId;
         MatchingSessionId = matchingSessionId;
@@ -57,7 +55,6 @@ public class DriverMatchAttempt : AggregateRoot
         DriverScore = driverScore;
         Status = MatchAttemptStatus.Pending;
         CreatedAt = DateTime.UtcNow;
-        ExpiresAt = DateTime.UtcNow.Add(expirationDuration);
         MatchingRound = matchingRound;
     }
 
@@ -66,9 +63,6 @@ public class DriverMatchAttempt : AggregateRoot
     {
         if (Status != MatchAttemptStatus.Pending)
             throw new InvalidOperationException($"Cannot accept match when status is {Status}");
-
-        if (IsExpired)
-            throw new InvalidOperationException("Cannot accept expired match attempt");
 
         Status = MatchAttemptStatus.Accepted;
         RespondedAt = DateTime.UtcNow;
@@ -82,21 +76,6 @@ public class DriverMatchAttempt : AggregateRoot
         Status = MatchAttemptStatus.Rejected;
         RespondedAt = DateTime.UtcNow;
         RejectionReason = reason;
-    }
-
-    public void Expire()
-    {
-        if (Status != MatchAttemptStatus.Pending)
-            return;
-
-        Status = MatchAttemptStatus.Expired;
-        RespondedAt = DateTime.UtcNow;
-
-        RaiseDomainEvent(new MatchAttemptExpiredEvent(
-            Id,
-            DriverUserId,
-            MatchingSessionId,
-            DateTime.UtcNow));
     }
 
     public void Cancel()
@@ -115,7 +94,6 @@ public class DriverMatchAttempt : AggregateRoot
     }
 
     // Calculated properties
-    public bool IsExpired => DateTime.UtcNow > ExpiresAt;
-    public bool IsPending => Status == MatchAttemptStatus.Pending && !IsExpired;
+    public bool IsPending => Status == MatchAttemptStatus.Pending;
     public TimeSpan? ResponseTime => RespondedAt.HasValue ? RespondedAt.Value - CreatedAt : null;
 }

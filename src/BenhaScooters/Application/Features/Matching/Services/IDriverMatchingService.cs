@@ -22,7 +22,7 @@ namespace BenhaScooters.Application.Features.Matching.Services;
 public interface IDriverMatchingService
 {
     Task<ErrorOr<Success>> ProcessMatchingAsync(MatchingSessionId matchingSessionId, CancellationToken cancellationToken = default);
-    Task HandleMatchAttemptTimeoutAsync(MatchingSessionId matchingSessionId, UserId driverId, CancellationToken cancellationToken = default);
+    Task HandleRoundTimeoutAsync(MatchingSessionId matchingSessionId, CancellationToken cancellationToken = default);
 }
 
 public class DriverMatchingService : IDriverMatchingService
@@ -80,7 +80,7 @@ public class DriverMatchingService : IDriverMatchingService
                 tripRequest.PickupLocation,
                 matchingSession.OffersPerRound[matchingSession.CurrentRound - 1],
                 roundNumber: matchingSession.CurrentRound - 1,
-                excludedDrivers: matchingSession.GetRejectedOrExpiredDrivers(),
+                excludedDrivers: matchingSession.GetRejectedOrPendingDrivers(),
                 cancellationToken: cancellationToken);
 
             if (rankedDrivers.Count == 0) 
@@ -92,7 +92,7 @@ public class DriverMatchingService : IDriverMatchingService
                     orchestrator => orchestrator.HandlePostOutcomeAsync(
                         tripRequest.Id,
                         cancellationToken),
-                    _settings.TimeAfterEmptyRound); // delay then advance to next round or cancel 
+                    _settings.RoundTimeout); // delay then advance to next round or cancel 
 
                 return Result.Success;
             }
@@ -107,8 +107,7 @@ public class DriverMatchingService : IDriverMatchingService
                     driver.DriverId,
                     driver.DistanceToPickup.ToMeters(), // Convert Distance to double for backward compatibility
                     EstimateArrivalTime(driver.DistanceToPickup), // Convert Distance to double
-                    driver.Score,
-                    _settings.DriverResponseTimeout); // pass the configured expiration duration
+                    driver.Score);
 
                 if (attemptResult.IsError)
                 {
@@ -121,17 +120,17 @@ public class DriverMatchingService : IDriverMatchingService
 
                 _logger.LogInformation("Created match attempt for driver {DriverId} in session {MatchingSessionId}",
                     driver.DriverId, matchingSessionId);
-
-                BackgroundJob.Schedule<IDriverMatchingService>(
-                    service => service.HandleMatchAttemptTimeoutAsync(
-                        matchingSessionId,
-                        driver.DriverId,
-                        cancellationToken),
-                    _settings.DriverResponseTimeout); // delay then timeout
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
+
+            // Schedule round timeout to check if we need to advance to the next round
+            BackgroundJob.Schedule<IDriverMatchingService>(
+                service => service.HandleRoundTimeoutAsync(
+                    matchingSessionId,
+                    cancellationToken),
+                _settings.RoundTimeout);
 
             // Send notifications to drivers with full trip details
             await Task.WhenAll(matchAttempts.Select(async match =>
@@ -149,8 +148,7 @@ public class DriverMatchingService : IDriverMatchingService
                     tripRequest.FinalFare.Distance.ToKilometers(), // TODO: Future - Update notification DTO to use Distance value object
                     match.DistanceToPickup, // Already a double (meters) from DriverMatchAttempt
                     match.EstimatedArrivalTime,
-                    match.CreatedAt,
-                    match.ExpiresAt);
+                    match.CreatedAt); 
 
                 await _hub.Clients.Groups(match.DriverUserId.ToString())
                     .NotifyRideRequestOffer(match.DriverUserId.ToString(), notification);
@@ -166,7 +164,7 @@ public class DriverMatchingService : IDriverMatchingService
     }
 
 
-    public async Task HandleMatchAttemptTimeoutAsync(MatchingSessionId matchingSessionId, UserId driverId, CancellationToken cancellationToken = default)
+    public async Task HandleRoundTimeoutAsync(MatchingSessionId matchingSessionId, CancellationToken cancellationToken = default)
     {
         using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
@@ -178,39 +176,41 @@ public class DriverMatchingService : IDriverMatchingService
 
             if (matchingSession == null || !matchingSession.IsActive)
             {
+                _logger.LogInformation("Matching session {MatchingSessionId} is not active, skipping round timeout",
+                    matchingSessionId);
                 return;
             }
 
-            _logger.LogInformation("Handling match attempt timeout for driver {DriverId} in session {MatchingSessionId}",
-                driverId, matchingSessionId);
-            var result = matchingSession.ExpireMatch(driverId);
-            if (result.IsError)
+            _logger.LogInformation("Handling round timeout for session {MatchingSessionId} in round {CurrentRound}",
+                matchingSessionId, matchingSession.CurrentRound);
+
+            // Check if anyone has accepted
+            var hasAcceptedMatch = matchingSession.MatchAttempts.Any(ma => ma.Status == MatchAttemptStatus.Accepted);
+            if (hasAcceptedMatch)
             {
-                _logger.LogWarning("Failed to expire match attempt for driver {DriverId} in session {MatchingSessionId}: {Errors}",
-                    driverId, matchingSessionId, string.Join(", ", result.Errors.Select(e => e.Description)));
+                _logger.LogInformation("Match already accepted for session {MatchingSessionId}, no action needed",
+                    matchingSessionId);
                 return;
             }
 
-            var expiredMatch = matchingSession.MatchAttempts.First(m => m.DriverUserId == driverId);
-            
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            // Domain event will notify driver that their offer expired
+            // Let the orchestrator decide whether to advance to next round or cancel
+            var timeoutDelay = matchingSession.IsLastRound() 
+                ? _settings.FinalRoundWait 
+                : TimeSpan.Zero; // Immediately advance if not last round
 
-            // After the timeout and state change are persisted, let the orchestrator
-            // decide whether to advance the round, cancel, or do nothing.
-            BackgroundJob.Enqueue<IMatchingOrchestrator>(
+            BackgroundJob.Schedule<IMatchingOrchestrator>(
                 orchestrator => orchestrator.HandlePostOutcomeAsync(
                     matchingSession.TripRequestId,
-                    CancellationToken.None));
-
-            return;
+                    cancellationToken),
+                timeoutDelay);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling match attempt timeout for driver {DriverId} in session {MatchingSessionId}",
-                driverId, matchingSessionId);
+            _logger.LogError(ex, "Error handling round timeout for session {MatchingSessionId}",
+                matchingSessionId);
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }

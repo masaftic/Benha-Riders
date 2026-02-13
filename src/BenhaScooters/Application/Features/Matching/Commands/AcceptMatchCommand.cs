@@ -85,13 +85,6 @@ public class AcceptMatchCommandHandler(
             return MatchingErrors.MatchAttempt.NotFound;
         }
 
-        if (matchAttempt.ExpiresAt <= now)
-        {
-            logger.LogWarning("Match attempt {MatchAttemptId} for driver {DriverId} is expired",
-                request.DriverMatchAttemptId, request.DriverId);
-            return MatchingErrors.MatchAttempt.Expired;
-        }
-
         if (matchAttempt.Status != MatchAttemptStatus.Pending)
         {
             logger.LogWarning("Match attempt {MatchAttemptId} for driver {DriverId} is not pending (status: {Status})",

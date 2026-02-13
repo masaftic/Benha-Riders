@@ -22,8 +22,7 @@ public record RideRequestOfferNotification(
     double EstimatedDistance,
     double DistanceToPickup,
     double EstimatedArrivalTime,
-    DateTime OfferedAt,
-    DateTime ExpiresAt);
+    DateTime OfferedAt);
 
 public record RideOfferExpiredNotification(
     string DriverMatchAttemptId,

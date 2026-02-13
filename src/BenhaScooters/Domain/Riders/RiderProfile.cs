@@ -1,4 +1,5 @@
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Users;
 using Thinktecture;
 
@@ -34,6 +35,9 @@ public class RiderProfile
 
     // Navigation
     public User User { get; private set; } = null!;
+
+    public ICollection<TripRequest> TripRequests { get; set; } = [];
+
 
     private RiderProfile() { } // For EF Core
 
