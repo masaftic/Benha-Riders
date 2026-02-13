@@ -37,7 +37,7 @@ public class GetCurrentTripRequestQueryHandler : IRequestHandler<GetCurrentTripR
     public async Task<ErrorOr<GetCurrentTripRequestResult>> Handle(GetCurrentTripRequestQuery request, CancellationToken cancellationToken)
     {
         // Active trip request statuses: NotConfirmed, Pending
-        var activeStatuses = new[] { TripRequestStatus.NotConfirmed, TripRequestStatus.Pending };
+        var activeStatuses = new[] { TripRequestStatus.Pending };
 
         var tripRequestResult = await _db.TripRequests
             .AsNoTracking()

@@ -1,5 +1,6 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Users;
 using ErrorOr;
@@ -47,6 +48,9 @@ public class CancelTripCommandHandler : IRequestHandler<CancelTripCommand, Error
         {
             return cancelResult.Errors;
         }
+
+        var driverAvailability = await _db.DriverStatuses.FirstAsync(ds => ds.UserId == trip.DriverId, cancellationToken);
+        driverAvailability.UpdateStatus(DriverAvailabilityStatus.Online);
 
         await _db.SaveChangesAsync(cancellationToken);
 

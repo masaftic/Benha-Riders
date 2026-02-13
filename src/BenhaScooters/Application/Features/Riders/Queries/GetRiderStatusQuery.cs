@@ -143,7 +143,7 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
         }
 
         // Active trip request statuses: NotConfirmed, Pending
-        var activeRequestStatuses = new[] { TripRequestStatus.NotConfirmed, TripRequestStatus.Pending };
+        var activeRequestStatuses = new[] { TripRequestStatus.Pending };
 
         var tripRequestResult = await _db.TripRequests
             .AsNoTracking()
@@ -176,8 +176,8 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
                 tripRequestResult.PickupAddress ?? "Unknown pickup location",
                 tripRequestResult.DropoffAddress ?? "Unknown dropoff location",
                 tripRequestResult.FinalFare.Amount,
-                tripRequestResult.FinalFare.DistanceKm, // TODO: Future - Update DTO to use Distance value object
-                tripRequestResult.FinalFare.TimeMinutes, // TODO: Future - Update DTO to use Duration value object
+                tripRequestResult.FinalFare.Distance, // TODO: Future - Update DTO to use Distance value object
+                tripRequestResult.FinalFare.Time, // TODO: Future - Update DTO to use Duration value object
                 tripRequestResult.RequestedAt,
                 tripRequestResult.ExpiresAt,
                 tripRequestResult.ConfirmedAt,

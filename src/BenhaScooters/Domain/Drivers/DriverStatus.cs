@@ -84,4 +84,20 @@ public class DriverStatus
         LastStatusChange = DateTime.UtcNow;
         return Result.Success;
     }
+
+    public void UpdateStatus(DriverAvailabilityStatus newStatus, TripId? tripId = null)
+    {
+        Status = newStatus;
+        CurrentTripId = tripId;
+        LastStatusChange = DateTime.UtcNow;
+
+        if (newStatus == DriverAvailabilityStatus.Online && OnlineSessionStart == null)
+        {
+            OnlineSessionStart = DateTime.UtcNow;
+        }
+        else if (newStatus != DriverAvailabilityStatus.Online)
+        {
+            OnlineSessionStart = null;
+        }
+    }
 }

@@ -24,6 +24,8 @@ using BenhaScooters.Domain.Users;
 using Microsoft.AspNetCore.Authorization;
 using BenhaScooters.Presentation.Security;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Application.Abstractions;
+using BenhaScooters.Infrastructure.GoogleMaps;
 
 namespace BenhaScooters.Infrastructure;
 
@@ -76,6 +78,14 @@ public static class DependencyInjection
 
         // Register Google authentication service
         services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+
+        // Configure Google Maps options and register service
+        services.AddOptions<GoogleMapsOptions>()
+            .Bind(configuration.GetSection(GoogleMapsOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient<IGoogleMapsService, GoogleMapsService>();
 
         // Register matching services
         services.AddScoped<IDriverRankingService, DriverRankingService>();
