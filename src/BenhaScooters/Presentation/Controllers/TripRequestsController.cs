@@ -2,6 +2,7 @@ using BenhaScooters.Application.Features.TripRequests.Commands;
 using BenhaScooters.Application.Features.TripRequests.Queries;
 using BenhaScooters.Application.Features.Trips.Commands;
 using BenhaScooters.Contracts.TripRequests;
+using BenhaScooters.Domain.Common.Geo;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
@@ -35,12 +36,18 @@ public class TripRequestsController : BaseApiController
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RequestTrip([FromBody] RequestTripRequest request)
     {
+        var pickupCoordinate = Domain.Common.Geo.Coordinate.Create(
+            request.PickupLatitude,
+            request.PickupLongitude);
+        
+        var dropoffCoordinate = Domain.Common.Geo.Coordinate.Create(
+            request.DropoffLatitude,
+            request.DropoffLongitude);
+
         var command = new RequestTripCommand(
             HttpContext.GetCurrentUserId(),
-            request.PickupLatitude,
-            request.PickupLongitude,
-            request.DropoffLatitude,
-            request.DropoffLongitude,
+            pickupCoordinate,
+            dropoffCoordinate,
             request.PickupAddress,
             request.DropoffAddress);
 

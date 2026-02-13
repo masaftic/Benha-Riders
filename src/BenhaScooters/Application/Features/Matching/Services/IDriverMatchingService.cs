@@ -2,6 +2,7 @@ using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Application.Features.Matching.Settings;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Common.Geo;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
@@ -101,10 +102,11 @@ public class DriverMatchingService : IDriverMatchingService
             foreach (var driver in rankedDrivers)
             {
                 // Create match attempt for each driver
+                // TODO: Future - Update CreateDriverMatchAttempt to accept Distance value objects
                 var attemptResult = matchingSession.CreateDriverMatchAttempt(
                     driver.DriverId,
-                    driver.DistanceToPickup,
-                    EstimateArrivalTime(driver.DistanceToPickup),
+                    driver.DistanceToPickup.ToMeters(), // Convert Distance to double for backward compatibility
+                    EstimateArrivalTime(driver.DistanceToPickup), // Convert Distance to double
                     driver.Score,
                     _settings.DriverResponseTimeout); // pass the configured expiration duration
 
@@ -144,8 +146,8 @@ public class DriverMatchingService : IDriverMatchingService
                     tripRequest.PickupAddress,
                     tripRequest.DropoffAddress,
                     tripRequest.FinalFare.Amount,
-                    tripRequest.FinalFare.Distance,
-                    match.DistanceToPickup,
+                    tripRequest.FinalFare.Distance.ToKilometers(), // TODO: Future - Update notification DTO to use Distance value object
+                    match.DistanceToPickup, // Already a double (meters) from DriverMatchAttempt
                     match.EstimatedArrivalTime,
                     match.CreatedAt,
                     match.ExpiresAt);
@@ -216,12 +218,12 @@ public class DriverMatchingService : IDriverMatchingService
 
 
 
-    private static double EstimateArrivalTime(double distanceMeters)
+    private static double EstimateArrivalTime(Distance distance)
     {
         // Simple estimation: assume 30 km/h average speed in city
         const double averageSpeedKmh = 30.0;
         const double averageSpeedMs = averageSpeedKmh * 1000.0 / 3600.0; // m/s
 
-        return distanceMeters / averageSpeedMs; // seconds
+        return distance.ToMeters() / averageSpeedMs; // seconds
     }
 }

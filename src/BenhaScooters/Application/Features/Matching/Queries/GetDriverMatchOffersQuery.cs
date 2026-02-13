@@ -82,8 +82,8 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
                 ma.MatchingSession.TripRequest.PickupAddress,
                 ma.MatchingSession.TripRequest.DropoffAddress,
                 ma.MatchingSession.TripRequest.FinalFare.Amount,
-                ma.MatchingSession.TripRequest.FinalFare.Distance,
-                ma.MatchingSession.TripRequest.FinalFare.Time,
+                Distance = ma.MatchingSession.TripRequest.FinalFare.Distance, // TODO: Future - Update DTO to use Distance value object
+                Duration = ma.MatchingSession.TripRequest.FinalFare.Time.ToMinutes(), // TODO: Future - Update DTO to use Duration value object
                 ma.DistanceToPickup,
                 ma.EstimatedArrivalTime,
                 ma.CreatedAt,
@@ -103,7 +103,7 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
             x.DropoffAddress,
             x.Amount,
             x.Distance,
-            x.Time,
+            x.Duration,
             x.DistanceToPickup,
             x.EstimatedArrivalTime,
             x.CreatedAt,

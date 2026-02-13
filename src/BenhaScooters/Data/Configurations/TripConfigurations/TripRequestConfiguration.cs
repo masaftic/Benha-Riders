@@ -2,6 +2,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.TripRequests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Thinktecture;
 
 namespace BenhaScooters.Data.Configurations.TripConfigurations;
 
@@ -40,6 +41,8 @@ public class TripRequestConfiguration : IEntityTypeConfiguration<TripRequest>
                 .HasColumnName("FinalFare_Distance");
             ef.Property(e => e.Time)
                 .HasColumnName("FinalFare_Time");
+            
+            ef.AddThinktectureValueConverters();
         });
 
         // RiderId/DriverId are semantic wrappers around UserId

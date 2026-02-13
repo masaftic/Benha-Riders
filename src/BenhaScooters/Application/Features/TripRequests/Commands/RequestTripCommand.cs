@@ -1,6 +1,7 @@
 using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Common.Geo;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.TripRequests.Enums;
@@ -16,10 +17,8 @@ namespace BenhaScooters.Application.Features.TripRequests.Commands;
 
 public record RequestTripCommand(
     UserId RiderId,
-    double PickupLatitude,
-    double PickupLongitude,
-    double DropoffLatitude,
-    double DropoffLongitude,
+    Domain.Common.Geo.Coordinate PickupCoordinate,
+    Domain.Common.Geo.Coordinate DropoffCoordinate,
     string? PickupAddress = null,
     string? DropoffAddress = null) : IRequest<ErrorOr<RequestTripResult>>;
 
@@ -37,22 +36,6 @@ public class RequestTripCommandValidator : AbstractValidator<RequestTripCommand>
         RuleFor(x => x.RiderId)
             .NotEmpty()
             .WithMessage("Rider ID is required");
-
-        RuleFor(x => x.PickupLatitude)
-            .InclusiveBetween(-90, 90)
-            .WithMessage("Pickup latitude must be between -90 and 90");
-
-        RuleFor(x => x.PickupLongitude)
-            .InclusiveBetween(-180, 180)
-            .WithMessage("Pickup longitude must be between -180 and 180");
-
-        RuleFor(x => x.DropoffLatitude)
-            .InclusiveBetween(-90, 90)
-            .WithMessage("Dropoff latitude must be between -90 and 90");
-
-        RuleFor(x => x.DropoffLongitude)
-            .InclusiveBetween(-180, 180)
-            .WithMessage("Dropoff longitude must be between -180 and 180");
 
         RuleFor(x => x.PickupAddress)
             .MaximumLength(500)
@@ -94,18 +77,20 @@ public class RequestTripCommandHandler(
         }
 
 
+        var geometryFactory = NetTopologySuite.NtsGeometryServices.Instance.CreateGeometryFactory(GeoConstants.SRID_WGS84);
+
         // Create location points
-        var pickupLocation = new Point(request.PickupLongitude, request.PickupLatitude) { SRID = 4326 };
-        var dropoffLocation = new Point(request.DropoffLongitude, request.DropoffLatitude) { SRID = 4326 };
+        var pickupCoordinate = request.PickupCoordinate;
+        var dropoffCoordinate = request.DropoffCoordinate;
 
         // Estimate fare
-        var fareEstimate = await fareEstimator.EstimateFareAsync(pickupLocation, dropoffLocation, cancellationToken);
+        var fareEstimate = await fareEstimator.EstimateFareAsync(pickupCoordinate.ToPoint(geometryFactory), dropoffCoordinate.ToPoint(geometryFactory), cancellationToken);
 
         // Create trip request
         var tripRequest = new TripRequest(
             request.RiderId,
-            pickupLocation,
-            dropoffLocation,
+            pickupCoordinate.ToPoint(geometryFactory),
+            dropoffCoordinate.ToPoint(geometryFactory),
             request.PickupAddress,
             request.DropoffAddress,
             fareEstimate);

@@ -55,8 +55,8 @@ public class GetTripRequestByIdQueryHandler(AppDbContext db) : IRequestHandler<G
             tripRequest.PickupAddress,
             tripRequest.DropoffAddress,
             tripRequest.FinalFare.Amount,
-            tripRequest.FinalFare.Distance,
-            tripRequest.FinalFare.Time,
+            tripRequest.FinalFare.Distance.ToKilometers(),
+            tripRequest.FinalFare.Time.ToMinutes(), 
             tripRequest.RequestedAt,
             tripRequest.ExpiresAt,
             tripRequest.Status);

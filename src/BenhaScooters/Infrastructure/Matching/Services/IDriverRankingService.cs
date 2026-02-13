@@ -1,4 +1,5 @@
 using BenhaScooters.Data;
+using BenhaScooters.Domain.Common.Geo;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.Matching.Settings;
@@ -11,7 +12,7 @@ namespace BenhaScooters.Infrastructure.Matching.Services;
 public record DriverCandidate(
     UserId DriverId,
     Point CurrentLocation,
-    double DistanceToPickup,
+    Distance DistanceToPickup,
     decimal Rating,
     decimal Score);
 
@@ -39,7 +40,7 @@ public class DriverRankingService : IDriverRankingService
         _options = options.Value;
     }
 
-    private static decimal CalculateDriverScore(double distanceMeters, decimal rating)
+    private static decimal CalculateDriverScore(Distance distanceMeters, decimal rating)
     {
         // Normalize distance score (closer = higher score)
         // Use exponential decay for distance penalty
@@ -88,9 +89,9 @@ public class DriverRankingService : IDriverRankingService
             .Select(driver => new DriverCandidate(
                 driver.UserId, 
                 driver.CurrentLocation,
-                driver.DistanceToPickup,
+                Distance.FromKilometers(driver.DistanceToPickup),
                 driver.AverageRating,
-                CalculateDriverScore(driver.DistanceToPickup, driver.AverageRating)
+                CalculateDriverScore(Distance.FromKilometers(driver.DistanceToPickup), driver.AverageRating)
             ))
             .OrderByDescending(c => c.Score) // Higher score is better
             .Take(count)

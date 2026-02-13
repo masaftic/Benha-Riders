@@ -40,6 +40,13 @@ public class TripRequest : AggregateRoot
     public RiderProfile RiderProfile { get; private set; } = null!;
     public DriverProfile? MatchedDriverProfile { get; private set; }
 
+
+
+    public Domain.Common.Geo.Coordinate PickupCoordinate => Domain.Common.Geo.Coordinate.FromPoint(PickupLocation);
+    public Domain.Common.Geo.Coordinate DropoffCoordinate => Domain.Common.Geo.Coordinate.FromPoint(DropoffLocation);
+
+
+
     private TripRequest() { } // For EF Core
 
     public TripRequest(UserId riderId, Point pickupLocation, Point dropoffLocation,

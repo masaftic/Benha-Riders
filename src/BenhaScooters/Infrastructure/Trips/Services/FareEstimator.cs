@@ -1,4 +1,5 @@
 using BenhaScooters.Application.Services;
+using BenhaScooters.Domain.Common.Geo;
 using BenhaScooters.Domain.Trips.ValueObjects;
 using Microsoft.Extensions.Options;
 using NetTopologySuite.Geometries;
@@ -27,7 +28,7 @@ public class FareEstimator : IFareEstimator
             + ((decimal)distanceKm * _options.PerKmRate) 
             + ((decimal)estimatedTimeMinutes * _options.PerMinuteRate);
 
-        var fareEstimate = new FareEstimate(amount, distanceKm, estimatedTimeMinutes);
+        var fareEstimate = FareEstimate.Create(amount, Distance.FromKilometers(distanceKm), Duration.FromMinutes(estimatedTimeMinutes));
 
         return Task.FromResult(fareEstimate);
     }

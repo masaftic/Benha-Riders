@@ -72,8 +72,8 @@ public class GetAvailableTripsQueryHandler(AppDbContext db) : IRequestHandler<Ge
                 at.PickupAddress,
                 at.DropoffAddress,
                 at.FinalFare.Amount,
-                at.FinalFare.Distance,
-                at.FinalFare.Time,
+                at.FinalFare.Distance.ToKilometers(), // TODO: Future - Update DTO to use Distance value object
+                at.FinalFare.Time.ToMinutes(), // TODO: Future - Update DTO to use Duration value object
                 at.RequestedAt,
                 at.ExpiresAt)).ToList();
 
