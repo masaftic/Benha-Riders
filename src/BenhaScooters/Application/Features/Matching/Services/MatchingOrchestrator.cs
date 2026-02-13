@@ -83,8 +83,6 @@ public class MatchingOrchestrator(
                 break;
 
             case MatchingCanceled:
-                matchingSession.Cancel("No drivers accepted the match after all rounds");
-                await dbContext.SaveChangesAsync(cancellationToken);
                 logger.LogInformation(
                     "Matching session {MatchingSessionId} cancelled after all rounds completed with no match",
                     matchingSession.Id);

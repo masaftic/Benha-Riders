@@ -128,11 +128,6 @@ public class TripRequest : AggregateRoot
 
     public ErrorOr<Success> Cancel(string reason)
     {
-        if (Status == TripRequestStatus.Cancelled)
-        {
-            return TripErrors.TripRequest.AlreadyCancelled;
-        }
-
         if (Status == TripRequestStatus.Matched)
         {
             return TripErrors.TripRequest.AlreadyMatched;

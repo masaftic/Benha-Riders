@@ -6,3 +6,4 @@ obj
 *.csv
 node_modules
 publish-output
+*.log

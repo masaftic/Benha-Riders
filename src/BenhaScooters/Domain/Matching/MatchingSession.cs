@@ -214,7 +214,7 @@ public class MatchingSession : AggregateRoot
 
         if (isLastRound)
         {
-            Cancel("No drivers accepted the match after all rounds completed");
+            Cancel("لا يوجد سائقون متاحون في الوقت الحالي، يرجى المحاولة لاحقًا");
             return new MatchingCanceled();
         }
 

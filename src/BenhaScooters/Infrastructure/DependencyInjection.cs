@@ -48,6 +48,9 @@ public static class DependencyInjection
         services.AddScoped<IFareEstimator, FareEstimator>();
         services.AddScoped<ITripFareService, TripFareService>();
 
+
+        services.AddMemoryCache();
+
         services.AddOptions<TripFareConfiguration>()
             .Bind(configuration.GetSection(TripFareConfiguration.SectionName))
             .ValidateDataAnnotations()

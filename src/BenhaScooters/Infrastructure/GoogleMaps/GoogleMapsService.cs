@@ -3,6 +3,7 @@ using System.Text.Json;
 using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Contracts.GoogleMaps;
 using ErrorOr;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -13,16 +14,19 @@ public class GoogleMapsService : IGoogleMapsService
     private readonly HttpClient _httpClient;
     private readonly GoogleMapsOptions _options;
     private readonly ILogger<GoogleMapsService> _logger;
+    private readonly IMemoryCache _cache;
     private readonly JsonSerializerOptions _jsonOptions;
 
     public GoogleMapsService(
         HttpClient httpClient,
         IOptions<GoogleMapsOptions> options,
-        ILogger<GoogleMapsService> logger)
+        ILogger<GoogleMapsService> logger,
+        IMemoryCache cache)
     {
         _httpClient = httpClient;
         _options = options.Value;
         _logger = logger;
+        _cache = cache;
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -209,6 +213,18 @@ public class GoogleMapsService : IGoogleMapsService
         bool alternatives = false,
         CancellationToken cancellationToken = default)
     {
+        // Create cache key based on coordinates (rounded to 5 decimal places for ~1m precision)
+        var cacheKey = $"directions:{Math.Round(originLatitude, 5)}:{Math.Round(originLongitude, 5)}:" +
+                      $"{Math.Round(destinationLatitude, 5)}:{Math.Round(destinationLongitude, 5)}:{language}:{mode}:{alternatives}";
+
+        // Try to get from cache first
+        if (_cache.TryGetValue(cacheKey, out DirectionsResponse cachedResult))
+        {
+            _logger.LogDebug("Returning cached directions result for cache key: {CacheKey}", cacheKey);
+            if (cachedResult is not null)
+                return cachedResult;
+        }
+
         try
         {
             var origin = $"{originLatitude},{originLongitude}";
@@ -236,11 +252,21 @@ public class GoogleMapsService : IGoogleMapsService
 
             var routes = apiResponse.Routes?.Select(MapRoute).ToList() ?? new List<DirectionRoute>();
 
-            return new DirectionsResponse(
+            var result = new DirectionsResponse(
                 routes,
                 apiResponse.Status,
                 apiResponse.ErrorMessage
             );
+
+            // Cache the result for 15 minutes (directions don't change that frequently)
+            var cacheOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(15))
+                .SetSize(1); // Each entry counts as size 1
+
+            _cache.Set(cacheKey, result, cacheOptions);
+            _logger.LogDebug("Cached directions result for cache key: {CacheKey}", cacheKey);
+
+            return result;
         }
         catch (HttpRequestException ex)
         {

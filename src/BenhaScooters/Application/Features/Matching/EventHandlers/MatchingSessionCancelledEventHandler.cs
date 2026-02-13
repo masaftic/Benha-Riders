@@ -1,6 +1,9 @@
+using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Matching.Events;
+using BenhaScooters.Infrastructure.Notifications;
 using MediatR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Matching.EventHandlers;
@@ -8,13 +11,15 @@ namespace BenhaScooters.Application.Features.Matching.EventHandlers;
 public class MatchingSessionCancelledEventHandler : INotificationHandler<MatchingSessionCancelledEvent>
 {
     private readonly ILogger<MatchingSessionCancelledEventHandler> _logger;
+    private readonly IHubContext<RiderHub, IRiderNotifications> _hub;
     private readonly AppDbContext _db;
 
     public MatchingSessionCancelledEventHandler(
-        ILogger<MatchingSessionCancelledEventHandler> logger, AppDbContext db)
+        ILogger<MatchingSessionCancelledEventHandler> logger, AppDbContext db, IHubContext<RiderHub, IRiderNotifications> hub)
     {
         _logger = logger;
         _db = db;
+        _hub = hub;
     }
 
     public async Task Handle(MatchingSessionCancelledEvent notification, CancellationToken cancellationToken)
@@ -38,6 +43,15 @@ public class MatchingSessionCancelledEventHandler : INotificationHandler<Matchin
                 notification.TripRequestId, string.Join(", ", result.Errors.Select(e => e.Description)));
             return;
         }
+
+        await _hub.Clients.Group(tripRequest.RiderId.ToString())
+            .NotifyTripRequestCanceled(new TripRequestCanceledNotification(
+                tripRequest.Id,
+                notification.Reason,
+                DateTime.UtcNow));
+        
+        _logger.LogInformation("Notified rider {RiderId} about cancellation of trip request {TripRequestId}",
+            tripRequest.RiderId, tripRequest.Id);
 
         await _db.SaveChangesAsync(cancellationToken);
     }
