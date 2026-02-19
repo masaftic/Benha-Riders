@@ -8,7 +8,6 @@ public record RequestTripRequest(
     Longitude PickupLongitude,
     Latitude DropoffLatitude,
     Longitude DropoffLongitude,
-    string? PickupAddress = null,
     string? DropoffAddress = null);
 
 public record CancelTripRequestRequest(

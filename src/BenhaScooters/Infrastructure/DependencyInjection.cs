@@ -101,6 +101,7 @@ public static class DependencyInjection
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<ISmsService, DevSmsService>();
         services.AddScoped<IFareEstimator, FareEstimator>();
+        services.AddScoped<IGeoService, GeoService>();
 
         // Add the token cleanup background service
         services.AddHostedService<TokenCleanupService>();

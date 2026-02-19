@@ -18,7 +18,7 @@ public record GetRiderStatusResult(
     string Status, // "idle" | "in_trip" | "requesting"
     int? TripId,
     int? TripRequestId,
-    object Details);
+    object? Details);
 
 // Details objects for each status
 public record IdleDetails(
@@ -191,13 +191,11 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
                 details);
         }
 
-        // No active trip or trip request - rider is idle
-        var idleDetails = new IdleDetails("لا توجد رحلة نشطة أو طلب رحلة");
 
         return new GetRiderStatusResult(
             "idle",
             null,
             null,
-            idleDetails);
+            null);
     }
 }

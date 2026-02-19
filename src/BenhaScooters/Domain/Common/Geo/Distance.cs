@@ -4,11 +4,11 @@ namespace BenhaScooters.Domain.Common.Geo;
 
 
 [ValueObject<double>(
-    CreateFactoryMethodName = "FromMeters",
-    TryCreateFactoryMethodName = "TryFromMeters")]
+    CreateFactoryMethodName = "FromKilometers",
+    TryCreateFactoryMethodName = "TryFromKilometers")]
 public partial struct Distance
 {
-    // inner value is in meters
+    // inner value is in kilometers
     static partial void ValidateFactoryArguments(ref ValidationError? validationError, ref double value)
     {
         if (value < 0)
@@ -17,8 +17,8 @@ public partial struct Distance
         }
     }
 
-    public static Distance FromKilometers(double kilometers) => new Distance(kilometers * 1000);
+    public static Distance FromMeters(double meters) => new Distance(meters / 1000);
 
-    public double ToMeters() => _value;
-    public double ToKilometers() => _value / 1000;
+    public double ToKilometers() => _value;
+    public double ToMeters() => _value * 1000;
 }

@@ -48,7 +48,6 @@ public class TripRequestsController : BaseApiController
             HttpContext.GetCurrentUserId(),
             pickupCoordinate,
             dropoffCoordinate,
-            request.PickupAddress,
             request.DropoffAddress);
 
         var result = await _sender.Send(command);

@@ -3,11 +3,11 @@ using Thinktecture;
 namespace BenhaScooters.Domain.Common.Geo;
 
 [ValueObject<double>(
-    CreateFactoryMethodName = "FromSeconds",
-    TryCreateFactoryMethodName = "TryFromSeconds")]
+    CreateFactoryMethodName = "FromMinutes",
+    TryCreateFactoryMethodName = "TryFromMinutes")]
 public partial struct Duration
 {
-    // inner value is in seconds
+    // inner value is in minutes
     static partial void ValidateFactoryArguments(ref ValidationError? validationError, ref double value)
     {
         if (value < 0)
@@ -16,8 +16,8 @@ public partial struct Duration
         }
     }
 
-    public static Duration FromMinutes(double minutes) => new Duration(minutes * 60);
+    public static Duration FromSeconds(double seconds) => new Duration(seconds / 60);
 
-    public double ToSeconds() => _value;
-    public double ToMinutes() => _value / 60;
+    public double ToMinutes() => _value;
+    public double ToSeconds() => _value * 60;
 }

@@ -24,7 +24,7 @@ public class GeoService : IGeoService
     public Distance CalculateRouteDistance(LineString route)
     {
         if (route.Coordinates.Length < 2)
-            return Distance.FromMeters(0);
+            return Distance.FromKilometers(0);
 
         double totalDistanceKm = 0;
         for (int i = 0; i < route.Coordinates.Length - 1; i++)

@@ -35,18 +35,7 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
         {
             return TripErrors.Trip.NotFound;
         }
-
-        var tripRoute = await db.TripRoutes
-            .Include(tr => tr.TripGpsPoints)
-            .FirstOrDefaultAsync(tr => tr.TripId == request.TripId, cancellationToken);
-
-        if (tripRoute is null)
-        {
-            return TripErrors.Trip.NotFound;
-        }
-
-        tripRoute.ConstructPath();
-
+        
         // Complete the trip
         var completeTripResult = trip.CompleteTrip();
         if (completeTripResult.IsError)
@@ -65,15 +54,7 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
             return completeTripAvailabilityResult.Errors;
         }
 
-        // Calculate actual trip fare using the service
-        var tripFare = await tripFareService.CalculateActualFareAsync(trip, tripRoute, cancellationToken);
-        var setFareResult = trip.SetTripFare(tripFare);
-        if (setFareResult.IsError)
-        {
-            return setFareResult.Errors;
-        }
-
-        var payment = TripPayment.Cash(tripFare.TotalFare);
+        var payment = TripPayment.Cash(trip.FinalFare.Amount);
         var setPaymentResult = trip.SetTripPayment(payment);
         if (setPaymentResult.IsError)
         {
@@ -87,6 +68,6 @@ public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFa
             "Trip completed successfully",
             trip.CompletedAt!.Value,
             trip.TotalDuration,
-            trip.TripFare?.TotalFare ?? trip.FinalFare.Amount);
+            trip.FinalFare.Amount);
     }
 }

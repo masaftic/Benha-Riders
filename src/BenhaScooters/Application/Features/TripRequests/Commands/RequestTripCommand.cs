@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
@@ -19,7 +20,6 @@ public record RequestTripCommand(
     UserId RiderId,
     Domain.Common.Geo.Coordinate PickupCoordinate,
     Domain.Common.Geo.Coordinate DropoffCoordinate,
-    string? PickupAddress = null,
     string? DropoffAddress = null) : IRequest<ErrorOr<RequestTripResult>>;
 
 public record RequestTripResult(
@@ -37,11 +37,6 @@ public class RequestTripCommandValidator : AbstractValidator<RequestTripCommand>
             .NotEmpty()
             .WithMessage("Rider ID is required");
 
-        RuleFor(x => x.PickupAddress)
-            .MaximumLength(500)
-            .When(x => !string.IsNullOrEmpty(x.PickupAddress))
-            .WithMessage("Pickup address must not exceed 500 characters");
-
         RuleFor(x => x.DropoffAddress)
             .MaximumLength(500)
             .When(x => !string.IsNullOrEmpty(x.DropoffAddress))
@@ -51,7 +46,8 @@ public class RequestTripCommandValidator : AbstractValidator<RequestTripCommand>
 
 public class RequestTripCommandHandler(
     AppDbContext db,
-    IFareEstimator fareEstimator) : IRequestHandler<RequestTripCommand, ErrorOr<RequestTripResult>>
+    IFareEstimator fareEstimator,
+    IGoogleMapsService googleMapsService) : IRequestHandler<RequestTripCommand, ErrorOr<RequestTripResult>>
 {
     public async Task<ErrorOr<RequestTripResult>> Handle(RequestTripCommand request, CancellationToken cancellationToken)
     {
@@ -83,6 +79,18 @@ public class RequestTripCommandHandler(
         var pickupCoordinate = request.PickupCoordinate;
         var dropoffCoordinate = request.DropoffCoordinate;
 
+        // Reverse geocode pickup address
+        var pickupGeocodeResult = await googleMapsService.ReverseGeocodeAsync(
+            pickupCoordinate.Latitude,
+            pickupCoordinate.Longitude,
+            cancellationToken: cancellationToken);
+
+        string? pickupAddress = null;
+        if (!pickupGeocodeResult.IsError)
+        {
+            pickupAddress = pickupGeocodeResult.Value.FormattedAddress;
+        }
+
         // Estimate fare
         var fareEstimate = await fareEstimator.EstimateFareAsync(pickupCoordinate.ToPoint(geometryFactory), dropoffCoordinate.ToPoint(geometryFactory), cancellationToken);
 
@@ -91,7 +99,7 @@ public class RequestTripCommandHandler(
             request.RiderId,
             pickupCoordinate.ToPoint(geometryFactory),
             dropoffCoordinate.ToPoint(geometryFactory),
-            request.PickupAddress,
+            pickupAddress,
             request.DropoffAddress,
             fareEstimate);
 
