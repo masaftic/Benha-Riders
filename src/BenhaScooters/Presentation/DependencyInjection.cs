@@ -56,8 +56,6 @@ public static class DependencyInjection
         });
 
 
-        services.AddEndpoints();
-
         services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new() { Title = "BenhaScooters API", Version = "v1" });

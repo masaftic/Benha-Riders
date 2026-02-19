@@ -1,3 +1,4 @@
+using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
 
 namespace BenhaScooters.Contracts.DriverOnboarding;
@@ -25,4 +26,4 @@ public record UploadDocumentRequest(
 
 public record BanDriverRequest(string Reason);
 
-public record QueryDriversParams(string? OnboardingStatus, int Page = 1, int PageCount = 10);
+public record QueryDriversParams(DriverOnboardingStatus? OnboardingStatus, int Page = 1, int PageCount = 10);

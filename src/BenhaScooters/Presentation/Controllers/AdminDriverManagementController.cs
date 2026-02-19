@@ -33,12 +33,8 @@ public class AdminDriverManagementController : BaseApiController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetFilteredDrivers([FromQuery] QueryDriversParams queryParams)
     {
-        DriverOnboardingStatus? onboardingStatus = string.IsNullOrEmpty(queryParams.OnboardingStatus)
-            ? null
-            : Enum.Parse<DriverOnboardingStatus>(queryParams.OnboardingStatus);
-
         var query = new ListDriversWithFilters(
-            onboardingStatus,
+            queryParams.OnboardingStatus,
             queryParams.Page,
             queryParams.PageCount);
 
@@ -59,24 +55,6 @@ public class AdminDriverManagementController : BaseApiController
     public async Task<IActionResult> GetDriverDetails([FromRoute] int driverId)
     {
         var query = new GetOnboardingDetailsQuery(UserId.Create(driverId));
-        var result = await _sender.Send(query);
-
-        return result.Match(Ok, HandleErrors);
-    }
-
-    /// <summary>
-    /// Get driver documents
-    /// </summary>
-    /// <remarks>
-    /// Retrieves the documents submitted by a specific driver for administrative review.
-    /// </remarks>
-    [HttpGet("{driverId}/documents")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetDriverDocuments([FromRoute] int driverId)
-    {
-        var query = new ListDriverDocuments(UserId.Create(driverId));
         var result = await _sender.Send(query);
 
         return result.Match(Ok, HandleErrors);

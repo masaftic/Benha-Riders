@@ -59,24 +59,6 @@ public class DriverOnboardingController : BaseApiController
     }
 
     /// <summary>
-    /// Get driver's documents
-    /// </summary>
-    /// <remarks>
-    /// Retrieves the driver's required and submitted documents, including pre-signed URLs for document access.
-    /// </remarks>
-    [HttpGet("documents")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetMyDocuments()
-    {
-        var query = new ListDriverDocuments(HttpContext.GetDriverId());
-        var result = await _sender.Send(query);
-
-        return result.Match(Ok, HandleErrors);
-    }
-
-    /// <summary>
     /// Update driver personal information
     /// </summary>
     /// <remarks>

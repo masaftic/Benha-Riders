@@ -51,12 +51,17 @@ if (!Directory.Exists(uploadsPath))
     Directory.CreateDirectory(uploadsPath);
 }
 
-// Serve uploaded files from the local uploads folder at the '/files' path
+// Serve uploaded files (driver photos/documents) from the uploads folder at '/files' path
+// This must come BEFORE the React app's UseStaticFiles to avoid conflicts
 app.UseStaticFiles(new Microsoft.AspNetCore.Builder.StaticFileOptions
 {
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
     RequestPath = "/files"
 });
+
+// Serve static files from wwwroot (React build output)
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -83,7 +88,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapEndpoints();
 
 app.MapOpenApi();
 app.UseSwagger();
@@ -92,6 +96,8 @@ app.UseSwaggerUI();
 app.MapHub<DriverHub>("/hubs/driver");
 app.MapHub<RiderHub>("/hubs/rider");
 
+// SPA fallback - serve index.html for client-side routing
+app.MapFallbackToFile("index.html");
 
 app.Run();
 

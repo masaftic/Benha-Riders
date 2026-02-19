@@ -126,11 +126,6 @@ public class QueryDriversParamsValidator : AbstractValidator<QueryDriversParams>
 {
     public QueryDriversParamsValidator()
     {
-        RuleFor(x => x.OnboardingStatus)
-            .IsEnumName(typeof(OnboardingStatus), caseSensitive: false)
-            .When(x => !string.IsNullOrEmpty(x.OnboardingStatus))
-            .WithMessage("Invalid onboarding status provided.");
-
         RuleFor(x => x.Page)
             .GreaterThan(0).WithMessage("Page must be greater than 0.");
 

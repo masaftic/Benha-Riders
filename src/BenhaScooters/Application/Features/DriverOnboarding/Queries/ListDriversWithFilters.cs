@@ -42,7 +42,13 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
                 Brand = d.Vehicle == null ? null : (string?)d.Vehicle.Brand,
                 Year = d.Vehicle == null ? null : (int?)d.Vehicle.Year,
                 Status = d.OnboardingStatus,
-                CreatedAt = d.CreatedAt
+                CreatedAt = d.CreatedAt,
+
+                // For progress calculation, we need to know which steps are completed. Instead of loading the entire profile, we can determine this based on the presence of related data.
+                HasPersonalInfo = d.PersonalInfo != null,
+                HasVehicleInfo = d.Vehicle != null,
+                DocumentsCount = d.Documents.Count,
+                IsApproved = d.OnboardingStatus == DriverOnboardingStatus.Approved
             })
             .ToListAsync(cancellationToken);
 
@@ -54,10 +60,24 @@ public class ListDriversWithFiltersHandler(AppDbContext db) : IRequestHandler<Li
             d.Brand,
             d.Year,
             d.Status,
-            (int)d.Status * 20, // Now this calculation happens in C#, not SQL
+            CalculateProgress(d.HasPersonalInfo, d.HasVehicleInfo, d.DocumentsCount, d.IsApproved),
             d.CreatedAt))
             .ToList();
 
         return new PaginatedList<DriverSummaryDto>(driverDtos, count, request.Page, request.PageSize);
+    }
+
+    private static int CalculateProgress(
+        bool hasPersonalInfo,
+        bool hasVehicleInfo,
+        int documentsCount,
+        bool isApproved)
+    {
+        int steps = 0;
+        if (hasPersonalInfo) steps++;
+        if (hasVehicleInfo) steps++;
+        if (documentsCount >= 3) steps++;
+        if (isApproved) steps++;
+        return steps * 25; // 25% per step
     }
 }

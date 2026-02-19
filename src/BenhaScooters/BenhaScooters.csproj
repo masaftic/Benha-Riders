@@ -47,4 +47,31 @@
     <Folder Include="Application\Features\Authentication\Queries\" />
   </ItemGroup>
 
+  <!-- React Client App Build Configuration -->
+  <PropertyGroup>
+    <SpaRoot>ClientApp\</SpaRoot>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Exclude ClientApp from being published with the project -->
+    <Content Remove="$(SpaRoot)**" />
+    <None Remove="$(SpaRoot)**" />
+    <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+  </ItemGroup>
+
+  <!-- Build React app during .NET build -->
+  <Target Name="BuildClientApp" BeforeTargets="Build" Condition="!Exists('wwwroot\index.html')">
+    <Message Importance="high" Text="Building React client app..." />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
+  </Target>
+
+  <!-- Ensure React app is built before publish -->
+  <Target Name="PublishClientApp" BeforeTargets="BeforePublish">
+    <Message Importance="high" Text="Building React client app for publish..." />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
+  </Target>
+
 </Project>
