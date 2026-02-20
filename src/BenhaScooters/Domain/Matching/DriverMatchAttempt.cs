@@ -1,4 +1,5 @@
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Common.Geo;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching.Events;
 using BenhaScooters.Domain.Users;
@@ -15,7 +16,7 @@ public enum MatchAttemptStatus
     Pending = 1,
     Accepted = 2,
     Rejected = 3,
-    Cancelled = 5
+    Cancelled = 4
 }
 
 public class DriverMatchAttempt : AggregateRoot
@@ -34,8 +35,8 @@ public class DriverMatchAttempt : AggregateRoot
     public string? RejectionReason { get; private set; }
     
     // Matching metrics
-    public double DistanceToPickup { get; private set; } // meters
-    public double EstimatedArrivalTime { get; private set; } // minutes
+    public Distance DistanceToPickup { get; private set; }
+    public Duration EstimatedArrivalTime { get; private set; }
     public decimal DriverScore { get; private set; } // Matching algorithm score
 
     // Navigation Properties
@@ -46,7 +47,7 @@ public class DriverMatchAttempt : AggregateRoot
     private DriverMatchAttempt() { } // For EF Core
 
     public DriverMatchAttempt(UserId driverId, MatchingSessionId matchingSessionId,
-        double distanceToPickup, double estimatedArrivalTime, decimal driverScore, int matchingRound)
+        Distance distanceToPickup, Duration estimatedArrivalTime, decimal driverScore, int matchingRound)
     {
         DriverUserId = driverId;
         MatchingSessionId = matchingSessionId;

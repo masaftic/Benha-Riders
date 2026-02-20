@@ -105,6 +105,9 @@ public static class DependencyInjection
 
         // Add the token cleanup background service
         services.AddHostedService<TokenCleanupService>();
+        
+        // Add the matching cleanup background service
+        services.AddHostedService<MatchingCleanupService>();
 
         services.AddScoped<PublishDomainEventsInterceptor>();
 

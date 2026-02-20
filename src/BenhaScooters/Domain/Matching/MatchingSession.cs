@@ -1,4 +1,5 @@
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Common.Geo;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching.Events;
 using BenhaScooters.Domain.TripRequests;
@@ -162,8 +163,8 @@ public class MatchingSession : AggregateRoot
 
     public ErrorOr<DriverMatchAttempt> CreateDriverMatchAttempt(
         UserId driverId,
-        double distanceToPickup,
-        double estimatedArrivalTime,
+        Distance distanceToPickup,
+        Duration estimatedArrivalTime,
         decimal driverScore)
     {
         if (Status != MatchingSessionStatus.Active)

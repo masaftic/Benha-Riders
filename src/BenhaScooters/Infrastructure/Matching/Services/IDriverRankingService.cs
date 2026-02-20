@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common.Geo;
 using BenhaScooters.Domain.Drivers;
@@ -29,14 +30,16 @@ public interface IDriverRankingService
 public class DriverRankingService : IDriverRankingService
 {
     private readonly AppDbContext _dbContext;
+    private readonly IGeoService _geoService;
     private readonly DriverRankingOptions _options;
     private const double DistanceWeight = 0.7; // 70% weight for distance
     private const double RatingWeight = 0.3;   // 30% weight for rating
     private const decimal DefaultRating = 4.0m; // Default rating for new drivers
 
-    public DriverRankingService(AppDbContext dbContext, IOptions<DriverRankingOptions> options)
+    public DriverRankingService(AppDbContext dbContext, IGeoService geoService, IOptions<DriverRankingOptions> options)
     {
         _dbContext = dbContext;
+        _geoService = geoService;
         _options = options.Value;
     }
 
@@ -68,30 +71,45 @@ public class DriverRankingService : IDriverRankingService
         
         var searchRadius = _options.MaxSearchRadiusMeters + roundNumber * _options.RadiusIncrementMeters;
 
+        // Use PostGIS ST_DWithin for efficient spatial filtering (3km base radius + progressive expansion)
         var availableDrivers = await (
             from ds in _dbContext.DriverStatuses
             join dl in _dbContext.DriverLocations on ds.UserId equals dl.UserId
             join stats in _dbContext.DriverStats on ds.UserId equals stats.UserId
-            // where ds.Status == DriverAvailabilityStatus.Online
-            // where dl.Location.Distance(pickupLocation) <= searchRadius
-            where excludedUserIds == null || !excludedUserIds.Contains(ds.UserId)
+            where ds.Status == DriverAvailabilityStatus.Online
+                && (excludedUserIds == null || !excludedUserIds.Contains(ds.UserId))
+                && dl.Location.IsWithinDistance(pickupLocation, searchRadius) // PostGIS spatial index optimization
             select new
             {
                 ds.UserId,
                 CurrentLocation = dl.Location,
-                DistanceToPickup = dl.Location.Distance(pickupLocation),
                 stats.AverageRating
             })
             .ToListAsync(cancellationToken);
 
+        // Calculate actual distances using GeoService for accurate ranking
+        var candidatesWithDistance = availableDrivers
+            .Select(driver => 
+            {
+                var distance = _geoService.CalculateDistance(driver.CurrentLocation, pickupLocation);
+                return new
+                {
+                    driver.UserId,
+                    driver.CurrentLocation,
+                    DistanceToPickup = distance,
+                    driver.AverageRating
+                };
+            })
+            .ToList();
+
         // Calculate scores and rank drivers
-        var candidates = availableDrivers
+        var candidates = candidatesWithDistance
             .Select(driver => new DriverCandidate(
                 driver.UserId, 
                 driver.CurrentLocation,
-                Distance.FromKilometers(driver.DistanceToPickup),
+                driver.DistanceToPickup,
                 driver.AverageRating,
-                CalculateDriverScore(Distance.FromKilometers(driver.DistanceToPickup), driver.AverageRating)
+                CalculateDriverScore(driver.DistanceToPickup, driver.AverageRating)
             ))
             .OrderByDescending(c => c.Score) // Higher score is better
             .Take(count)

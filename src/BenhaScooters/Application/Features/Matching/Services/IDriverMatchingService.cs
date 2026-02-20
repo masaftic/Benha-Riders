@@ -1,5 +1,6 @@
 using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Application.Features.Matching.Settings;
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Common.Geo;
@@ -29,6 +30,7 @@ public class DriverMatchingService : IDriverMatchingService
 {
     private readonly AppDbContext _dbContext;
     private readonly IDriverRankingService _driverRanking;
+    private readonly IGeoService _geoService;
     private readonly ILogger<DriverMatchingService> _logger;
     private readonly IHubContext<DriverHub, IDriverNotifications> _hub;
     private readonly MatchingSessionOptions _settings;
@@ -36,12 +38,14 @@ public class DriverMatchingService : IDriverMatchingService
     public DriverMatchingService(
         AppDbContext dbContext,
         IDriverRankingService driverRanking,
+        IGeoService geoService,
         ILogger<DriverMatchingService> logger,
         IHubContext<DriverHub, IDriverNotifications> hub,
         IOptions<MatchingSessionOptions> options)
     {
         _dbContext = dbContext;
         _driverRanking = driverRanking;
+        _geoService = geoService;
         _logger = logger;
         _hub = hub;
         _settings = options.Value;
@@ -102,11 +106,11 @@ public class DriverMatchingService : IDriverMatchingService
             foreach (var driver in rankedDrivers)
             {
                 // Create match attempt for each driver
-                // TODO: Future - Update CreateDriverMatchAttempt to accept Distance value objects
+                var estimatedArrival = _geoService.EstimateArrivalTime(driver.DistanceToPickup);
                 var attemptResult = matchingSession.CreateDriverMatchAttempt(
                     driver.DriverId,
-                    driver.DistanceToPickup.ToMeters(), // Convert Distance to double for backward compatibility
-                    EstimateArrivalTime(driver.DistanceToPickup), // Convert Distance to double
+                    driver.DistanceToPickup,
+                    estimatedArrival,
                     driver.Score);
 
                 if (attemptResult.IsError)
@@ -145,9 +149,9 @@ public class DriverMatchingService : IDriverMatchingService
                     tripRequest.PickupAddress,
                     tripRequest.DropoffAddress,
                     tripRequest.FinalFare.Amount,
-                    tripRequest.FinalFare.Distance.ToKilometers(), // TODO: Future - Update notification DTO to use Distance value object
-                    match.DistanceToPickup, // Already a double (meters) from DriverMatchAttempt
-                    match.EstimatedArrivalTime,
+                    tripRequest.FinalFare.Distance.ToKilometers(),
+                    match.DistanceToPickup.ToKilometers(),
+                    match.EstimatedArrivalTime.ToMinutes(),
                     match.CreatedAt); 
 
                 await _hub.Clients.Groups(match.DriverUserId.ToString())
@@ -214,16 +218,5 @@ public class DriverMatchingService : IDriverMatchingService
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }
-    }
-
-
-
-    private static double EstimateArrivalTime(Distance distance)
-    {
-        // Simple estimation: assume 30 km/h average speed in city
-        const double averageSpeedKmh = 30.0;
-        const double averageSpeedMs = averageSpeedKmh * 1000.0 / 3600.0; // m/s
-
-        return distance.ToMeters() / averageSpeedMs; // seconds
     }
 }

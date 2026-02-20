@@ -41,8 +41,7 @@ public class GeoService : IGeoService
             throw new ArgumentException("Average speed must be positive", nameof(averageSpeedKmh));
 
         var hours = distance.ToKilometers() / averageSpeedKmh;
-        var minutes = hours * 60;
-        return Duration.FromMinutes(minutes);
+        return Duration.FromHours(hours);
     }
 
     private static double CalculateHaversineDistance(NetTopologySuite.Geometries.Coordinate coord1, NetTopologySuite.Geometries.Coordinate coord2)

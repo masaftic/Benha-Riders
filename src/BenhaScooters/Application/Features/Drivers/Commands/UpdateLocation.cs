@@ -1,9 +1,11 @@
 using BenhaScooters.Application.Abstractions;
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.Notifications;
 using ErrorOr;
@@ -41,13 +43,19 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
 {
     private readonly AppDbContext _db;
     private readonly IHubContext<RiderHub, IRiderNotifications> _riderHub;
+    private readonly IGeoService _geoService;
+    private readonly ILogger<UpdateLocationCommandHandler> _logger;
 
     public UpdateLocationCommandHandler(
         AppDbContext db,
-        IHubContext<RiderHub, IRiderNotifications> riderHub)
+        IHubContext<RiderHub, IRiderNotifications> riderHub,
+        IGeoService geoService,
+        ILogger<UpdateLocationCommandHandler> logger)
     {
         _db = db;
         _riderHub = riderHub;
+        _geoService = geoService;
+        _logger = logger;
     }
 
     public async Task<ErrorOr<UpdateLocationResponse>> Handle(UpdateLocationCommand request, CancellationToken cancellationToken)
@@ -67,6 +75,8 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
         TripId? tripId = null;
         UserId? riderId = null;
         Point? pickupLocation = null;
+        Point? dropoffLocation = null;
+        TripStatus? tripStatus = null;
 
         if (driverStatus?.Status == DriverAvailabilityStatus.OnTrip && driverStatus.CurrentTripId.HasValue)
         {
@@ -82,24 +92,33 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
             // Get trip details for rider notification
             var trip = await _db.Trips
                 .Where(t => t.Id == tripId.Value)
-                .Select(t => new { t.RiderId, t.PickupLocation })
+                .Select(t => new { t.RiderId, t.PickupLocation, t.DropoffLocation, t.Status })
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (trip != null)
             {
                 riderId = trip.RiderId;
                 pickupLocation = trip.PickupLocation;
+                dropoffLocation = trip.DropoffLocation;
+                tripStatus = trip.Status;
             }
         }
+
+        _logger.LogInformation("Updated location for driver {DriverId}: ({Latitude}, {Longitude}) for trip {TripId}", userId, request.Latitude, request.Longitude, tripId);
 
         await _db.SaveChangesAsync(cancellationToken);
 
         // Broadcast location to rider if driver is on trip
-        if (tripId.HasValue && riderId.HasValue && pickupLocation != null)
+        if (tripId.HasValue && riderId.HasValue && pickupLocation != null && dropoffLocation != null && tripStatus.HasValue && tripStatus == TripStatus.Assigned)
         {
-            var driverPoint = geometryFactory.CreatePoint(new Coordinate(request.Longitude, request.Latitude));
-            var distanceMeters = driverPoint.Distance(pickupLocation);
-            var estimatedArrivalMinutes = EstimateArrivalTime(distanceMeters) / 60.0;
+            // Calculate ETA to pickup (if not started) or dropoff (if in progress)
+            var targetLocation = tripStatus.Value == TripStatus.InProgress 
+                ? dropoffLocation 
+                : pickupLocation;
+            
+            var distance = _geoService.CalculateDistance(location, targetLocation);
+            var arrivalDuration = _geoService.EstimateArrivalTime(distance);
+            var estimatedArrivalMinutes = arrivalDuration.ToMinutes();
 
             var locationUpdate = new DriverLocationUpdate(
                 Latitude: request.Latitude,
@@ -110,17 +129,11 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
             var riderIdString = riderId.ToString();
             await _riderHub.Clients.Group(riderIdString)
                 .NotifyDriverLocationUpdate(riderIdString, locationUpdate);
+            
+            _logger.LogInformation("Sent location update to rider {RiderId} for driver {DriverId}: ({Latitude}, {Longitude}), ETA: {ETA} minutes",
+                riderId, userId, request.Latitude, request.Longitude, estimatedArrivalMinutes);
         }
 
         return new UpdateLocationResponse(request.Latitude, request.Longitude);
-    }
-
-    private static double EstimateArrivalTime(double distanceMeters)
-    {
-        // Simple estimation: assume 30 km/h average speed in city
-        const double averageSpeedKmh = 30.0;
-        const double averageSpeedMs = averageSpeedKmh * 1000.0 / 3600.0; // m/s
-
-        return distanceMeters / averageSpeedMs; // seconds
     }
 }

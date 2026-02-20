@@ -12,11 +12,13 @@ public class FareEstimator : IFareEstimator
 {
     private readonly FareEstimationOptions _options;
     private readonly IGoogleMapsService _googleMapsService;
+    private readonly IGeoService _geoService;
 
-    public FareEstimator(IOptions<FareEstimationOptions> options, IGoogleMapsService googleMapsService)
+    public FareEstimator(IOptions<FareEstimationOptions> options, IGoogleMapsService googleMapsService, IGeoService geoService)
     {
         _options = options.Value;
         _googleMapsService = googleMapsService;
+        _geoService = geoService;
     }
 
     public async Task<FareEstimate> EstimateFareAsync(Point pickup, Point dropoff, CancellationToken ct = default)
@@ -35,14 +37,14 @@ public class FareEstimator : IFareEstimator
         // Fallback to Haversine if Google Maps fails
         if (directionsResult.IsError || directionsResult.Value.Routes.Count == 0)
         {
-            var distanceKm = GeoUtils.CalculateDistance(pickup, dropoff);
-            var estimatedTimeMinutes = (distanceKm / _options.AverageSpeedKmh) * 60;
+            var distance = _geoService.CalculateDistance(pickup, dropoff);
+            var estimatedDuration = _geoService.EstimateArrivalTime(distance, _options.AverageSpeedKmh);
 
             decimal amount = _options.BaseFare 
-                + ((decimal)distanceKm * _options.PerKmRate) 
-                + ((decimal)estimatedTimeMinutes * _options.PerMinuteRate);
+                + ((decimal)distance.ToKilometers() * _options.PerKmRate) 
+                + ((decimal)estimatedDuration.ToMinutes() * _options.PerMinuteRate);
 
-            return FareEstimate.Create(amount, Distance.FromKilometers(distanceKm), Duration.FromMinutes(estimatedTimeMinutes));
+            return FareEstimate.Create(amount, distance, estimatedDuration);
         }
 
         // Extract actual distance and duration from the first route's first leg

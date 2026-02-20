@@ -57,3 +57,8 @@ public partial struct Coordinate
 
     public string ToCacheKey() => $"{(int)(Latitude * 10_000)}_{(int)(Longitude * 10_000)}"; // e.g. "374221_-1220841" for 37.4221, -122.0841
 }
+
+public static class CoordinateExtensions
+{
+    public static Coordinate ToCoordinate(this Point point) => Coordinate.FromPoint(point);
+}

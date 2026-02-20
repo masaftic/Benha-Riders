@@ -1,5 +1,7 @@
 using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Application.Common.Settings;
+using BenhaScooters.Application.Features.Trips.Queries.Common;
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
@@ -47,6 +49,7 @@ public class AcceptMatchCommandHandler(
     IOptions<DriverWalletOptions> walletOptions,
     IHubContext<RiderHub, IRiderNotifications> riderHub,
     IS3Service s3Service,
+    IGeoService geoService,
     ILogger<AcceptMatchCommandHandler> logger) : IRequestHandler<AcceptMatchCommand, ErrorOr<AcceptMatchResult>>
 {
     public async Task<ErrorOr<AcceptMatchResult>> Handle(AcceptMatchCommand request, CancellationToken cancellationToken)
@@ -187,10 +190,20 @@ public class AcceptMatchCommandHandler(
                 driverProfile.Vehicle?.Color ?? "Unknown",
                 driverProfile.Vehicle?.LicensePlate ?? LicensePlate.Create("UNKNOWN"));
 
+            // Calculate proper ETA based on driver location and trip status
+            var estimatedArrivalMinutes = await TripDataHelper.CalculateEstimatedArrivalMinutesAsync(
+                db,
+                geoService,
+                driverStatus.UserId,
+                trip.Status,
+                trip.PickupLocation,
+                trip.DropoffLocation,
+                cancellationToken);
+
             var notification = new TripAssignedNotification(
                 TripId: trip.Id,
                 Driver: driverInfo,
-                EstimatedArrivalMinutes: matchAttempt.EstimatedArrivalTime / 60.0, // Convert seconds to minutes
+                EstimatedArrivalMinutes: estimatedArrivalMinutes,
                 AssignedAt: trip.AssignedAt);
 
             await riderHub.Clients.Group(tripRequest.RiderId.ToString())

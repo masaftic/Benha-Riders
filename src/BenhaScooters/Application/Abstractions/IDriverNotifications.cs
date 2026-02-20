@@ -19,9 +19,9 @@ public record RideRequestOfferNotification(
     string? PickupAddress,
     string? DropoffAddress,
     decimal EstimatedFare,
-    double EstimatedDistance,
-    double DistanceToPickup,
-    double EstimatedArrivalTime,
+    double EstimatedDistance, // kilometers
+    double DistanceToPickup, // kilometers
+    double EstimatedArrivalTime, // minutes
     DateTime OfferedAt);
 
 public record RideOfferExpiredNotification(
