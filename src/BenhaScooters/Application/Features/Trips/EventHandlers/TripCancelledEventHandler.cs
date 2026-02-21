@@ -41,17 +41,22 @@ public class TripCancelledEventHandler : INotificationHandler<TripCancelledEvent
             CancelledAt: notification.OccurredAt);
 
         // Notify rider via SignalR
-        await _riderHub.Clients.Group(notification.RiderId.ToString())
-            .NotifyTripCancelled(notification.RiderId.ToString(), tripCancelledNotification);
+        if (notification.RiderId != notification.CancelledBy)
+        {
+            await _riderHub.Clients.Group(notification.RiderId.ToString())
+                .NotifyTripCancelled(notification.RiderId.ToString(), tripCancelledNotification);
 
-        _logger.LogInformation("Notified rider {RiderId} that trip {TripId} was cancelled",
-            notification.RiderId, notification.TripId);
+            _logger.LogInformation("Notified rider {RiderId} that trip {TripId} was cancelled",
+                notification.RiderId, notification.TripId);
+        }
 
-        // Notify driver via SignalR
-        await _driverHub.Clients.Group(notification.DriverId.ToString())
-            .NotifyTripCancelled(notification.DriverId.ToString(), tripCancelledNotification);
+        if (notification.DriverId != notification.CancelledBy)
+        {
+            await _driverHub.Clients.Group(notification.DriverId.ToString())
+                .NotifyTripCancelled(notification.DriverId.ToString(), tripCancelledNotification);
 
-        _logger.LogInformation("Notified driver {DriverId} that trip {TripId} was cancelled",
-            notification.DriverId, notification.TripId);
+            _logger.LogInformation("Notified driver {DriverId} that trip {TripId} was cancelled",
+                notification.DriverId, notification.TripId);
+        }
     }
 }
