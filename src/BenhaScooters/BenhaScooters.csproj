@@ -36,7 +36,7 @@
     <PackageReference Include="Thinktecture.Runtime.Extensions.Json" Version="9.7.1" />
     <PackageReference Include="Thinktecture.Runtime.Extensions.Swashbuckle" Version="9.7.1" />
     <PackageReference Include="Thinktecture.Runtime.Extensions.EntityFrameworkCore9" Version="9.7.1" />
-    
+
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
   </ItemGroup>
@@ -47,29 +47,29 @@
     <Folder Include="Application\Features\Authentication\Queries\" />
   </ItemGroup>
 
-  <!-- React Client App Build Configuration -->
+  <!-- Angular Dashboard Build Configuration -->
   <PropertyGroup>
-    <SpaRoot>ClientApp\</SpaRoot>
+    <SpaRoot>Dashboard\</SpaRoot>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Exclude ClientApp from being published with the project -->
+    <!-- Exclude Dashboard from being published with the project -->
     <Content Remove="$(SpaRoot)**" />
     <None Remove="$(SpaRoot)**" />
     <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
   </ItemGroup>
 
-  <!-- Build React app during .NET build -->
-  <Target Name="BuildClientApp" BeforeTargets="Build" Condition="!Exists('wwwroot\index.html')">
-    <Message Importance="high" Text="Building React client app..." />
+  <!-- Build Angular app during .NET build -->
+  <Target Name="BuildClientApp" BeforeTargets="Build" Condition="!Exists('wwwroot\browser\index.html')">
+    <Message Importance="high" Text="Building Angular dashboard app..." />
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
   </Target>
 
-  <!-- Ensure React app is built before publish -->
+  <!-- Ensure Angular app is built before publish -->
   <Target Name="PublishClientApp" BeforeTargets="BeforePublish">
-    <Message Importance="high" Text="Building React client app for publish..." />
+    <Message Importance="high" Text="Building Angular dashboard app for publish..." />
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
   </Target>

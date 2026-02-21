@@ -7,3 +7,4 @@ obj
 node_modules
 publish-output
 *.log
+wwwroot

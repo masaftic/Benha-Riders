@@ -52,16 +52,23 @@ if (!Directory.Exists(uploadsPath))
 }
 
 // Serve uploaded files (driver photos/documents) from the uploads folder at '/files' path
-// This must come BEFORE the React app's UseStaticFiles to avoid conflicts
+// This must come BEFORE the Angular app's UseStaticFiles to avoid conflicts
 app.UseStaticFiles(new Microsoft.AspNetCore.Builder.StaticFileOptions
 {
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
     RequestPath = "/files"
 });
 
-// Serve static files from wwwroot (React build output)
-app.UseDefaultFiles();
-app.UseStaticFiles();
+// Serve static files from wwwroot/browser (Angular build output)
+var browserPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "browser");
+app.UseDefaultFiles(new DefaultFilesOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(browserPath)
+});
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(browserPath)
+});
 
 using (var scope = app.Services.CreateScope())
 {
@@ -96,8 +103,8 @@ app.UseSwaggerUI();
 app.MapHub<DriverHub>("/hubs/driver");
 app.MapHub<RiderHub>("/hubs/rider");
 
-// SPA fallback - serve index.html for client-side routing
-app.MapFallbackToFile("index.html");
+// SPA fallback - serve index.html from browser subdirectory for client-side routing
+app.MapFallbackToFile("browser/index.html");
 
 app.Run();
 

@@ -1,0 +1,67 @@
+<div class="flex justify-center items-center bg-gray-50 px-4 sm:px-6 lg:px-8 py-12 min-h-screen">
+  <div class="w-full max-w-md">
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="p-6 pb-0">
+          <h2 class="font-bold text-gray-900 text-3xl text-center tracking-tight">
+            Sign in to your account
+          </h2>
+        </div>
+      </ng-template>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        @if (errorMessage()) {
+          <div class="bg-red-50 p-4 rounded-md">
+            <p class="text-red-800 text-sm">{{ errorMessage() }}</p>
+          </div>
+        }
+
+        <div class="space-y-4">
+          <div>
+            <label for="phone" class="block mb-2 font-medium text-gray-900 text-sm">
+              Phone number
+            </label>
+            <input
+              pInputText
+              id="phone"
+              type="tel"
+              formControlName="phone"
+              class="w-full"
+              placeholder="Enter your phone number"
+            />
+            @if (loginForm.get('phone')?.invalid && loginForm.get('phone')?.touched) {
+              <small class="block mt-1 text-red-600">Please enter a valid phone number</small>
+            }
+          </div>
+
+          <div>
+            <label for="password" class="block mb-2 font-medium text-gray-900 text-sm">
+              Password
+            </label>
+            <p-password
+              id="password"
+              formControlName="password"
+              [feedback]="false"
+              [toggleMask]="true"
+              styleClass="w-full"
+              inputStyleClass="w-full"
+              placeholder="Enter your password"
+            />
+            @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+              <small class="block mt-1 text-red-600">Password is required</small>
+            }
+          </div>
+        </div>
+
+        <div>
+          <p-button
+            type="submit"
+            label="Sign in"
+            [disabled]="loginForm.invalid"
+            styleClass="w-full"
+          />
+        </div>
+      </form>
+    </p-card>
+  </div>
+</div>

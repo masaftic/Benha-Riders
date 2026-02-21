@@ -1,0 +1,26 @@
+
+@reference "tailwindcss";
+
+.dashboard-home {
+  .stat-card {
+    @apply shadow-lg p-6 rounded-lg hover:scale-105 transition-transform duration-200;
+  }
+
+  .stat-row {
+    @apply flex justify-between items-center py-3 border-gray-100 last:border-0 border-b;
+  }
+
+  :host ::ng-deep {
+    .p-card {
+      @apply shadow-md hover:shadow-lg transition-shadow duration-200;
+
+      .p-card-header {
+        @apply border-gray-100 border-b;
+      }
+
+      .p-card-content {
+        @apply pt-4;
+      }
+    }
+  }
+}

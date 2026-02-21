@@ -1,0 +1,7 @@
+:host {
+  display: block;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}

@@ -1,0 +1,18 @@
+<!-- policy-admin.component.html -->
+<div class="max-w-4xl mx-auto p-6">
+  <h1 class="text-2xl font-semibold mb-6">Policies & Legal</h1>
+
+  <div class="space-y-4">
+    @for (policy of policies; track policy.type) {
+    <div class="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm">
+      <div>
+        <h2 class="text-lg font-medium">{{ policy.title }}</h2>
+      </div>
+
+      <button pButton type="button" label="Edit" icon="pi pi-pencil" class="p-button-sm"
+        (click)="edit(policy.type)">
+      </button>
+    </div>
+    }
+  </div>
+</div>

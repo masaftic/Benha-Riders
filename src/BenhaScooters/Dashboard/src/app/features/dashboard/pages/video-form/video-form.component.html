@@ -1,0 +1,271 @@
+<div class="p-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="font-bold text-2xl">{{ isEditMode() ? 'Edit Video' : 'Create Video' }}</h1>
+    <p-button label="Back to List" icon="pi pi-arrow-left" severity="secondary" (onClick)="goBack()" />
+  </div>
+
+  <form [formGroup]="videoForm" (ngSubmit)="save()">
+    <div class="gap-6 grid grid-cols-1 lg:grid-cols-5">
+      <!-- Left Section (2/3) -->
+      <div class="space-y-6 lg:col-span-3">
+        <!-- Video Upload/Preview Section -->
+        <p-card>
+          <ng-template #header>
+            <div class="p-4 pb-0">
+              <h3 class="font-semibold text-gray-900 text-lg">Video</h3>
+            </div>
+          </ng-template>
+
+          <div class="space-y-4">
+            @if (videoPreviewUrl()) {
+              <div class="relative">
+                <video
+                  [src]="videoPreviewUrl()!"
+                  controls
+                  class="border rounded-lg w-full max-h-96"
+                >
+                  Your browser does not support the video tag.
+                </video>
+                @if (isEditMode()) {
+                  <div class="mt-2">
+                    <p-button
+                      label="Reupload Video"
+                      icon="pi pi-upload"
+                      severity="secondary"
+                      size="small"
+                      (onClick)="videoInput.click()"
+                    />
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="flex flex-col justify-center items-center bg-gray-50 border-2 border-dashed rounded-lg min-h-96">
+                <i class="mb-3 text-gray-400 text-4xl pi pi-video"></i>
+                <p class="mb-2 text-gray-600">No video uploaded</p>
+                <p-button
+                  label="Upload Video"
+                  icon="pi pi-upload"
+                  (onClick)="videoInput.click()"
+                />
+              </div>
+            }
+
+            <input
+              #videoInput
+              type="file"
+              accept="video/*"
+              (change)="onVideoSelect($event)"
+              style="display: none"
+            />
+          </div>
+        </p-card>
+
+        <!-- Metadata Form -->
+        <p-card>
+          <ng-template #header>
+            <div class="p-4 pb-0">
+              <h3 class="font-semibold text-gray-900 text-lg">Video Details</h3>
+            </div>
+          </ng-template>
+
+          <div class="space-y-4">
+            <!-- Title -->
+            <div class="flex flex-col gap-2">
+              <label for="title" class="font-semibold">Title <span class="text-red-500">*</span></label>
+              <input
+                pInputText
+                id="title"
+                formControlName="title"
+                placeholder="Enter video title"
+                class="w-full"
+              />
+              @if (videoForm.get('title')?.invalid && videoForm.get('title')?.touched) {
+                <small class="text-red-500">Title is required</small>
+              }
+            </div>
+
+            <!-- Description -->
+            <div class="flex flex-col gap-2">
+              <label for="description" class="font-semibold">Description</label>
+              <textarea
+                pTextarea
+                id="description"
+                formControlName="description"
+                placeholder="Enter video description"
+                rows="4"
+                class="w-full"
+              ></textarea>
+            </div>
+
+            <!-- Duration and Tag Row -->
+            <div class="gap-4 grid grid-cols-1 md:grid-cols-2">
+              <!-- Duration -->
+              <div class="flex flex-col gap-2">
+                <label for="duration" class="font-semibold">Duration (seconds) <span class="text-red-500">*</span></label>
+                <p-input-number
+                  inputId="duration"
+                  formControlName="durationSeconds"
+                  placeholder="Enter duration in seconds"
+                  [min]="1"
+                  [showButtons]="true"
+                  fluid
+                />
+                @if (videoForm.get('durationSeconds')?.invalid && videoForm.get('durationSeconds')?.touched) {
+                  <small class="text-red-500">Duration must be at least 1 second</small>
+                }
+              </div>
+
+              <!-- Tag -->
+              <div class="flex flex-col gap-2">
+                <label for="tag" class="font-semibold">Tag <span class="text-red-500">*</span></label>
+                <p-select
+                  id="tag"
+                  formControlName="tagId"
+                  [options]="tags()"
+                  optionLabel="name"
+                  optionValue="id"
+                  placeholder="Select a tag"
+                  fluid
+                />
+                @if (videoForm.get('tagId')?.invalid && videoForm.get('tagId')?.touched) {
+                  <small class="text-red-500">Tag is required</small>
+                }
+              </div>
+            </div>
+
+            <!-- Separator -->
+            <div class="flex items-center gap-3 my-6">
+              <div class="flex-1 border-gray-200 border-t"></div>
+              <span class="text-gray-400 text-xs uppercase tracking-wider">Guest Controls</span>
+              <div class="flex-1 border-gray-200 border-t"></div>
+            </div>
+
+            <!-- Guest Access Settings -->
+            <div class="gap-4 grid grid-cols-1 md:grid-cols-2">
+              <!-- Visible to Guests -->
+              <div class="flex items-start gap-3">
+                <p-toggleswitch
+                  inputId="isVisibleToGuests"
+                  formControlName="isVisibleToGuests"
+                  class="mt-1"
+                />
+                <div class="flex flex-col">
+                  <label for="isVisibleToGuests" class="font-semibold text-gray-900 cursor-pointer">
+                    Visible to Guests
+                  </label>
+                  <small class="text-gray-500">
+                    Allow guests to see this video in the list
+                  </small>
+                </div>
+              </div>
+
+              <!-- Guests Can Play -->
+              <div class="flex items-start gap-3">
+                <p-toggleswitch
+                  inputId="canGuestsPlay"
+                  formControlName="canGuestsPlay"
+                  class="mt-1"
+                />
+                <div class="flex flex-col">
+                  <label
+                    for="canGuestsPlay"
+                    [class]="videoForm.get('canGuestsPlay')?.disabled ? 'text-gray-400 cursor-not-allowed font-semibold' : 'cursor-pointer font-semibold text-gray-900'"
+                  >
+                    Guests Can Play
+                  </label>
+                  <small [class]="videoForm.get('canGuestsPlay')?.disabled ? 'text-gray-400' : 'text-gray-500'">
+                    Allow guests to watch the full video
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- Thumbnail Section -->
+        <p-card>
+          <ng-template #header>
+            <div class="p-4 pb-0">
+              <h3 class="font-semibold text-gray-900 text-lg">Thumbnail</h3>
+            </div>
+          </ng-template>
+
+          <div class="space-y-4">
+            @if (thumbnailPreviewUrl()) {
+              <div>
+                <img
+                  [src]="thumbnailPreviewUrl()!"
+                  alt="Thumbnail preview"
+                  class="bg-gray-100 border rounded-lg w-full max-h-96 object-contain"
+                />
+                <div class="flex gap-2 mt-2">
+                  <p-button
+                    label="Reupload Thumbnail"
+                    icon="pi pi-upload"
+                    severity="secondary"
+                    size="small"
+                    (onClick)="thumbnailInput.click()"
+                  />
+                </div>
+              </div>
+            } @else {
+              <div class="flex flex-col justify-center items-center bg-gray-50 border-2 border-dashed rounded-lg min-h-48">
+                <i class="mb-3 text-gray-400 text-4xl pi pi-image"></i>
+                <p class="mb-2 text-gray-600">No thumbnail uploaded</p>
+                <p-button
+                  label="Upload Thumbnail"
+                  icon="pi pi-upload"
+                  (onClick)="thumbnailInput.click()"
+                />
+              </div>
+            }
+
+            <input
+              #thumbnailInput
+              type="file"
+              accept="image/*"
+              (change)="onThumbnailSelect($event)"
+              style="display: none"
+            />
+          </div>
+        </p-card>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3">
+          <p-button
+            label="Cancel"
+            icon="pi pi-times"
+            severity="secondary"
+            (onClick)="cancel()"
+          />
+          <p-button
+            label="Save"
+            icon="pi pi-check"
+            type="submit"
+            [loading]="isSubmitting()"
+            [disabled]="isSubmitting() || videoForm.invalid || (!isEditMode() && (!videoFile() || !thumbnailFile()))"
+          />
+        </div>
+      </div>
+
+      <!-- Right Section (1/3) - Questions -->
+      <div class="lg:col-span-2">
+        <p-card>
+          @if (isEditMode() && videoId()) {
+            <app-question-list [videoId]="videoId()!" />
+          } @else {
+            <div class="flex flex-col justify-center items-center py-8 text-center">
+              <i class="mb-3 text-gray-400 text-4xl pi pi-question-circle"></i>
+              <p class="text-gray-600">Save video first</p>
+              <p class="text-gray-500 text-sm">Questions can be added after creating the video</p>
+            </div>
+          }
+        </p-card>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Toast & Confirm Dialog -->
+<p-toast />
+<p-confirmDialog />

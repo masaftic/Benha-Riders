@@ -1,0 +1,48 @@
+<div class="p-4">
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="font-bold text-2xl">Videos</h1>
+    <p-button label="Create Video" icon="pi pi-plus" (onClick)="createVideo()" />
+  </div>
+
+  <div class="gap-4 grid grid-cols-1 md:grid-cols-2 mb-4">
+    <input pInputText type="text" placeholder="Search videos..." (input)="onSearchChange($event)" class="w-full" />
+    <p-select [options]="tags()" [(ngModel)]="selectedTagId" (onChange)="onTagFilterChange($event.value)"
+      optionLabel="name" optionValue="id" placeholder="Filter by tag" [showClear]="true" class="w-full" />
+  </div>
+
+  @if (videos().length === 0 && !loading()) {
+  <div class="flex flex-col justify-center items-center py-12 text-center">
+    <i class="mb-3 text-gray-400 text-5xl pi pi-video"></i>
+    <p class="mb-2 text-gray-600 text-lg">No videos found</p>
+    <p class="mb-4 text-gray-500 text-sm">Get started by creating your first video</p>
+    <p-button label="Create Video" icon="pi pi-plus" (onClick)="createVideo()" />
+  </div>
+  } @else {
+  <p-dataview
+    [value]="videos()"
+    [lazy]="true"
+    [paginator]="true"
+    [rows]="pageSize()"
+    [totalRecords]="totalRecords()"
+    [loading]="loading()"
+    [first]="(pageNumber() - 1) * pageSize()"
+    [rows]="pageSize()"
+    (onLazyLoad)="onPageChange($event)"
+    [rowsPerPageOptions]="[4, 8, 12, 16]"
+  >
+    <ng-template #list let-items>
+      <div class="gap-4 grid grid-cols-12 mb-8">
+        @for (video of items; track $index) {
+        <div class="col-span-12 sm:col-span-6 lg:col-span-4 xl:col-span-3">
+          <app-video-card [video]="video" (edit)="editVideo(video.id)" (delete)="confirmDelete(video)" />
+        </div>
+        }
+      </div>
+    </ng-template>
+  </p-dataview>
+  }
+</div>
+
+<!-- Toast & Confirm Dialog -->
+<p-toast />
+<p-confirmDialog />

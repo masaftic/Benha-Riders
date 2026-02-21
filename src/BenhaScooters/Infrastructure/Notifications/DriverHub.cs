@@ -68,10 +68,7 @@ public class DriverHub : Hub<IDriverNotifications>
                     .ThenInclude(ms => ms.TripRequest)
                         .ThenInclude(tr => tr.RiderProfile)
                             .ThenInclude(rp => rp.User)
-                .Where(dma => dma.DriverUserId == driverId
-                    && dma.Status == MatchAttemptStatus.Pending
-                    && dma.MatchingSession.IsActive
-                    && dma.CreatedAt > DateTime.UtcNow.AddMinutes(-10)) // Only send offers from last 10 minutes
+                .Where(dma => dma.DriverUserId == driverId && dma.Status == MatchAttemptStatus.Pending)
                 .ToListAsync();
 
             if (pendingOffers.Any())

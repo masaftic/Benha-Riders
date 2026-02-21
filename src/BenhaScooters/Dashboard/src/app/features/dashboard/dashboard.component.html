@@ -1,0 +1,103 @@
+<div class="flex bg-gray-100 h-screen overflow-hidden">
+  <!-- Sidebar -->
+  <aside
+    [class]="
+      'flex flex-col border-r border-gray-200 bg-white transition-all duration-300 ' +
+      (isSidebarCollapsed() ? 'w-20' : 'w-64')
+    "
+  >
+    <!-- Logo/Header -->
+    <div class="flex justify-between items-center px-4 border-gray-200 border-b h-16">
+      @if (!isSidebarCollapsed()) {
+        <h1 class="overflow-hidden font-bold text-gray-900 text-xl text-ellipsis whitespace-nowrap">Fatin Dashboard</h1>
+      }
+      <button
+        pButton
+        [icon]="isSidebarCollapsed() ? 'pi pi-angle-right' : 'pi pi-angle-left'"
+        class="p-button-text p-button-rounded"
+        (click)="toggleSidebar()"
+      ></button>
+    </div>
+
+
+    <!-- Menu -->
+    <nav class="flex-1 p-4 overflow-y-auto">
+      <ul class="space-y-2">
+        @for (item of menuItems; track item.routerLink) {
+          <li>
+            <a
+              [routerLink]="item.routerLink"
+              routerLinkActive="bg-orange-100 text-orange-600"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="flex items-center gap-3 hover:bg-gray-100 px-3 py-2.5 rounded-lg h-10 text-gray-700 transition-colors"
+              [pTooltip]="isSidebarCollapsed() ? item.label : ''"
+              tooltipPosition="right"
+            >
+              <i [class]="item.icon + ' text-lg'" class="pl-1"></i>
+              <!-- @if (!isSidebarCollapsed()) { -->
+                <span class="overflow-hidden font-medium text-ellipsis whitespace-nowrap">{{ item.label }}</span>
+              <!-- } -->
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <!-- User Section -->
+    <div class="p-4 border-gray-200 border-t">
+      @if (!isSidebarCollapsed()) {
+        <div class="flex items-center space-x-3 mb-2">
+          <p-avatar
+            [label]="currentUser?.email?.charAt(0)?.toUpperCase() || 'U'"
+            class="bg-orange-600 text-white"
+            shape="circle"
+          />
+          <div class="flex-1 min-w-0">
+            <p class="font-medium text-gray-900 text-sm truncate">
+              {{ currentUser?.email }}
+            </p>
+          </div>
+        </div>
+        <button
+          pButton
+          label="Logout"
+          icon="pi pi-sign-out"
+          class="p-button-sm p-button-text w-full"
+          (click)="logout()"
+        ></button>
+      } @else {
+        <button
+          pButton
+          icon="pi pi-sign-out"
+          class="p-button-text p-button-rounded"
+          (click)="logout()"
+          pTooltip="Logout"
+          tooltipPosition="right"
+        ></button>
+      }
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="flex flex-col flex-1 overflow-hidden">
+    <!-- Top Bar -->
+    <header class="bg-white shadow-sm border-gray-200 border-b">
+      <div class="flex justify-between items-center px-6 h-16">
+        <h2 class="font-semibold text-gray-800 text-xl">Welcome Back!</h2>
+        <div class="flex items-center space-x-4">
+          <!-- Add notifications, settings, etc. here -->
+        </div>
+      </div>
+    </header>
+
+
+    @if (loadingService.loading()) {
+      <p-progressbar mode="indeterminate" [style]="{ height: '6px' }" />
+    }
+
+    <!-- Page Content -->
+    <main class="flex-1 bg-gray-50 p-6 overflow-y-auto">
+      <router-outlet />
+    </main>
+  </div>
+</div>
