@@ -22,10 +22,10 @@ using System.Text;
 using BenhaScooters.Shared.Security;
 using BenhaScooters.Domain.Users;
 using Microsoft.AspNetCore.Authorization;
-using BenhaScooters.Presentation.Security;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Infrastructure.GoogleMaps;
+using BenhaScooters.Infrastructure.Security;
 
 namespace BenhaScooters.Infrastructure;
 
@@ -108,6 +108,9 @@ public static class DependencyInjection
         
         // Add the matching cleanup background service
         services.AddHostedService<MatchingCleanupService>();
+        
+        // Add the hung trip cleanup background service
+        services.AddHostedService<HungTripCleanupService>();
 
         services.AddScoped<PublishDomainEventsInterceptor>();
 
@@ -150,42 +153,31 @@ public static class DependencyInjection
                 };
             });
 
-        services.AddAuthorization(opt =>
-        {
-            opt.AddPolicy("OnboardedDriver", policy =>
+        services.AddAuthorizationBuilder()
+            .AddPolicy(PolicyConstants.PhoneVerifiedPolicy, policy =>
             {
                 policy.RequireAuthenticatedUser();
-                policy.RequireRole("Driver");
+                policy.RequireClaim(JwtClaims.PhoneVerified, "true");
+            })
+            .AddPolicy(PolicyConstants.ApprovedDriverPolicy, policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireClaim(JwtClaims.App, AppExtensions.DriverAppValue);
+                policy.RequireClaim(JwtClaims.PhoneVerified, "true");
                 policy.RequireClaim(JwtClaims.DriverOnboardingStatus, DriverOnboardingStatus.Approved.ToString());
-            });
-
-            opt.AddPolicy("RiderPolicy", policy =>
+            })
+            .AddPolicy(PolicyConstants.RiderPolicy, policy =>
             {
                 policy.RequireAuthenticatedUser();
-                policy.RequireRole("Rider");
-                policy.RequireClaim(JwtClaims.Status, UserStatus.Active.ToString());
-            });
-
-            opt.AddPolicy("DriverPolicy", policy =>
+                policy.RequireClaim(JwtClaims.App, AppExtensions.RiderAppValue);
+                policy.RequireClaim(JwtClaims.PhoneVerified, "true");
+            })
+            .AddPolicy(PolicyConstants.DriverPolicy, policy =>
             {
                 policy.RequireAuthenticatedUser();
-                policy.RequireRole("Driver");
-                policy.RequireClaim(JwtClaims.Status, UserStatus.Active.ToString());
+                policy.RequireClaim(JwtClaims.App, AppExtensions.DriverAppValue);
+                policy.RequireClaim(JwtClaims.PhoneVerified, "true");
             });
-
-
-            opt.AddPolicy("PhoneVerified", policy =>
-            {
-                policy.AddRequirements(new UserOnboardingRequirement(OnboardingSteps.VerifyPhone));
-            });
-
-            opt.AddPolicy("RoleSelected", policy =>
-            {
-                policy.AddRequirements(new UserOnboardingRequirement(OnboardingSteps.SelectRole));
-            });
-        });
-
-        services.AddSingleton<IAuthorizationHandler, UserOnboardingRequirementHandler>();
 
         return services;
     }

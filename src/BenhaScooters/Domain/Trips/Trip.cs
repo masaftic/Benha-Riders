@@ -8,6 +8,7 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Users;
 using ErrorOr;
 using Thinktecture;
+using BenhaScooters.Domain.TripRequests;
 
 
 namespace BenhaScooters.Domain.Trips;
@@ -21,6 +22,8 @@ public class Trip : AggregateRoot
 
     public UserId DriverId { get; private set; }
     public UserId RiderId { get; private set; }
+
+    public TripRequestId? TripRequestId { get; private set; }
 
     // Trip Details
     public Point PickupLocation { get; private set; } = null!;
@@ -42,19 +45,23 @@ public class Trip : AggregateRoot
     public TripPayment? TripPayment { get; private set; } // Payment details
 
 
+
+
     // Navigation Properties (to profiles, not old aggregates)
     public DriverProfile DriverProfile { get; private set; } = null!;
     public RiderProfile RiderProfile { get; private set; } = null!;
+    public TripRequest? TripRequest { get; private set; } = null!; // TODO: this is optional for now to fix the migration.
 
 
     private Trip() { } // For EF Core
 
-    public Trip(UserId driverId, UserId riderId,
+    public Trip(UserId driverId, UserId riderId, TripRequestId tripRequestId,
         Point pickupLocation, Point dropoffLocation, string? pickupAddress, string? dropoffAddress,
         FareEstimate finalFare)
     {
         DriverId = driverId;
         RiderId = riderId;
+        TripRequestId = tripRequestId;
         PickupLocation = pickupLocation;
         DropoffLocation = dropoffLocation;
         PickupAddress = pickupAddress?.Trim();
@@ -119,6 +126,24 @@ public class Trip : AggregateRoot
         CompletedAt = DateTime.UtcNow;
 
         RaiseDomainEvent(new TripCancelledEvent(Id, DriverId, RiderId, cancelledBy, cancellationReason));
+
+        return Result.Success;
+    }
+
+    /// <summary>
+    /// Forces a trip to be cancelled regardless of its current state (except if already completed/cancelled).
+    /// Used for cleaning up hung trips.
+    /// </summary>
+    public ErrorOr<Success> ForceCancel(string cancellationReason)
+    {
+        if (Status == TripStatus.Completed || Status == TripStatus.Cancelled)
+            return TripErrors.Trip.CannotCancel;
+
+        Status = TripStatus.Cancelled;
+        CompletedAt = DateTime.UtcNow;
+
+        // System user ID (0)
+        RaiseDomainEvent(new TripCancelledEvent(Id, DriverId, RiderId, UserId.Create(0), cancellationReason));
 
         return Result.Success;
     }

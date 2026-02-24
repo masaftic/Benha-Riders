@@ -1,4 +1,5 @@
 using BenhaScooters.Application.Features.Authentication.Commands.Common;
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
@@ -15,7 +16,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BenhaScooters.Application.Features.Authentication.Commands;
 
 
-public record RegisterCommand(string Name, Email Email, PhoneNumber PhoneNumber, string Password) : IRequest<ErrorOr<OnboardingStatusToken>>;
+public record RegisterCommand(string Name, Email Email, PhoneNumber PhoneNumber, string Password, App App) : IRequest<ErrorOr<AuthenticationResponse>>;
 
 
 public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
@@ -29,20 +30,20 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
 }
 
 
-public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<OnboardingStatusToken>>
+public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<AuthenticationResponse>>
 {
     private readonly IPasswordHasher _passwordHasher;
     private readonly AppDbContext _db;
-    private readonly IJwtService _jwtService;
+    private readonly IAuthenticationService _authenticationService;
 
-    public RegisterCommandHandler(IPasswordHasher passwordHasher, AppDbContext db, IJwtService jwtService)
+    public RegisterCommandHandler(IPasswordHasher passwordHasher, AppDbContext db, IAuthenticationService authenticationService)
     {
         _passwordHasher = passwordHasher;
         _db = db;
-        _jwtService = jwtService;
+        _authenticationService = authenticationService;
     }
 
-    public async Task<ErrorOr<OnboardingStatusToken>> Handle(RegisterCommand req, CancellationToken ct)
+    public async Task<ErrorOr<AuthenticationResponse>> Handle(RegisterCommand req, CancellationToken ct)
     {
         var normalizedEmail = req.Email;
         if (await _db.Users.AnyAsync(x => x.Email == normalizedEmail, ct))
@@ -63,10 +64,20 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<O
             _passwordHasher.Hash(req.Password));
 
         _db.Users.Add(user);
+
+        if (req.App == App.DriverApp)
+        {
+            user.CreateDriverProfile();
+        }
+        else if (req.App == App.RiderApp)
+        {
+            user.CreateRiderProfile();
+        }
+
         await _db.SaveChangesAsync(ct);
 
-        var nextStep = UserOnboardingStateMachine.GetNextStep(user.Status);
-        var token = _jwtService.GenerateOnboardingToken(user.Id, user.Status, nextStep);
-        return new OnboardingStatusToken(token, nextStep);
+        // User hasn't verified phone yet, return onboarding required
+        var authenticatedResponse = await _authenticationService.GenerateAuthenticatedResponseAsync(user, req.App, user.DriverProfile, user.RiderProfile, ct);
+        return new AuthenticationResponse("onboarding_required", new OnboardingRequired(authenticatedResponse.AccessToken, "verify_phone"));
     }
 }

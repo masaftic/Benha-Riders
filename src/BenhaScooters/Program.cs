@@ -61,14 +61,17 @@ app.UseStaticFiles(new Microsoft.AspNetCore.Builder.StaticFileOptions
 
 // Serve static files from wwwroot/browser (Angular build output)
 var browserPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "browser");
-app.UseDefaultFiles(new DefaultFilesOptions
+if (Directory.Exists(browserPath))
 {
-    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(browserPath)
-});
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(browserPath)
-});
+    app.UseDefaultFiles(new DefaultFilesOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(browserPath)
+    });
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(browserPath)
+    });
+}
 
 using (var scope = app.Services.CreateScope())
 {

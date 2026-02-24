@@ -1,6 +1,7 @@
 using BenhaScooters.Application.Features.Drivers.Commands;
 using BenhaScooters.Application.Features.Drivers.Queries;
 using BenhaScooters.Contracts.Drivers;
+using BenhaScooters.Infrastructure.Security;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using MediatR;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BenhaScooters.Presentation.Controllers;
 
 [Route("api/driver")]
-[Authorize(Policy = "OnboardedDriver")]
+[Authorize(Policy = PolicyConstants.ApprovedDriverPolicy)]
 public class DriversController : BaseApiController
 {
     private readonly ISender _sender;

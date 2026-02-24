@@ -1,7 +1,10 @@
 using BenhaScooters.Application.Features.Authentication.Commands.Common;
+using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
+using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.Users;
 using BenhaScooters.Infrastructure.Authentication.Services;
 using BenhaScooters.Shared.Validation;
@@ -12,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Authentication.Commands;
 
-public record VerifySmsCodeCommand(UserId UserId, string Code) : IRequest<ErrorOr<OnboardingStatusToken>>;
+public record VerifySmsCodeCommand(UserId UserId, string Code, App App) : IRequest<ErrorOr<AuthenticationResponse>>;
 
 public class VerifySmsCodeCommandValidator : AbstractValidator<VerifySmsCodeCommand>
 {
@@ -28,18 +31,18 @@ public class VerifySmsCodeCommandValidator : AbstractValidator<VerifySmsCodeComm
     }
 }
 
-public class VerifySmsCodeCommandHandler : IRequestHandler<VerifySmsCodeCommand, ErrorOr<OnboardingStatusToken>>
+public class VerifySmsCodeCommandHandler : IRequestHandler<VerifySmsCodeCommand, ErrorOr<AuthenticationResponse>>
 {
     private readonly AppDbContext _db;
-    private readonly IJwtService _jwtService;
+    private readonly IAuthenticationService _authenticationService;
 
-    public VerifySmsCodeCommandHandler(AppDbContext db, IJwtService jwtService)
+    public VerifySmsCodeCommandHandler(AppDbContext db, IAuthenticationService authenticationService)
     {
         _db = db;
-        _jwtService = jwtService;
+        _authenticationService = authenticationService;
     }
 
-    public async Task<ErrorOr<OnboardingStatusToken>> Handle(VerifySmsCodeCommand request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<AuthenticationResponse>> Handle(VerifySmsCodeCommand request, CancellationToken cancellationToken)
     {
         // Find the verification code
         var verificationCode = await _db.SmsVerificationCodes
@@ -60,7 +63,11 @@ public class VerifySmsCodeCommandHandler : IRequestHandler<VerifySmsCodeCommand,
         // Mark code as used and verify user's phone number
         verificationCode.MarkAsUsed();
 
-        var user = await _db.Users.FindAsync(new object[] { request.UserId }, cancellationToken);
+        var user = await _db.Users
+            .Include(u => u.DriverProfile)
+            .Include(u => u.RiderProfile)
+            .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+
         if (user is null)
         {
             return UserErrors.UserNotFound;
@@ -68,11 +75,27 @@ public class VerifySmsCodeCommandHandler : IRequestHandler<VerifySmsCodeCommand,
 
         user.VerifyPhoneNumber(verificationCode.PhoneNumber);
 
+        // Load or create profiles based on app
+        var driverProfile = user.DriverProfile;
+
+        var riderProfile = user.RiderProfile;
+
+        // Create profile if it doesn't exist for the requested app
+        if (request.App == App.DriverApp && driverProfile is null)
+        {
+            user.CreateDriverProfile();
+        }
+        else if (request.App == App.RiderApp && riderProfile is null)
+        {
+            user.CreateRiderProfile();
+        }
+
         await _db.SaveChangesAsync(cancellationToken);
 
-        var nextStep = UserOnboardingStateMachine.GetNextStep(user.Status);
-        var token = _jwtService.GenerateOnboardingToken(user.Id, user.Status, nextStep);
-
-        return new OnboardingStatusToken(token, nextStep);
+        // Phone is now verified, user is fully registered, return success
+        var authenticatedResponse = await _authenticationService.GenerateAuthenticatedResponseAsync(user, request.App, user.DriverProfile, user.RiderProfile, cancellationToken);
+        var result = new AuthenticationSuccess(authenticatedResponse.AccessToken, authenticatedResponse.RefreshToken, authenticatedResponse.ExpiresAt);
+        return new AuthenticationResponse("success", result);
     }
 }
+

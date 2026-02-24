@@ -15,7 +15,7 @@ public class DriverProfileConfiguration : IEntityTypeConfiguration<DriverProfile
         builder.HasKey(x => x.UserId);
 
         builder.HasOne(x => x.User)
-            .WithOne()
+            .WithOne(u => u.DriverProfile)
             .HasForeignKey<DriverProfile>(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 

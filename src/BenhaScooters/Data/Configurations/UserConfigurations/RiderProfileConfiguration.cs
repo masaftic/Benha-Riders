@@ -14,7 +14,7 @@ public class RiderProfileConfiguration : IEntityTypeConfiguration<RiderProfile>
         builder.HasKey(x => x.UserId);
 
         builder.HasOne(x => x.User)
-            .WithOne()
+            .WithOne(u => u.RiderProfile)
             .HasForeignKey<RiderProfile>(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 

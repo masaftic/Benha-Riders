@@ -6,4 +6,5 @@ public record RegisterRequest(
     string Name,
     Email Email,
     PhoneNumber PhoneNumber,
-    string Password);
+    string Password,
+    App App);

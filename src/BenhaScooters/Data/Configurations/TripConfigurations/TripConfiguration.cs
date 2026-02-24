@@ -100,6 +100,11 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
             .WithMany()
             .HasForeignKey(t => t.RiderId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasOne(t => t.TripRequest)
+            .WithOne()
+            .HasForeignKey<Trip>(t => t.TripRequestId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(t => t.Status);
     }

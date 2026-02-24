@@ -127,6 +127,7 @@ public class AcceptMatchCommandHandler(
         var trip = new Trip(
             driverStatus.UserId,
             tripRequest.RiderId,
+            tripRequest.Id,
             tripRequest.PickupLocation,
             tripRequest.DropoffLocation,
             tripRequest.PickupAddress,

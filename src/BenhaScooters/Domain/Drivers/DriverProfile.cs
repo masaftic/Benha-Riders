@@ -79,6 +79,15 @@ public class DriverProfile
         CreatedAt = DateTime.UtcNow;
     }
 
+    public DriverProfile(User user)
+    {
+        User = user;
+        UserId = user.Id;
+        OnboardingStatus = DriverOnboardingStatus.Incomplete;
+        CreatedAt = DateTime.UtcNow;
+    }
+
+
     public ErrorOr<Success> UpdatePersonalInfo(DriverPersonalInfo personalInfo)
     {
         if (OnboardingStatus == DriverOnboardingStatus.Approved)

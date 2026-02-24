@@ -10,7 +10,8 @@ namespace BenhaScooters.Application.Services;
 public interface IAuthenticationService
 {
     Task<AuthenticatedResponse> GenerateAuthenticatedResponseAsync(
-        User user, 
+        User user,
+        App app,
         DriverProfile? driverProfile = null, 
         RiderProfile? riderProfile = null, 
         CancellationToken cancellationToken = default);
@@ -28,13 +29,14 @@ public class AuthenticationService : IAuthenticationService
     }
 
     public async Task<AuthenticatedResponse> GenerateAuthenticatedResponseAsync(
-        User user, 
+        User user,
+        App app,
         DriverProfile? driverProfile = null, 
         RiderProfile? riderProfile = null, 
         CancellationToken cancellationToken = default)
     {
         var expiresAt = _jwtService.GetAccessTokenExpiryTime();
-        var accessToken = _jwtService.GenerateAccessToken(user, driverProfile, riderProfile);
+        var accessToken = _jwtService.GenerateAccessToken(user, app, driverProfile, riderProfile);
         var refreshToken = _jwtService.GenerateRefreshToken();
 
         // Create and store refresh token

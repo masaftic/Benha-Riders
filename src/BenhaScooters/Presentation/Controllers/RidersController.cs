@@ -1,4 +1,5 @@
 using BenhaScooters.Application.Features.Riders.Queries;
+using BenhaScooters.Infrastructure.Security;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BenhaScooters.Presentation.Controllers;
 
 [Route("api/riders")]
-[Authorize(Policy = "RiderPolicy")]
+[Authorize(Policy = PolicyConstants.RiderPolicy)]
 public class RidersController : BaseApiController
 {
     private readonly ISender _sender;

@@ -2,6 +2,7 @@ using BenhaScooters.Application.Features.Trips.Commands;
 using BenhaScooters.Application.Features.Trips.Queries;
 using BenhaScooters.Contracts.Trips;
 using BenhaScooters.Domain.Trips;
+using BenhaScooters.Infrastructure.Security;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using MediatR;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BenhaScooters.Presentation.Controllers;
 
 [Route("api/trips")]
+[Authorize(Policy = PolicyConstants.PhoneVerifiedPolicy)]
 public class TripsController : BaseApiController
 {
     private readonly ISender _sender;
@@ -40,7 +42,7 @@ public class TripsController : BaseApiController
     /// Get driver's recent trips
     /// </summary>
     [HttpGet("recent")]
-    [Authorize(Policy = "OnboardedDriver")]
+    [Authorize(Policy = PolicyConstants.ApprovedDriverPolicy)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetDriverRecentTrips([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -55,11 +57,10 @@ public class TripsController : BaseApiController
     /// Get driver trip by ID
     /// </summary>
     [HttpGet("{tripId}")]
-    [Authorize(Policy = "OnboardedDriver")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetDriverTripById([FromRoute] TripId tripId)
+    public async Task<IActionResult> GetTripById([FromRoute] TripId tripId)
     {
         var query = new GetDriverTripByIdQuery(tripId, HttpContext.GetDriverId());
         var result = await _sender.Send(query);
@@ -71,7 +72,7 @@ public class TripsController : BaseApiController
     /// Mark driver as arrived at pickup location
     /// </summary>
     [HttpPost("{tripId}/arrived")]
-    [Authorize(Policy = "OnboardedDriver")]
+    [Authorize(Policy = PolicyConstants.ApprovedDriverPolicy)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -88,7 +89,7 @@ public class TripsController : BaseApiController
     /// Start the trip
     /// </summary>
     [HttpPost("{tripId}/start")]
-    [Authorize(Policy = "OnboardedDriver")]
+    [Authorize(Policy = PolicyConstants.ApprovedDriverPolicy)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -105,7 +106,7 @@ public class TripsController : BaseApiController
     /// Complete the trip
     /// </summary>
     [HttpPost("{tripId}/complete")]
-    [Authorize(Policy = "OnboardedDriver")]
+    [Authorize(Policy = PolicyConstants.ApprovedDriverPolicy)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

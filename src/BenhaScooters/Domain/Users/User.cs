@@ -1,4 +1,6 @@
 using System.Text.RegularExpressions;
+using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Domain.Riders;
 using BenhaScooters.Shared.Validation;
 using ErrorOr;
 using Thinktecture;
@@ -50,16 +52,16 @@ public partial class PhoneNumber
             return;
         }
 
-        if (!Regex.IsMatch(value, ValidationRegex.PhoneNumber))
+        if (!EgyptianPhoneNumberRegex().IsMatch(value))
         {
             validationError = new ValidationError("رقم الهاتف غير صالح. يجب أن يكون رقمًا مصريًا.");
             return;
         }
 
         string normalizedPhone = value.Trim().Replace(" ", "").Replace("-", "");
-        if (normalizedPhone.StartsWith("0"))
+        if (normalizedPhone.StartsWith('0'))
         {
-            normalizedPhone = "+20" + normalizedPhone.Substring(1);
+            normalizedPhone = "+20" + normalizedPhone[1..];
         }
         else if (!normalizedPhone.StartsWith("+20"))
         {
@@ -68,6 +70,9 @@ public partial class PhoneNumber
 
         value = normalizedPhone;
     }
+
+    [GeneratedRegex(ValidationRegex.PhoneNumber)]
+    private static partial Regex EgyptianPhoneNumberRegex();
 }
 
 
@@ -75,14 +80,12 @@ public class User
 {
     public UserId Id { get; private set; }
     public string Name { get; private set; } = null!;
-    public Email Email { get; private set; }
+    public Email Email { get; private set; } = null!;
     public bool EmailVerified { get; private set; } = false;
     public PhoneNumber? PhoneNumber { get; private set; }
     public bool PhoneNumberVerified { get; private set; } = false;
     public string? PasswordHash { get; private set; } = null;
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-
-    public UserStatus Status { get; private set; }
 
     private readonly List<UserRole> _roles = [];
     public IReadOnlyCollection<UserRole> Roles => _roles.AsReadOnly();
@@ -92,6 +95,10 @@ public class User
 
     private readonly List<ExternalAuth> _externalAuths = [];
     public IReadOnlyCollection<ExternalAuth> ExternalAuths => _externalAuths.AsReadOnly();
+
+
+    public DriverProfile? DriverProfile { get; private set; }
+    public RiderProfile? RiderProfile { get; private set; }
 
 
     private User() { }
@@ -105,7 +112,6 @@ public class User
         Email = email;
         PhoneNumber = phoneNumber;
         PasswordHash = passwordHash;
-        Status = UserStatus.Registered;
     }
 
 
@@ -115,9 +121,6 @@ public class User
             return Error.Conflict("USER_ALREADY_HAS_ROLE", $"User already has the role {role.Name}.");
 
         _roles.Add(role);
-        var result = UserOnboardingStateMachine.GetNewStatusAfterStep(Status, OnboardingSteps.SelectRole);
-        if (result.IsError) return result.Errors;
-        Status = result.Value;
         return Result.Success;
     }
 
@@ -166,11 +169,6 @@ public class User
         }
 
         PhoneNumberVerified = true;
-        var newStatusResult = UserOnboardingStateMachine.GetNewStatusAfterStep(Status, OnboardingSteps.VerifyPhone);
-        if (newStatusResult.IsError)
-            throw new InvalidOperationException($"Cannot verify phone number from status {Status}");
-
-        Status = newStatusResult.Value;
     }
 
 
@@ -185,18 +183,28 @@ public class User
         RevokeAllRefreshTokens();
     }
 
-    private ErrorOr<Success> UpdateStatusInternal(UserStatus newStatus)
-    {
-        Status = newStatus;
-        return Result.Success;
-    }
-
     public void AddExternalAuth(ExternalAuth externalAuth)
     {
         if (_externalAuths.Any(ea => ea.Provider == externalAuth.Provider && ea.ProviderUserId == externalAuth.ProviderUserId))
             throw new InvalidOperationException("External auth already exists for this provider and user ID.");
 
         _externalAuths.Add(externalAuth);
+    }
+
+    public void CreateDriverProfile()
+    {
+        if (DriverProfile != null)
+            throw new InvalidOperationException("User already has a driver profile.");
+
+        DriverProfile = new DriverProfile(this);
+    }
+
+    public void CreateRiderProfile()
+    {
+        if (RiderProfile != null)
+            throw new InvalidOperationException("User already has a rider profile.");
+
+        RiderProfile = new RiderProfile(this, Name);
     }
 }
 

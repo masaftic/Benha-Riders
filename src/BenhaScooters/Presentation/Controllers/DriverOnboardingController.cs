@@ -2,6 +2,7 @@ using BenhaScooters.Application.Features.DriverOnboarding.Commands;
 using BenhaScooters.Application.Features.DriverOnboarding.Queries;
 using BenhaScooters.Contracts.DriverOnboarding;
 using BenhaScooters.Domain.Drivers;
+using BenhaScooters.Infrastructure.Security;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using MediatR;
@@ -11,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BenhaScooters.Presentation.Controllers;
 
 [Route("api/drivers/me/onboarding")]
-[Authorize(Roles = "Driver")]
+[Authorize(Policy = PolicyConstants.DriverPolicy)]
 public class DriverOnboardingController : BaseApiController
 {
     private readonly ISender _sender;
@@ -120,13 +121,11 @@ public class DriverOnboardingController : BaseApiController
     /// </remarks>
     [HttpPost("documents")]
     [Consumes("multipart/form-data")]
-    [DisableRequestSizeLimit]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateDocuments([FromForm] UpdateDocumentsRequest request)
     {
         var driverId = HttpContext.GetDriverId();
@@ -155,7 +154,6 @@ public class DriverOnboardingController : BaseApiController
     /// </remarks>
     [HttpPost("documents/upload")]
     [Consumes("multipart/form-data")]
-    [DisableRequestSizeLimit]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

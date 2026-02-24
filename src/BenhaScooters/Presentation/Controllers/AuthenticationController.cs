@@ -1,8 +1,8 @@
 using BenhaScooters.Application.Features.Authentication.Commands;
+using BenhaScooters.Application.Features.Authentication.Commands.Common;
 using BenhaScooters.Application.Features.Authentication.Queries;
 using BenhaScooters.Contracts.Authentication;
 using BenhaScooters.Presentation.Endpoints;
-using BenhaScooters.Presentation.Security;
 using BenhaScooters.Shared.Security;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -34,7 +34,7 @@ public class AuthenticationController : BaseApiController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var command = new LoginCommand(request.PhoneNumber, request.Password);
+        var command = new LoginCommand(request.PhoneNumber, request.Password, request.App);
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -52,7 +52,7 @@ public class AuthenticationController : BaseApiController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var command = new RegisterCommand(request.Name, request.Email, request.PhoneNumber, request.Password);
+        var command = new RegisterCommand(request.Name, request.Email, request.PhoneNumber, request.Password, request.App);
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -130,26 +130,7 @@ public class AuthenticationController : BaseApiController
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
-        var command = new RefreshTokenCommand(request.RefreshToken);
-        var result = await _sender.Send(command);
-
-        return result.Match(Ok, HandleErrors);
-    }
-
-    /// <summary>
-    /// Select user role after SMS verification
-    /// </summary>
-    /// <remarks>
-    /// Assigns a role (Rider or Driver) to a user after phone verification.
-    /// </remarks>
-    [HttpPost("select-role")]
-    [Authorize(Policy = "RoleSelected")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> SelectRole([FromBody] SelectRoleRequest request)
-    {
-        var userId = HttpContext.GetCurrentUserId();
-        var command = new SelectRoleCommand(userId, request.Role);
+        var command = new RefreshTokenCommand(request.RefreshToken, request.App);
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -162,7 +143,7 @@ public class AuthenticationController : BaseApiController
     /// Sends a 6-digit verification code to the specified phone number. Code expires after 10 minutes.
     /// </remarks>
     [HttpPost("send-sms-verification")]
-    [Authorize(Policy = "PhoneVerified")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -188,7 +169,7 @@ public class AuthenticationController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SignInWithGoogle([FromBody] SignInGoogleRequest request)
     {
-        var command = new GoogleSignInCommand(request.IdToken);
+        var command = new GoogleSignInCommand(request.IdToken, request.App);
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -201,14 +182,14 @@ public class AuthenticationController : BaseApiController
     /// Verifies the 6-digit SMS code sent to the user's phone number. Marks the phone number as verified upon successful verification.
     /// </remarks>
     [HttpPost("verify-sms-code")]
-    [Authorize(Policy = "PhoneVerified")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> VerifySmsCode([FromBody] VerifySmsCodeRequest request)
     {
         var userId = HttpContext.GetCurrentUserId();
-        var command = new VerifySmsCodeCommand(userId, request.Code);
+        var command = new VerifySmsCodeCommand(userId, request.Code, request.App);
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);

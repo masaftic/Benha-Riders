@@ -52,6 +52,18 @@ public class RiderProfile
         CreatedAt = DateTime.UtcNow;
     }
 
+    public RiderProfile(User user, string? preferredName = null)
+    {
+        User = user;
+        UserId = user.Id;
+        PreferredName = preferredName?.Trim();
+        AverageRating = 5.0m;  // Benefit of the doubt for new riders
+        TotalRatings = 1;
+        TotalTrips = 0;
+        IsActive = true;
+        CreatedAt = DateTime.UtcNow;
+    }
+
     public void UpdatePreferredName(string? preferredName)
     {
         PreferredName = preferredName?.Trim();

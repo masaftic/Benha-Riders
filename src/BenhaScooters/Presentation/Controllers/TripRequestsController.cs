@@ -4,6 +4,7 @@ using BenhaScooters.Application.Features.Trips.Commands;
 using BenhaScooters.Contracts.TripRequests;
 using BenhaScooters.Domain.Common.Geo;
 using BenhaScooters.Domain.TripRequests;
+using BenhaScooters.Infrastructure.Security;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using MediatR;
@@ -13,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BenhaScooters.Presentation.Controllers;
 
 [Route("api/trip-requests")]
-[Authorize]
+[Authorize(Policy = PolicyConstants.RiderPolicy)]
 public class TripRequestsController : BaseApiController
 {
     private readonly ISender _sender;
@@ -30,7 +31,6 @@ public class TripRequestsController : BaseApiController
     /// Creates a new trip request with pickup and dropoff locations. Calculates estimated fare and distance using the Haversine formula.
     /// </remarks>
     [HttpPost]
-    [Authorize(Policy = "RiderPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -62,7 +62,6 @@ public class TripRequestsController : BaseApiController
     /// Allows riders to cancel their pending trip requests. Only pending trips can be cancelled.
     /// </remarks>
     [HttpPost("cancel")]
-    [Authorize(Policy = "RiderPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -79,7 +78,6 @@ public class TripRequestsController : BaseApiController
     /// Confirm a trip request (after driver accepted)
     /// </summary>
     [HttpPost("{tripRequestId}/confirm")]
-    [Authorize(Policy = "RiderPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -96,7 +94,6 @@ public class TripRequestsController : BaseApiController
     /// Get current active trip request for the rider
     /// </summary>
     [HttpGet("current")]
-    [Authorize(Policy = "RiderPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -127,7 +124,6 @@ public class TripRequestsController : BaseApiController
     /// Get trip status
     /// </summary>
     [HttpGet("{tripRequestId}/status")]
-    [Authorize(Policy = "RiderPolicy")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -27,10 +27,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.PasswordHash)
             .HasMaxLength(256);
 
-        builder.Property(x => x.Status)
-            .IsRequired()
-            .HasConversion<string>();
-
         builder.HasIndex(x => x.Email);
 
         builder.HasIndex(x => x.PhoneNumber);

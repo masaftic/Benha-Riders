@@ -3,6 +3,7 @@ using System;
 using BenhaScooters.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BenhaScooters.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260222225358_UserStatusRm")]
+    partial class UserStatusRm
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -233,7 +236,7 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("DriverMatchAttempts", (string)null);
+                    b.ToTable("DriverMatchAttempts");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Matching.MatchingSession", b =>
@@ -279,7 +282,7 @@ namespace BenhaScooters.Data.Migrations
                     b.HasIndex("TripRequestId")
                         .IsUnique();
 
-                    b.ToTable("MatchingSessions", (string)null);
+                    b.ToTable("MatchingSessions");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Riders.RiderProfile", b =>
@@ -379,7 +382,7 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("TripRequests", (string)null);
+                    b.ToTable("TripRequests");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Trips.Trip", b =>
@@ -428,9 +431,6 @@ namespace BenhaScooters.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("TripRequestId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("DriverId");
@@ -439,10 +439,7 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasIndex("Status");
 
-                    b.HasIndex("TripRequestId")
-                        .IsUnique();
-
-                    b.ToTable("Trips", (string)null);
+                    b.ToTable("Trips");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Trips.TripGpsPoint", b =>
@@ -473,7 +470,7 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasIndex("TripId");
 
-                    b.ToTable("TripGpsPoints", (string)null);
+                    b.ToTable("TripGpsPoints");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Trips.TripRoute", b =>
@@ -590,7 +587,7 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasIndex("UserId", "PhoneNumber", "CreatedAt");
 
-                    b.ToTable("SmsVerificationCodes", (string)null);
+                    b.ToTable("SmsVerificationCodes");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Users.User", b =>
@@ -634,7 +631,7 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasIndex("PhoneNumber");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Users.UserRole", b =>
@@ -657,7 +654,7 @@ namespace BenhaScooters.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRoles", (string)null);
+                    b.ToTable("UserRoles");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverLocation", b =>
@@ -697,7 +694,7 @@ namespace BenhaScooters.Data.Migrations
 
                             b1.HasKey("DriverProfileUserId");
 
-                            b1.ToTable("DriverProfiles", (string)null);
+                            b1.ToTable("DriverProfiles");
 
                             b1.WithOwner()
                                 .HasForeignKey("DriverProfileUserId");
@@ -742,7 +739,7 @@ namespace BenhaScooters.Data.Migrations
 
                             b1.HasKey("DriverProfileUserId");
 
-                            b1.ToTable("DriverProfiles", (string)null);
+                            b1.ToTable("DriverProfiles");
 
                             b1.WithOwner()
                                 .HasForeignKey("DriverProfileUserId");
@@ -996,7 +993,7 @@ namespace BenhaScooters.Data.Migrations
 
                             b1.HasKey("TripRequestId");
 
-                            b1.ToTable("TripRequests", (string)null);
+                            b1.ToTable("TripRequests");
 
                             b1.WithOwner()
                                 .HasForeignKey("TripRequestId");
@@ -1024,11 +1021,6 @@ namespace BenhaScooters.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("BenhaScooters.Domain.TripRequests.TripRequest", "TripRequest")
-                        .WithOne()
-                        .HasForeignKey("BenhaScooters.Domain.Trips.Trip", "TripRequestId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.OwnsOne("BenhaScooters.Domain.Trips.ValueObjects.FareEstimate", "FinalFare", b1 =>
                         {
                             b1.Property<int>("TripId")
@@ -1048,7 +1040,7 @@ namespace BenhaScooters.Data.Migrations
 
                             b1.HasKey("TripId");
 
-                            b1.ToTable("Trips", (string)null);
+                            b1.ToTable("Trips");
 
                             b1.WithOwner()
                                 .HasForeignKey("TripId");
@@ -1077,7 +1069,7 @@ namespace BenhaScooters.Data.Migrations
 
                             b1.HasKey("TripId");
 
-                            b1.ToTable("Trips", (string)null);
+                            b1.ToTable("Trips");
 
                             b1.WithOwner()
                                 .HasForeignKey("TripId");
@@ -1108,7 +1100,7 @@ namespace BenhaScooters.Data.Migrations
 
                             b1.HasKey("TripId");
 
-                            b1.ToTable("Trips", (string)null);
+                            b1.ToTable("Trips");
 
                             b1.WithOwner()
                                 .HasForeignKey("TripId");
@@ -1124,8 +1116,6 @@ namespace BenhaScooters.Data.Migrations
                     b.Navigation("TripFare");
 
                     b.Navigation("TripPayment");
-
-                    b.Navigation("TripRequest");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Trips.TripGpsPoint", b =>

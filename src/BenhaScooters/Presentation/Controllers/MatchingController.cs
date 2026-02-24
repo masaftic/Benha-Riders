@@ -1,6 +1,7 @@
 using BenhaScooters.Application.Features.Matching.Commands;
 using BenhaScooters.Application.Features.Matching.Queries;
 using BenhaScooters.Contracts.Matching;
+using BenhaScooters.Infrastructure.Security;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using MediatR;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BenhaScooters.Presentation.Controllers;
 
 [Route("api/matching")]
-[Authorize(Policy = "OnboardedDriver")]
+[Authorize(Policy = PolicyConstants.ApprovedDriverPolicy)]
 public class MatchingController : BaseApiController
 {
     private readonly ISender _sender;
