@@ -26,4 +26,10 @@ public class DummySmsService : ISmsService
         _logger.LogWarning("🔐 [DUMMY SMS VERIFICATION] To: {PhoneNumber} | Code: {Code}", phoneNumber, code);
         return Task.CompletedTask;
     }
+
+    public Task SendPasswordResetCodeAsync(UserId userId, PhoneNumber phoneNumber, string code)
+    {
+        _logger.LogWarning("🔑 [DUMMY PASSWORD RESET] To: {PhoneNumber} | Code: {Code}", phoneNumber, code);
+        return Task.CompletedTask;
+    }
 }

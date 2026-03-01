@@ -41,6 +41,12 @@ public class WhySmsSenderService : ISmsService
         await SendSmsInternalAsync(userId, phoneNumber, SmsType.Verification, message, null);
     }
 
+    public async Task SendPasswordResetCodeAsync(UserId userId, PhoneNumber phoneNumber, string code)
+    {
+        var message = $"رمز إعادة تعيين كلمة المرور: {code}. صالح لمدة 5 دقائق.";
+        await SendSmsInternalAsync(userId, phoneNumber, SmsType.Verification, message, null);
+    }
+
     private async Task SendSmsInternalAsync(
         UserId userId,
         PhoneNumber phoneNumber,

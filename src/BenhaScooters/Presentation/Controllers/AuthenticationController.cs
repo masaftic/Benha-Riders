@@ -196,4 +196,56 @@ public class AuthenticationController : BaseApiController
 
         return result.Match(Ok, HandleErrors);
     }
+
+    /// <summary>
+    /// Request password reset
+    /// </summary>
+    /// <remarks>
+    /// Sends a 6-digit OTP code to the provided phone number for password reset. Code expires after 5 minutes.
+    /// For security reasons, the response does not reveal whether the phone number exists in the system.
+    /// </remarks>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var command = new ForgotPasswordCommand(request.PhoneNumber, ipAddress);
+        var result = await _sender.Send(command);
+
+        return result.Match(
+            response => Ok(new ForgotPasswordResponseDto(response.Message, response.NextCooldownSeconds)),
+            HandleErrors);
+    }
+
+    /// <summary>
+    /// Reset password with OTP
+    /// </summary>
+    /// <remarks>
+    /// Verifies the OTP code and resets the password in one step. 
+    /// The OTP code must be valid and not expired. All existing sessions will be invalidated after password reset.
+    /// </remarks>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> ResetPasswordWithOtp([FromBody] ResetPasswordWithOtpRequest request)
+    {
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var command = new ResetPasswordWithOtpCommand(
+            request.PhoneNumber,
+            request.OtpCode,
+            request.NewPassword,
+            request.ConfirmPassword,
+            ipAddress);
+        var result = await _sender.Send(command);
+
+        return result.Match(
+            response => Ok(new ResetPasswordResponseDto(response.Message)),
+            HandleErrors);
+    }
 }
