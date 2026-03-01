@@ -12,9 +12,9 @@ public class SmsVerificationCodeConfiguration : IEntityTypeConfiguration<SmsVeri
         builder.Property(x => x.Id)
             .ValueGeneratedOnAdd();
 
-        builder.Property(x => x.Code)
+        builder.Property(x => x.CodeHash)
             .IsRequired()
-            .HasMaxLength(10);
+            .HasMaxLength(100);
 
         builder.Property(x => x.CreatedAt)
             .IsRequired();
@@ -24,13 +24,20 @@ public class SmsVerificationCodeConfiguration : IEntityTypeConfiguration<SmsVeri
 
         builder.Property(x => x.IsUsed)
             .IsRequired();
-        
+
+        builder.Property(x => x.FailedAttempts)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder.Property(x => x.IpAddress)
+            .HasMaxLength(45); // IPv6 max length
+
         builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
         
         builder.HasIndex(x => new { x.UserId, x.PhoneNumber, x.CreatedAt });
-        builder.HasIndex(x => x.Code);
+        builder.HasIndex(x => new { x.UserId, x.IsUsed, x.ExpiresAt }); // For finding active codes
     }
 }

@@ -15,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Authentication.Commands;
 
-public record VerifySmsCodeCommand(UserId UserId, string Code, App App) : IRequest<ErrorOr<AuthenticationResponse>>;
+public record VerifySmsCodeCommand(UserId UserId, string Code, App App, string? IpAddress) : IRequest<ErrorOr<AuthenticationResponse>>;
 
 public class VerifySmsCodeCommandValidator : AbstractValidator<VerifySmsCodeCommand>
 {
@@ -35,34 +35,28 @@ public class VerifySmsCodeCommandHandler : IRequestHandler<VerifySmsCodeCommand,
 {
     private readonly AppDbContext _db;
     private readonly IAuthenticationService _authenticationService;
+    private readonly IOtpSecurityService _otpSecurity;
 
-    public VerifySmsCodeCommandHandler(AppDbContext db, IAuthenticationService authenticationService)
+    public VerifySmsCodeCommandHandler(
+        AppDbContext db,
+        IAuthenticationService authenticationService,
+        IOtpSecurityService otpSecurity)
     {
         _db = db;
         _authenticationService = authenticationService;
+        _otpSecurity = otpSecurity;
     }
 
     public async Task<ErrorOr<AuthenticationResponse>> Handle(VerifySmsCodeCommand request, CancellationToken cancellationToken)
     {
-        // Find the verification code
-        var verificationCode = await _db.SmsVerificationCodes
-            .Where(x => x.UserId == request.UserId && x.Code == request.Code)
-            .OrderByDescending(x => x.CreatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (verificationCode is null)
+        // Delegate verification to OtpSecurityService (handles brute-force, rate limiting, etc.)
+        var verifyResult = await _otpSecurity.VerifyCodeAsync(request.UserId, request.Code, request.IpAddress, cancellationToken);
+        if (verifyResult.IsError)
         {
-            return UserErrors.InvalidVerificationCode;
+            return verifyResult.Errors;
         }
 
-        if (!verificationCode.IsValid)
-        {
-            return verificationCode.IsUsed ? UserErrors.VerificationCodeAlreadyUsed : UserErrors.VerificationCodeExpired;
-        }
-
-        // Mark code as used and verify user's phone number
-        verificationCode.MarkAsUsed();
-
+        // Code is valid — proceed with user verification
         var user = await _db.Users
             .Include(u => u.DriverProfile)
             .Include(u => u.RiderProfile)
@@ -73,19 +67,14 @@ public class VerifySmsCodeCommandHandler : IRequestHandler<VerifySmsCodeCommand,
             return UserErrors.UserNotFound;
         }
 
-        user.VerifyPhoneNumber(verificationCode.PhoneNumber);
-
-        // Load or create profiles based on app
-        var driverProfile = user.DriverProfile;
-
-        var riderProfile = user.RiderProfile;
+        user.VerifyPhoneNumber(user.PhoneNumber);
 
         // Create profile if it doesn't exist for the requested app
-        if (request.App == App.DriverApp && driverProfile is null)
+        if (request.App == App.DriverApp && user.DriverProfile is null)
         {
             user.CreateDriverProfile();
         }
-        else if (request.App == App.RiderApp && riderProfile is null)
+        else if (request.App == App.RiderApp && user.RiderProfile is null)
         {
             user.CreateRiderProfile();
         }

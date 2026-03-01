@@ -26,6 +26,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Infrastructure.GoogleMaps;
 using BenhaScooters.Infrastructure.Security;
+using System.Net.Http.Headers;
 
 namespace BenhaScooters.Infrastructure;
 
@@ -99,7 +100,40 @@ public static class DependencyInjection
         services.AddScoped<DataSeeder>();
         services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<IJwtService, JwtService>();
-        services.AddScoped<ISmsService, DevSmsService>();
+
+        // SMS Service Configuration
+        services.AddOptions<SmsOptions>()
+            .Bind(configuration.GetSection(SmsOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        // Register SMS service conditionally based on configuration
+        var smsOptions = configuration.GetSection(SmsOptions.SectionName).Get<SmsOptions>();
+        if (smsOptions?.EnableRealSmsSending == true)
+        {
+            services.AddHttpClient<ISmsService, WhySmsSenderService>()
+                .ConfigureHttpClient((sp, client) =>
+                {
+                    var options = sp.GetRequiredService<IOptions<SmsOptions>>().Value;
+                    client.BaseAddress = new Uri(options.ApiUrl);
+                    client.Timeout = TimeSpan.FromSeconds(options.RequestTimeoutSeconds);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
+                });
+        }
+        else
+        {
+            services.AddScoped<ISmsService, DummySmsService>();
+        }
+
+        // OTP Security
+        services.AddOptions<OtpSecurityOptions>()
+            .Bind(configuration.GetSection(OtpSecurityOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddScoped<OtpRateLimiter>();
+        services.AddScoped<IOtpRateLimiter>(sp => sp.GetRequiredService<OtpRateLimiter>());
+        services.AddScoped<IOtpFraudDetector, OtpFraudDetector>();
+        services.AddScoped<IOtpSecurityService, OtpSecurityService>();
         services.AddScoped<IFareEstimator, FareEstimator>();
         services.AddScoped<IGeoService, GeoService>();
 
@@ -113,8 +147,6 @@ public static class DependencyInjection
         services.AddHostedService<HungTripCleanupService>();
 
         services.AddScoped<PublishDomainEventsInterceptor>();
-
-
 
         var jwtOptions = new JwtOptions();
         configuration.Bind(JwtOptions.SectionName, jwtOptions);

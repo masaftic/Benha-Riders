@@ -11,26 +11,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BenhaScooters.Application.Features.Authentication.Commands;
 
-public record SendSmsVerificationCommand(UserId UserId, PhoneNumber PhoneNumber) : IRequest<ErrorOr<SendSmsVerificationResponse>>;
+public record SendSmsVerificationCommand(UserId UserId, PhoneNumber PhoneNumber, string? IpAddress) : IRequest<ErrorOr<SendSmsVerificationResponse>>;
 
 
-public record SendSmsVerificationResponse(string Message);
+public record SendSmsVerificationResponse(string Message, int NextCooldownSeconds);
 
 public class SendSmsVerificationCommandHandler : IRequestHandler<SendSmsVerificationCommand, ErrorOr<SendSmsVerificationResponse>>
 {
     private readonly AppDbContext _db;
     private readonly ISmsService _smsService;
+    private readonly IOtpSecurityService _otpSecurity;
 
-    public SendSmsVerificationCommandHandler(AppDbContext db, ISmsService smsService)
+    public SendSmsVerificationCommandHandler(AppDbContext db, ISmsService smsService, IOtpSecurityService otpSecurity)
     {
         _db = db;
         _smsService = smsService;
+        _otpSecurity = otpSecurity;
     }
 
     public async Task<ErrorOr<SendSmsVerificationResponse>> Handle(SendSmsVerificationCommand request, CancellationToken cancellationToken)
     {
-        var normalizedPhone = request.PhoneNumber;
-        
         var user = await _db.Users
             .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
 
@@ -44,27 +44,18 @@ public class SendSmsVerificationCommandHandler : IRequestHandler<SendSmsVerifica
             return UserErrors.PhoneAlreadyVerified;
         }
 
-        // Check if there's a recent verification code (prevent spam)
-        var recentCode = await _db.SmsVerificationCodes
-            .Where(x => x.UserId == user.Id && x.CreatedAt > DateTime.UtcNow.AddMinutes(-1))
-            .OrderByDescending(x => x.CreatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (recentCode != null)
+        // Delegate all security checks to OtpSecurityService
+        var otpResult = await _otpSecurity.RequestCodeAsync(request.UserId, request.PhoneNumber, request.IpAddress, cancellationToken);
+        if (otpResult.IsError)
         {
-            return UserErrors.TooManyVerificationRequests;
+            return otpResult.Errors;
         }
 
-        // Generate and save verification code
-        var code = SmsVerificationCode.GenerateCode();
-        var verificationCode = new SmsVerificationCode(user.Id, normalizedPhone, code, TimeSpan.FromMinutes(10));
-        
-        _db.SmsVerificationCodes.Add(verificationCode);
-        await _db.SaveChangesAsync(cancellationToken);
+        // Send SMS (the plaintext code is only used here, never stored)
+        await _smsService.SendVerificationCodeAsync(user.Id, request.PhoneNumber, otpResult.Value.Code);
 
-        // Send SMS
-        await _smsService.SendVerificationCodeAsync(normalizedPhone, code);
-
-        return new SendSmsVerificationResponse(code); // In production, this should be "Verification code sent successfully"
+        return new SendSmsVerificationResponse(
+            "تم إرسال رمز التحقق بنجاح.",
+            otpResult.Value.NextCooldownSeconds);
     }
 }

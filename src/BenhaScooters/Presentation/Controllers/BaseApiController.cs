@@ -33,6 +33,14 @@ public class BaseApiController : ControllerBase
 
     private static int MapToStatusCode(Error error)
     {
+        var normalTypes = Enum.GetValues<ErrorType>();
+
+        // Error.Custom uses NumericType to carry the HTTP status code
+        if (!normalTypes.Contains(error.Type) && error.NumericType is >= 400 and < 600)
+        {
+            return error.NumericType;
+        }
+
         return error.Type switch
         {
             ErrorType.Validation => StatusCodes.Status400BadRequest,

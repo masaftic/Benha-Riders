@@ -20,6 +20,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, PublishDomainE
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<SmsVerificationCode> SmsVerificationCodes => Set<SmsVerificationCode>();
+    public DbSet<OtpSecurityEvent> OtpSecurityEvents => Set<OtpSecurityEvent>();
+    public DbSet<SmsLog> SmsLogs => Set<SmsLog>();
 
     // Rider (new structure)
     public DbSet<RiderProfile> RiderProfiles => Set<RiderProfile>();

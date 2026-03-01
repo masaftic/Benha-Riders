@@ -150,7 +150,8 @@ public class AuthenticationController : BaseApiController
     public async Task<IActionResult> SendSmsVerification([FromBody] SendSmsVerificationRequest request)
     {
         var userId = HttpContext.GetCurrentUserId();
-        var command = new SendSmsVerificationCommand(userId, request.PhoneNumber);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var command = new SendSmsVerificationCommand(userId, request.PhoneNumber, ipAddress);
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -189,7 +190,8 @@ public class AuthenticationController : BaseApiController
     public async Task<IActionResult> VerifySmsCode([FromBody] VerifySmsCodeRequest request)
     {
         var userId = HttpContext.GetCurrentUserId();
-        var command = new VerifySmsCodeCommand(userId, request.Code, request.App);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var command = new VerifySmsCodeCommand(userId, request.Code, request.App, ipAddress);
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);

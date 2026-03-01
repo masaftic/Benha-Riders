@@ -44,6 +44,40 @@ public static class UserErrors
             {"Detail", "يمكنك طلب رمز تحقق جديد بعد دقيقة واحدة."}
         });
 
+    public static Error OtpRateLimitExceeded(int retryAfterSeconds) => Error.Custom(
+        429,
+        "OTP_RATE_LIMIT_EXCEEDED",
+        "لقد تجاوزت الحد المسموح لطلبات رمز التحقق.",
+        metadata: new Dictionary<string, object>
+        {
+            { "RetryAfterSeconds", retryAfterSeconds },
+            { "Detail", $"يرجى المحاولة مرة أخرى بعد {retryAfterSeconds} ثانية." }
+        });
+
+    public static Error OtpDailyLimitExceeded => Error.Custom(
+        429,
+        "OTP_DAILY_LIMIT_EXCEEDED",
+        "لقد تجاوزت الحد اليومي لطلبات رمز التحقق. حاول مرة أخرى غدًا.");
+
+    public static Error OtpCodeLocked => Error.Validation(
+        "OTP_CODE_LOCKED",
+        "تم قفل رمز التحقق بسبب عدد كبير من المحاولات الفاشلة. يرجى طلب رمز جديد.");
+
+    public static Error OtpVerificationLocked(int retryAfterSeconds) => Error.Custom(
+        429,
+        "OTP_VERIFICATION_LOCKED",
+        "تم قفل التحقق مؤقتًا بسبب محاولات فاشلة متعددة.",
+        metadata: new Dictionary<string, object>
+        {
+            { "RetryAfterSeconds", retryAfterSeconds },
+            { "Detail", $"يرجى المحاولة مرة أخرى بعد {retryAfterSeconds} ثانية." }
+        });
+
+    public static Error OtpFraudSuspected => Error.Custom(
+        403,
+        "OTP_FRAUD_SUSPECTED",
+        "تم اكتشاف نشاط مريب. تم تعليق التحقق مؤقتًا.");
+
     public static Error IncorrectCurrentPassword => Error.Validation(
         "INCORRECT_CURRENT_PASSWORD", 
         "كلمة المرور الحالية غير صحيحة.");
