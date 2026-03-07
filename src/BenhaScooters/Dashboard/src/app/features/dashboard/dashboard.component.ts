@@ -27,11 +27,6 @@ export class DashboardComponent {
 
   isSidebarCollapsed = signal(false);
   menuItems: MenuItem[] = [
-    // {
-    //   label: 'Home',
-    //   icon: 'pi pi-home',
-    //   routerLink: '/dashboard/home'
-    // },
     {
       label: 'Drivers',
       icon: 'pi pi-car',

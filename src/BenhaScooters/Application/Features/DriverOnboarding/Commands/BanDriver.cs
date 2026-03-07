@@ -26,7 +26,7 @@ public class BanDriverCommandValidator : AbstractValidator<BanDriverCommand>
 }
 
 
-public class RejectDriverCommandHandler(AppDbContext db) : IRequestHandler<BanDriverCommand, ErrorOr<Success>>
+public class BanDriverCommandHandler(AppDbContext db) : IRequestHandler<BanDriverCommand, ErrorOr<Success>>
 {
     private readonly AppDbContext _db = db;
 

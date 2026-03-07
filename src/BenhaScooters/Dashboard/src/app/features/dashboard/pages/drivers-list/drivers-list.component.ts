@@ -1,4 +1,4 @@
-import { Component, inject, signal, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy, computed, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { DriverService } from '../../../../core/services/driver.service';
 import { DriverSummary, OnboardingStatus } from '../../../../core/models/driver.model';
@@ -8,6 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { catchError, of, switchMap, tap } from 'rxjs';
+import { DriversPageStore } from './drivers-store';
 
 @Component({
   selector: 'app-drivers-list',
@@ -22,73 +23,31 @@ import { catchError, of, switchMap, tap } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DriversListComponent {
-  private readonly driverService = inject(DriverService);
+  // private readonly driverService = inject(DriverService);
   private readonly messageService = inject(MessageService);
   private readonly router = inject(Router);
 
-  drivers = signal<DriverSummary[]>([]);
-  totalRecords = signal<number>(0);
-  loading = signal<boolean>(false);
-
-  selectedStatus = signal<OnboardingStatus>('UnderReview');
-  pageNumber = signal<number>(1);
-  pageSize = signal<number>(10);
-
   statuses: OnboardingStatus[] = ['Incomplete', 'UnderReview', 'Approved', 'Rejected', 'Suspended'];
 
-  query = computed(() => ({
-    onboardingStatus: this.selectedStatus(),
-    pageNumber: this.pageNumber(),
-    pageSize: this.pageSize()
-  }));
+  protected readonly store = inject(DriversPageStore);
 
   constructor() {
-    toObservable(this.query).pipe(
-      tap(() => this.loading.set(true)),
-      switchMap(query =>
-        this.driverService.getAll(query).pipe(
-          catchError(() => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Failed to fetch drivers'
-            });
-            this.loading.set(false);
-            return of(null);
-          })
-        )
-      )
-    ).subscribe(response => {
-      if (!response) return;
+    this.store.loadByQuery(this.store.query);
 
-      this.drivers.set(response.items);
-      this.totalRecords.set(response.totalCount);
-      this.loading.set(false);
-    });
+    effect(() => {
+      console.log(`is loading: ${this.store.loading()}`);
+    })
   }
 
   onStatusChange(status: OnboardingStatus): void {
-    this.selectedStatus.set(status);
-    this.pageNumber.set(1);
+    this.store.updateStatus(status);
   }
 
   onPageChange(event: TableLazyLoadEvent): void {
-    this.pageNumber.set((event.first! / event.rows!) + 1);
-    this.pageSize.set(event.rows!);
+    this.store.updatePage(event);
   }
 
   viewDetails(driver: DriverSummary): void {
     this.router.navigate(['/dashboard/drivers', driver.id]);
-  }
-
-  getStatusSeverity(status: OnboardingStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    const severityMap: Record<OnboardingStatus, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
-      'Incomplete': 'warn',
-      'UnderReview': 'info',
-      'Approved': 'success',
-      'Rejected': 'danger',
-      'Suspended': 'secondary'
-    };
-    return severityMap[status];
   }
 }

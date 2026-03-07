@@ -35,6 +35,7 @@ export class DriverDetailsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
 
   driver = signal<DriverDetails | null>(null);
+  driverId: number | null = null;
   loading = signal<boolean>(true);
   actionLoading = signal<boolean>(false);
   showBanModal = signal<boolean>(false);
@@ -43,7 +44,8 @@ export class DriverDetailsComponent implements OnInit {
   ngOnInit(): void {
     const driverId = this.route.snapshot.paramMap.get('id');
     if (driverId) {
-      this.loadDriverDetails(Number(driverId));
+      this.driverId = Number(driverId);
+      this.loadDriverDetails(this.driverId);
     }
   }
 
@@ -51,6 +53,7 @@ export class DriverDetailsComponent implements OnInit {
     this.loading.set(true);
     this.driverService.getById(id).subscribe({
       next: (driver) => {
+        console.log('Fetched driver details:', driver);
         this.driver.set(driver);
         this.loading.set(false);
       },
@@ -70,7 +73,7 @@ export class DriverDetailsComponent implements OnInit {
     if (!driver) return;
 
     this.actionLoading.set(true);
-    this.driverService.approve(driver.userId).subscribe({
+    this.driverService.approve(this.driverId!).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
@@ -98,7 +101,7 @@ export class DriverDetailsComponent implements OnInit {
   onBanConfirm(): void {
     const driver = this.driver();
     const reason = this.banReason();
-    
+
     if (!driver || !reason.trim()) {
       this.messageService.add({
         severity: 'warn',
@@ -109,7 +112,7 @@ export class DriverDetailsComponent implements OnInit {
     }
 
     this.actionLoading.set(true);
-    this.driverService.ban(driver.userId, reason).subscribe({
+    this.driverService.ban(this.driverId!, reason).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',

@@ -42,6 +42,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<Authent
     public async Task<ErrorOr<AuthenticationResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         var user = await _db.Users
+            .Include(u => u.Roles)
             .Include(u => u.DriverProfile)
             .Include(u => u.RiderProfile)
             .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber, cancellationToken);

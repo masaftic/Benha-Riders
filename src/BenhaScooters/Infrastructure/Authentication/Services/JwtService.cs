@@ -53,6 +53,11 @@ public class JwtService : IJwtService
             claims.Add(new Claim(JwtClaims.DriverOnboardingStatus, driverProfile.OnboardingStatus.ToString()));
         }
 
+        if (user.HasRole(RoleName.Admin))
+        {
+            claims.Add(new Claim("roles", RoleName.Admin.ToString()));
+        }
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),

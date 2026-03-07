@@ -11,8 +11,8 @@
           type="button"
           pButton
           [label]="status"
-          [severity]="selectedStatus() === status ? getStatusSeverity(status) : 'secondary'"
-          [outlined]="selectedStatus() !== status"
+          [severity]="this.store.selectedStatus() === status ? 'primary' : 'secondary'"
+          [outlined]="this.store.selectedStatus() !== status"
           (click)="onStatusChange(status)"
         ></button>
       }
@@ -21,15 +21,15 @@
 
   <div class="card">
     <p-table
-      [value]="drivers()"
+      [value]="store.drivers()"
       [lazy]="true"
       [paginator]="true"
-      [rows]="pageSize()"
-      [totalRecords]="totalRecords()"
+      [rows]="store.pageSize()"
+      [totalRecords]="store.totalRecords()"
       [rowsPerPageOptions]="[5, 10, 20, 50]"
       [showCurrentPageReport]="true"
-      [loading]="loading()"
-      [first]="(pageNumber() - 1) * pageSize()"
+      [loading]="store.loading()"
+      [first]="(store.pageNumber() - 1) * store.pageSize()"
       (onLazyLoad)="onPageChange($event)"
       stripedRows
       currentPageReportTemplate="Showing {first} to {last} of {totalRecords} drivers"
@@ -66,13 +66,13 @@
       </ng-template>
       <ng-template #body let-driver let-rowIndex="rowIndex">
         <tr>
-          <td>{{ (pageNumber() - 1) * pageSize() + rowIndex + 1 }}</td>
+          <td>{{ (store.pageNumber() - 1) * store.pageSize() + rowIndex + 1 }}</td>
           <td>{{ driver.fullName }}</td>
           <td>{{ driver.phoneNumber }}</td>
           <td>
             <span
               class="px-2 py-1 rounded-full text-sm font-semibold"
-              [class]="'p-badge p-badge-' + getStatusSeverity(driver.status)"
+              [class]="'p-badge p-badge-' + store.severityStatus()"
             >
               {{ driver.status }}
             </span>

@@ -19,41 +19,6 @@ export const routes: Routes = [
         pathMatch: 'full'
       },
       {
-        path: 'home',
-        loadComponent: () =>
-          import('./features/dashboard/pages/home/home.component').then((m) => m.HomeComponent)
-      },
-      {
-        path: 'tags',
-        loadComponent: () =>
-          import('./features/dashboard/pages/tags/tags.component').then((m) => m.TagsComponent)
-      },
-      {
-        path: 'videos',
-        loadComponent: () =>
-          import('./features/dashboard/pages/videos/videos.component').then((m) => m.VideosComponent)
-      },
-      {
-        path: 'videos/create',
-        loadComponent: () =>
-          import('./features/dashboard/pages/video-form/video-form.component').then((m) => m.VideoFormComponent)
-      },
-      {
-        path: 'videos/edit/:id',
-        loadComponent: () =>
-          import('./features/dashboard/pages/video-form/video-form.component').then((m) => m.VideoFormComponent)
-      },
-      {
-        path: 'parents-list',
-        loadComponent: () =>
-          import('./features/dashboard/pages/parents-list/parents-list.component').then((m) => m.ParentsList)
-      },
-      {
-        path: 'parents-list/:id',
-        loadComponent: () =>
-          import('./features/dashboard/pages/parents-list/parent-details/parent-details.component').then((m) => m.ParentDetails)
-      },
-      {
         path: 'drivers',
         loadComponent: () =>
           import('./features/dashboard/pages/drivers-list/drivers-list.component').then((m) => m.DriversListComponent)
@@ -62,11 +27,6 @@ export const routes: Routes = [
         path: 'drivers/:id',
         loadComponent: () =>
           import('./features/dashboard/pages/driver-details/driver-details.component').then((m) => m.DriverDetailsComponent)
-      },
-      {
-        path: 'news',
-        loadComponent: () =>
-          import('./features/dashboard/pages/news/news').then((m) => m.News)
       },
       {
         path: 'contact-us',
