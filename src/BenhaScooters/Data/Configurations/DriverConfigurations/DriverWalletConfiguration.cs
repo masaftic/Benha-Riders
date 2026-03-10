@@ -9,9 +9,9 @@ public class DriverWalletConfiguration : IEntityTypeConfiguration<DriverWallet>
     public void Configure(EntityTypeBuilder<DriverWallet> builder)
     {
         builder.ToTable("DriverWallets");
-        
+
         builder.HasKey(x => x.Id);
-        
+
         builder.Property(x => x.Id)
             .ValueGeneratedOnAdd();
 
@@ -34,39 +34,53 @@ public class DriverWalletConfiguration : IEntityTypeConfiguration<DriverWallet>
             .IsRequired();
 
         // Configure transactions as owned collection
-        builder.OwnsMany(x => x.Transactions, transaction =>
-        {
-            transaction.ToTable("WalletTransactions");
-            
-            transaction.WithOwner()
-                .HasForeignKey(t => t.WalletId);
-
-            transaction.HasKey(t => t.Id);
-            
-            transaction.Property(t => t.Id)
-                .ValueGeneratedOnAdd();
-
-            transaction.Property(t => t.Type)
-                .HasConversion<string>()
-                .IsRequired();
-
-            transaction.Property(t => t.Amount)
-                .HasPrecision(18, 2)
-                .IsRequired();
-
-            transaction.Property(t => t.BalanceAfter)
-                .HasPrecision(18, 2)
-                .IsRequired();
-
-            transaction.Property(t => t.Description)
-                .HasMaxLength(500)
-                .IsRequired();
-
-            transaction.Property(t => t.CreatedAt)
-                .IsRequired();
-
-            transaction.HasIndex(t => t.TripId);
-            transaction.HasIndex(t => t.CreatedAt);
-        });
+        builder.HasMany(x => x.Transactions)
+            .WithOne()
+            .HasForeignKey(t => t.WalletId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+
+public class WalletTransactionsConfiguration : IEntityTypeConfiguration<WalletTransaction>
+{
+    public void Configure(EntityTypeBuilder<WalletTransaction> builder)
+    {
+        builder.ToTable("WalletTransactions");
+
+        builder.HasKey(t => t.Id);
+
+        builder.Property(t => t.Id)
+            .ValueGeneratedOnAdd();
+
+        builder.Property(t => t.Type)
+            .HasConversion<string>()
+            .IsRequired();
+
+        builder.Property(t => t.Amount)
+            .HasPrecision(18, 2)
+            .IsRequired();
+
+        builder.Property(t => t.BalanceAfter)
+            .HasPrecision(18, 2)
+            .IsRequired();
+
+        builder.Property(t => t.Description)
+            .HasMaxLength(500)
+            .IsRequired();
+
+        builder.Property(t => t.DescriptionKey)
+            .HasMaxLength(100)
+            .IsRequired();
+
+        builder.Property(t => t.DescriptionParams)
+            .HasMaxLength(1000);
+
+        builder.Property(t => t.CreatedAt)
+            .IsRequired();
+
+        builder.HasIndex(t => t.TripId);
+        builder.HasIndex(t => t.CreatedAt);
+    }
+}
+

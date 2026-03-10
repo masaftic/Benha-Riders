@@ -3,6 +3,7 @@ using System;
 using BenhaScooters.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BenhaScooters.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260308232058_TopupRequests")]
+    partial class TopupRequests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -233,60 +236,6 @@ namespace BenhaScooters.Data.Migrations
                     b.HasIndex("WalletId");
 
                     b.ToTable("WalletTopUpRequests", (string)null);
-                });
-
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.WalletTransaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<decimal>("BalanceAfter")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("DescriptionKey")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("DescriptionParams")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<int?>("TripId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("WalletId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("TripId");
-
-                    b.HasIndex("WalletId");
-
-                    b.ToTable("WalletTransactions", (string)null);
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Matching.DriverMatchAttempt", b =>
@@ -1084,7 +1033,63 @@ namespace BenhaScooters.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.OwnsMany("BenhaScooters.Domain.Drivers.WalletTransaction", "Transactions", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
+
+                            b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("numeric(18,2)");
+
+                            b1.Property<decimal>("BalanceAfter")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("numeric(18,2)");
+
+                            b1.Property<DateTime>("CreatedAt")
+                                .HasColumnType("timestamp with time zone");
+
+                            b1.Property<string>("Description")
+                                .IsRequired()
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)");
+
+                            b1.Property<int?>("TripId")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Type")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<int>("WalletId")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("CreatedAt");
+
+                            b1.HasIndex("TripId");
+
+                            b1.HasIndex("WalletId");
+
+                            b1.ToTable("WalletTransactions", (string)null);
+
+                            b1.HasOne("BenhaScooters.Domain.Trips.Trip", "Trip")
+                                .WithMany()
+                                .HasForeignKey("TripId");
+
+                            b1.WithOwner()
+                                .HasForeignKey("WalletId");
+
+                            b1.Navigation("Trip");
+                        });
+
                     b.Navigation("Driver");
+
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Drivers.WalletTopUpRequest", b =>
@@ -1104,21 +1109,6 @@ namespace BenhaScooters.Data.Migrations
                     b.Navigation("Driver");
 
                     b.Navigation("Wallet");
-                });
-
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.WalletTransaction", b =>
-                {
-                    b.HasOne("BenhaScooters.Domain.Trips.Trip", "Trip")
-                        .WithMany()
-                        .HasForeignKey("TripId");
-
-                    b.HasOne("BenhaScooters.Domain.Drivers.DriverWallet", null)
-                        .WithMany("Transactions")
-                        .HasForeignKey("WalletId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Trip");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Matching.DriverMatchAttempt", b =>
@@ -1432,11 +1422,6 @@ namespace BenhaScooters.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("BenhaScooters.Domain.Drivers.DriverWallet", b =>
-                {
-                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("BenhaScooters.Domain.Matching.MatchingSession", b =>

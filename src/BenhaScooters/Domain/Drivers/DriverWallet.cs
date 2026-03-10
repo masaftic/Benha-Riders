@@ -1,6 +1,7 @@
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Users;
+using System.Text.Json;
 using Thinktecture;
 
 
@@ -78,13 +79,19 @@ public class DriverWallet : AggregateRoot
 
         Balance -= amount;
         UpdatedAt = DateTime.UtcNow;
-        
-        _transactions.Add(new WalletTransaction(
+
+        var trx = new WalletTransaction(
             Id,
             WalletTransactionType.TripCommission,
             -amount,  // Negative for debit
             tripId,
-            description));
+            description,
+            "trip_commission",
+            JsonSerializer.Serialize(new { tripId }));
+        
+        _transactions.Add(trx);
+
+        trx.SetBalanceAfter(Balance); // Set balance after applying transaction
 
         return Result.Success;
     }
@@ -99,13 +106,19 @@ public class DriverWallet : AggregateRoot
 
         Balance += amount;
         UpdatedAt = DateTime.UtcNow;
-        
-        _transactions.Add(new WalletTransaction(
+
+        var trx = new WalletTransaction(
             Id,
             WalletTransactionType.Settlement,
             amount,  // Positive for credit
             null,
-            $"Settlement: {reference}"));
+            $"Settlement: {reference}",
+            "settlement",
+            JsonSerializer.Serialize(new { reference }));
+        
+        _transactions.Add(trx);
+
+        trx.SetBalanceAfter(Balance); // Set balance after applying transaction
 
         return Result.Success;
     }
@@ -124,14 +137,35 @@ public class DriverWallet : AggregateRoot
         Balance += amount;
         UpdatedAt = DateTime.UtcNow;
         
-        _transactions.Add(new WalletTransaction(
+        var trx = new WalletTransaction(
             Id,
             WalletTransactionType.Adjustment,
             amount,
             null,
-            $"Adjustment: {reason}"));
+            $"Adjustment: {reason}",
+            "adjustment",
+            JsonSerializer.Serialize(new { reason }));
+        
+        _transactions.Add(trx);
+
+        trx.SetBalanceAfter(Balance); // Set balance after applying transaction
 
         return Result.Success;
+    }
+
+    /// <summary>
+    /// Create a top-up request for admin review.
+    /// Returns an error if there is already a pending top-up request.
+    /// </summary>
+    public ErrorOr<WalletTopUpRequest> CreateTopUpRequest(decimal amount, string receiptUrl, bool hasPendingRequest)
+    {
+        if (amount <= 0)
+            return WalletErrors.InvalidAmount;
+
+        if (hasPendingRequest)
+            return WalletErrors.PendingTopUpExists;
+
+        return new WalletTopUpRequest(Id, DriverUserId, amount, receiptUrl);
     }
 
     /// <summary>
@@ -145,71 +179,19 @@ public class DriverWallet : AggregateRoot
         Balance += amount;
         UpdatedAt = DateTime.UtcNow;
         
-        _transactions.Add(new WalletTransaction(
+        var trx = new WalletTransaction(
             Id,
             WalletTransactionType.Refund,
             amount,  // Positive for credit
             tripId,
-            $"Refund: {reason}"));
+            $"Refund: {reason}",
+            "refund",
+            JsonSerializer.Serialize(new { reason, tripId }));
+
+        _transactions.Add(trx);
+
+        trx.SetBalanceAfter(Balance); // Set balance after applying transaction
 
         return Result.Success;
-    }
-}
-
-/// <summary>
-/// Individual wallet transaction record.
-/// </summary>
-public class WalletTransaction
-{
-    public WalletTransactionId Id { get; private set; }
-    public DriverWalletId WalletId { get; private set; }
-    public WalletTransactionType Type { get; private set; }
-    
-    /// <summary>
-    /// Transaction amount. Negative for debits, positive for credits.
-    /// </summary>
-    public decimal Amount { get; private set; }
-    
-    /// <summary>
-    /// Balance after this transaction was applied.
-    /// </summary>
-    public decimal BalanceAfter { get; private set; }
-    
-    /// <summary>
-    /// Related trip ID (for commission/refund transactions).
-    /// </summary>
-    public TripId? TripId { get; private set; }
-    public Trip? Trip { get; private set; }
-    
-    /// <summary>
-    /// Description or reference for this transaction.
-    /// </summary>
-    public string Description { get; private set; } = null!;
-    
-    public DateTime CreatedAt { get; private set; }
-
-    private WalletTransaction() { } // For EF Core
-
-    public WalletTransaction(
-        DriverWalletId walletId,
-        WalletTransactionType type,
-        decimal amount,
-        TripId? tripId,
-        string description)
-    {
-        WalletId = walletId;
-        Type = type;
-        Amount = amount;
-        TripId = tripId;
-        Description = description ?? string.Empty;
-        CreatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>
-    /// Set the balance after transaction (called by wallet during save).
-    /// </summary>
-    internal void SetBalanceAfter(decimal balance)
-    {
-        BalanceAfter = balance;
     }
 }

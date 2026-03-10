@@ -16,5 +16,5 @@ public class DriverWalletOptions
     /// The maximum debt limit allowed for a driver's wallet in EGP.
     /// </summary>
     [Range(0, 1000)]
-    public double DebtLimitEgp { get; set; }
+    public decimal DebtLimitEgp { get; set; }
 }

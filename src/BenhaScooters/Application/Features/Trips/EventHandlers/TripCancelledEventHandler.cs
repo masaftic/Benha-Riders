@@ -4,6 +4,9 @@ using BenhaScooters.Domain.Trips.Events;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using BenhaScooters.Data;
+using Microsoft.EntityFrameworkCore;
+using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Application.Features.Trips.EventHandlers;
 
@@ -13,17 +16,20 @@ namespace BenhaScooters.Application.Features.Trips.EventHandlers;
 public class TripCancelledEventHandler : INotificationHandler<TripCancelledEvent>
 {
     private readonly ILogger<TripCancelledEventHandler> _logger;
+    private readonly AppDbContext _dbContext;
     private readonly IHubContext<RiderHub, IRiderNotifications> _riderHub;
     private readonly IHubContext<DriverHub, IDriverNotifications> _driverHub;
 
     public TripCancelledEventHandler(
         ILogger<TripCancelledEventHandler> logger,
         IHubContext<RiderHub, IRiderNotifications> riderHub,
-        IHubContext<DriverHub, IDriverNotifications> driverHub)
+        IHubContext<DriverHub, IDriverNotifications> driverHub,
+        AppDbContext dbContext)
     {
         _logger = logger;
         _riderHub = riderHub;
         _driverHub = driverHub;
+        _dbContext = dbContext;
     }
 
     public async Task Handle(TripCancelledEvent notification, CancellationToken cancellationToken)
@@ -39,6 +45,13 @@ public class TripCancelledEventHandler : INotificationHandler<TripCancelledEvent
             TripId: notification.TripId,
             CancellationReason: notification.CancellationReason,
             CancelledAt: notification.OccurredAt);
+
+        var driverStatus = await _dbContext.DriverStatuses.FirstOrDefaultAsync(ds => ds.UserId == notification.DriverId, cancellationToken);
+        if (driverStatus != null)
+        {
+            driverStatus.UpdateStatus(DriverAvailabilityStatus.Online);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
 
         // Notify rider via SignalR
         if (notification.RiderId != notification.CancelledBy)

@@ -272,4 +272,20 @@ public static class WalletErrors
     public static Error InsufficientBalance(decimal required, decimal available) => Error.Conflict(
         "WALLET_INSUFFICIENT_BALANCE",
         $"الرصيد غير كافٍ. المطلوب: {required}, المتاح: {available}");
+
+    public static readonly Error TopUpRequestAlreadyReviewed = Error.Conflict(
+        "WALLET_TOPUP_ALREADY_REVIEWED",
+        "تم مراجعة طلب الشحن مسبقاً.");
+
+    public static readonly Error RejectionReasonRequired = Error.Validation(
+        "WALLET_TOPUP_REJECTION_REASON_REQUIRED",
+        "يجب تقديم سبب الرفض.");
+
+    public static readonly Error TopUpRequestNotFound = Error.NotFound(
+        "WALLET_TOPUP_NOT_FOUND",
+        "طلب الشحن غير موجود.");
+
+    public static readonly Error PendingTopUpExists = Error.Conflict(
+        "WALLET_TOPUP_PENDING_EXISTS",
+        "يوجد طلب شحن معلق بالفعل. يرجى انتظار مراجعته قبل إرسال طلب جديد.");
 }
