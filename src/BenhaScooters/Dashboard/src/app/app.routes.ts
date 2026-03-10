@@ -29,6 +29,11 @@ export const routes: Routes = [
           import('./features/dashboard/pages/driver-details/driver-details.component').then((m) => m.DriverDetailsComponent)
       },
       {
+        path: 'top-up-requests',
+        loadComponent: () =>
+          import('./features/dashboard/pages/top-up-requests/top-up-requests.component').then((m) => m.TopUpRequestsComponent)
+      },
+      {
         path: 'contact-us',
         loadComponent: () =>
           import('./features/dashboard/pages/contact-us/contact-us').then((m) => m.ContactUs)

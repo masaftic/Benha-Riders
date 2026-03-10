@@ -32,6 +32,11 @@ export class DashboardComponent {
       icon: 'pi pi-car',
       routerLink: '/dashboard/drivers'
     },
+    {
+      label: 'Top-Up Requests',
+      icon: 'pi pi-wallet',
+      routerLink: '/dashboard/top-up-requests'
+    },
     // {
     //   label: 'Parents',
     //   icon: 'pi pi-users',
