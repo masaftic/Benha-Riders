@@ -78,6 +78,7 @@ public class DriverRankingService : IDriverRankingService
             join stats in _dbContext.DriverStats on ds.UserId equals stats.UserId
             where (excludedUserIds == null || !excludedUserIds.Contains(ds.UserId))
                 && dl.Location.IsWithinDistance(pickupLocation, searchRadius) // PostGIS spatial index optimization
+                && ds.Status != DriverAvailabilityStatus.OnTrip
             select new
             {
                 ds.UserId,
