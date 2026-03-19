@@ -19,17 +19,20 @@ public class TripCancelledEventHandler : INotificationHandler<TripCancelledEvent
     private readonly AppDbContext _dbContext;
     private readonly IHubContext<RiderHub, IRiderNotifications> _riderHub;
     private readonly IHubContext<DriverHub, IDriverNotifications> _driverHub;
+    private readonly IPushNotificationService _pushNotification;
 
     public TripCancelledEventHandler(
         ILogger<TripCancelledEventHandler> logger,
         IHubContext<RiderHub, IRiderNotifications> riderHub,
         IHubContext<DriverHub, IDriverNotifications> driverHub,
-        AppDbContext dbContext)
+        AppDbContext dbContext,
+        IPushNotificationService pushNotification)
     {
         _logger = logger;
         _riderHub = riderHub;
         _driverHub = driverHub;
         _dbContext = dbContext;
+        _pushNotification = pushNotification;
     }
 
     public async Task Handle(TripCancelledEvent notification, CancellationToken cancellationToken)
@@ -59,6 +62,16 @@ public class TripCancelledEventHandler : INotificationHandler<TripCancelledEvent
             await _riderHub.Clients.Group(notification.RiderId.ToString())
                 .NotifyTripCancelled(notification.RiderId.ToString(), tripCancelledNotification);
 
+            await _pushNotification.SendToUserAsync(
+                notification.RiderId,
+                "تم إلغاء الرحلة",
+                $"تم إلغاء رحلتك. السبب: {notification.CancellationReason}",
+                new Dictionary<string, string>
+                {
+                    ["type"] = "trip_cancelled",
+                    ["tripId"] = notification.TripId.ToString()
+                });
+
             _logger.LogInformation("Notified rider {RiderId} that trip {TripId} was cancelled",
                 notification.RiderId, notification.TripId);
         }
@@ -67,6 +80,16 @@ public class TripCancelledEventHandler : INotificationHandler<TripCancelledEvent
         {
             await _driverHub.Clients.Group(notification.DriverId.ToString())
                 .NotifyTripCancelled(notification.DriverId.ToString(), tripCancelledNotification);
+
+            await _pushNotification.SendToUserAsync(
+                notification.DriverId,
+                "تم إلغاء الرحلة",
+                $"تم إلغاء الرحلة. السبب: {notification.CancellationReason}",
+                new Dictionary<string, string>
+                {
+                    ["type"] = "trip_cancelled",
+                    ["tripId"] = notification.TripId.ToString()
+                });
 
             _logger.LogInformation("Notified driver {DriverId} that trip {TripId} was cancelled",
                 notification.DriverId, notification.TripId);

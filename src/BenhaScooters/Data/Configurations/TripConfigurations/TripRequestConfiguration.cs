@@ -31,7 +31,7 @@ public class TripRequestConfiguration : IEntityTypeConfiguration<TripRequest>
         builder.Property(tr => tr.CancellationReason)
             .HasMaxLength(500);
 
-        builder.OwnsOne(tr => tr.FinalFare, ef =>
+        builder.ComplexProperty(tr => tr.FinalFare, ef =>
         {
             ef.Property(e => e.Amount)
                 .HasColumnName("FinalFare_Amount")
@@ -41,7 +41,7 @@ public class TripRequestConfiguration : IEntityTypeConfiguration<TripRequest>
                 .HasColumnName("FinalFare_Distance");
             ef.Property(e => e.Time)
                 .HasColumnName("FinalFare_Time");
-            
+
             ef.AddThinktectureValueConverters();
         });
 

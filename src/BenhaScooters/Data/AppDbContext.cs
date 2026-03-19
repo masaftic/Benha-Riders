@@ -2,6 +2,7 @@ using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
+using BenhaScooters.Domain.Ratings;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
@@ -43,6 +44,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, PublishDomainE
     // Matching
     public DbSet<DriverMatchAttempt> DriverMatchAttempts => Set<DriverMatchAttempt>();
     public DbSet<MatchingSession> MatchingSessions => Set<MatchingSession>();
+
+    // Push Notifications
+    public DbSet<UserDeviceToken> UserDeviceTokens => Set<UserDeviceToken>();
+
+    // Ratings
+    public DbSet<DriverRating> DriverRatings => Set<DriverRating>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

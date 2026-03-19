@@ -96,6 +96,7 @@ public class Trip : AggregateRoot
             return TripErrors.Trip.InvalidStatus;
 
         Status = TripStatus.InProgress;
+        StartedAt = DateTime.UtcNow;
 
         // Publish domain event
         RaiseDomainEvent(new TripStartedEvent(Id, DriverId, RiderId));
@@ -173,7 +174,7 @@ public class Trip : AggregateRoot
 
         if (TripPayment != null)
             return TripErrors.Trip.PaymentAlreadySet;
-
+        
         TripPayment = payment;
         return Result.Success;
     }

@@ -31,16 +31,18 @@ public class DriverRankingService : IDriverRankingService
 {
     private readonly AppDbContext _dbContext;
     private readonly IGeoService _geoService;
+    private readonly ILogger<DriverRankingService> _logger;
     private readonly DriverRankingOptions _options;
     private const double DistanceWeight = 0.7; // 70% weight for distance
     private const double RatingWeight = 0.3;   // 30% weight for rating
     private const decimal DefaultRating = 4.0m; // Default rating for new drivers
 
-    public DriverRankingService(AppDbContext dbContext, IGeoService geoService, IOptions<DriverRankingOptions> options)
+    public DriverRankingService(AppDbContext dbContext, IGeoService geoService, IOptions<DriverRankingOptions> options, ILogger<DriverRankingService> logger)
     {
         _dbContext = dbContext;
         _geoService = geoService;
         _options = options.Value;
+        _logger = logger;
     }
 
     private static decimal CalculateDriverScore(Distance distanceMeters, decimal rating)
@@ -68,8 +70,11 @@ public class DriverRankingService : IDriverRankingService
         // Convert excluded DriverIds to UserIds for query
         var excludedUserIds = excludedDrivers?.ToList();
         // Query using new tiered structure: DriverStatus + DriverLocation + DriverStats
-        
+
         var searchRadius = _options.MaxSearchRadiusMeters + roundNumber * _options.RadiusIncrementMeters;
+
+        _logger.LogInformation("Finding top {Count} drivers within {SearchRadius} meters for round {RoundNumber}. Excluded drivers: {ExcludedDrivers}. Pickup location: {PickupLocation}",
+            count, searchRadius, roundNumber, excludedUserIds != null ? string.Join(", ", excludedUserIds) : "None", pickupLocation);
 
         // Use PostGIS ST_DWithin for efficient spatial filtering (3km base radius + progressive expansion)
         var availableDrivers = await (

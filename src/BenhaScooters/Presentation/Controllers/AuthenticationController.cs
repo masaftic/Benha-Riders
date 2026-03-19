@@ -248,4 +248,20 @@ public class AuthenticationController : BaseApiController
             response => Ok(new ResetPasswordResponseDto(response.Message)),
             HandleErrors);
     }
+
+    /// <summary>
+    /// Register a device token for push notifications (FCM)
+    /// </summary>
+    [HttpPost("device-token")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> RegisterDeviceToken([FromBody] RegisterDeviceTokenRequest request)
+    {
+        var command = new RegisterDeviceTokenCommand(HttpContext.GetCurrentUserId(), request.Token, request.Platform);
+        var result = await _sender.Send(command);
+
+        return result.Match(_ => Ok(), HandleErrors);
+    }
 }

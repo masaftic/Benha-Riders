@@ -64,11 +64,37 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
         var location = geometryFactory.CreatePoint(new Coordinate(request.Longitude, request.Latitude));
 
         var userId = request.DriverId;
-        var driverLocation = new DriverLocation(userId, location);
+        var now = DateTime.UtcNow;
 
-        _db.DriverLocations.Update(driverLocation);
+        // Atomic upsert for driver location using ExecuteUpdateAsync (bypasses change tracker, no concurrency issues)
+        var rowsUpdated = await _db.DriverLocations
+            .Where(dl => dl.UserId == userId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(dl => dl.Location, location)
+                .SetProperty(dl => dl.Timestamp, now), cancellationToken);
+
+        if (rowsUpdated == 0)
+        {
+            // First location update for this driver — insert with conflict handling
+            try
+            {
+                _db.DriverLocations.Add(new DriverLocation(userId, location));
+                await _db.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException)
+            {
+                // Another concurrent request inserted first — just update
+                _db.ChangeTracker.Clear();
+                await _db.DriverLocations
+                    .Where(dl => dl.UserId == userId)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(dl => dl.Location, location)
+                        .SetProperty(dl => dl.Timestamp, now), cancellationToken);
+            }
+        }
 
         var driverStatus = await _db.DriverStatuses
+            .AsNoTracking()
             .Where(ds => ds.UserId == userId)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -85,12 +111,13 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
             var gpsPoint = new TripGpsPoint(
                 tripId.Value,
                 location,
-                DateTime.UtcNow);
+                now);
 
             _db.TripGpsPoints.Add(gpsPoint);
 
             // Get trip details for rider notification
             var trip = await _db.Trips
+                .AsNoTracking()
                 .Where(t => t.Id == tripId.Value)
                 .Select(t => new { t.RiderId, t.PickupLocation, t.DropoffLocation, t.Status })
                 .FirstOrDefaultAsync(cancellationToken);
@@ -102,11 +129,11 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
                 dropoffLocation = trip.DropoffLocation;
                 tripStatus = trip.Status;
             }
+
+            await _db.SaveChangesAsync(cancellationToken);
         }
 
         _logger.LogInformation("Updated location for driver {DriverId}: ({Latitude}, {Longitude}) for trip {TripId}", userId, request.Latitude, request.Longitude, tripId);
-
-        await _db.SaveChangesAsync(cancellationToken);
 
         // Broadcast location to rider if driver is on trip
         if (tripId.HasValue && riderId.HasValue && pickupLocation != null && dropoffLocation != null && tripStatus.HasValue && tripStatus == TripStatus.Assigned)

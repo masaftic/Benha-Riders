@@ -39,6 +39,21 @@ public class TripsController : BaseApiController
     }
 
     /// <summary>
+    /// Get paginated trip history for the authenticated user (works for both riders and drivers)
+    /// </summary>
+    [HttpGet("history")]
+    [Authorize]
+    [ProducesResponseType<GetTripHistoryResult>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetTripHistory([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var query = new GetTripHistoryQuery(HttpContext.GetCurrentUserId(), page, pageSize);
+        var result = await _sender.Send(query);
+
+        return result.Match(Ok, HandleErrors);
+    }
+
+    /// <summary>
     /// Get driver's recent trips
     /// </summary>
     [HttpGet("recent")]
@@ -128,6 +143,24 @@ public class TripsController : BaseApiController
     public async Task<IActionResult> CancelTrip([FromRoute] TripId tripId, [FromBody] CancelTripRequest request)
     {
         var command = new CancelTripCommand(tripId, HttpContext.GetCurrentUserId(), request.CancellationReason);
+        var result = await _sender.Send(command);
+
+        return result.Match(Ok, HandleErrors);
+    }
+
+    /// <summary>
+    /// Rate the driver after a completed trip (rider only)
+    /// </summary>
+    [HttpPost("{tripId}/rate")]
+    [Authorize(Policy = PolicyConstants.RiderPolicy)]
+    [ProducesResponseType<RateDriverResult>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RateDriver([FromRoute] TripId tripId, [FromBody] RateDriverRequest request)
+    {
+        var command = new RateDriverCommand(tripId, HttpContext.GetRiderId(), request.Rating, request.Comment);
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);

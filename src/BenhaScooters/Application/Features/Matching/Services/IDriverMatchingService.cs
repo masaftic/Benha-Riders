@@ -33,6 +33,7 @@ public class DriverMatchingService : IDriverMatchingService
     private readonly IGeoService _geoService;
     private readonly ILogger<DriverMatchingService> _logger;
     private readonly IHubContext<DriverHub, IDriverNotifications> _hub;
+    private readonly IPushNotificationService _pushNotification;
     private readonly MatchingSessionOptions _settings;
 
     public DriverMatchingService(
@@ -41,6 +42,7 @@ public class DriverMatchingService : IDriverMatchingService
         IGeoService geoService,
         ILogger<DriverMatchingService> logger,
         IHubContext<DriverHub, IDriverNotifications> hub,
+        IPushNotificationService pushNotification,
         IOptions<MatchingSessionOptions> options)
     {
         _dbContext = dbContext;
@@ -48,6 +50,7 @@ public class DriverMatchingService : IDriverMatchingService
         _geoService = geoService;
         _logger = logger;
         _hub = hub;
+        _pushNotification = pushNotification;
         _settings = options.Value;
     }
 
@@ -156,6 +159,25 @@ public class DriverMatchingService : IDriverMatchingService
 
                 await _hub.Clients.Groups(match.DriverUserId.ToString())
                     .NotifyRideRequestOffer(match.DriverUserId.ToString(), notification);
+
+                // Also send FCM push notification for drivers not connected via SignalR
+                await _pushNotification.SendToUserAsync(
+                    match.DriverUserId,
+                    "طلب رحلة جديد",
+                    $"لديك طلب رحلة من {notification.RiderName} - {notification.EstimatedFare:F0} جنيه",
+                    new Dictionary<string, string>
+                    {
+                        ["type"] = "ride_request_offer",
+                        ["matchAttemptId"] = match.Id.ToString(),
+                        ["riderName"] = notification.RiderName,
+                        ["pickupLocation"] = $"{notification.PickupLatitude},{notification.PickupLongitude}",
+                        ["dropoffLocation"] = $"{notification.DropoffLatitude},{notification.DropoffLongitude}",
+                        ["pickupAddress"] = notification.PickupAddress ?? "Unknown pickup location",
+                        ["dropoffAddress"] = notification.DropoffAddress ?? "Unknown dropoff location",
+                        ["fare"] = notification.EstimatedFare.ToString(),
+                        ["distanceToPickup"] = notification.DistanceToPickup.ToString(),
+                        ["estimatedArrival"] = notification.EstimatedArrivalTime.ToString(),
+                    });
             }));
 
             return Result.Success;

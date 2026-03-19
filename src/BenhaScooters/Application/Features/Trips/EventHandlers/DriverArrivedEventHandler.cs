@@ -14,13 +14,16 @@ public class DriverArrivedEventHandler : INotificationHandler<DriverArrivedEvent
 {
     private readonly ILogger<DriverArrivedEventHandler> _logger;
     private readonly IHubContext<RiderHub, IRiderNotifications> _riderHub;
+    private readonly IPushNotificationService _pushNotification;
 
     public DriverArrivedEventHandler(
         ILogger<DriverArrivedEventHandler> logger,
-        IHubContext<RiderHub, IRiderNotifications> riderHub)
+        IHubContext<RiderHub, IRiderNotifications> riderHub,
+        IPushNotificationService pushNotification)
     {
         _logger = logger;
         _riderHub = riderHub;
+        _pushNotification = pushNotification;
     }
 
     public async Task Handle(DriverArrivedEvent notification, CancellationToken cancellationToken)
@@ -38,6 +41,18 @@ public class DriverArrivedEventHandler : INotificationHandler<DriverArrivedEvent
 
         await _riderHub.Clients.Group(notification.RiderId.ToString())
             .NotifyDriverArrived(notification.RiderId.ToString(), driverArrivedNotification);
+
+        // Also send FCM push notification
+        await _pushNotification.SendToUserAsync(
+            notification.RiderId,
+            "السائق وصل",
+            "السائق وصل لموقع الالتقاط. اتجه إليه الآن!",
+            new Dictionary<string, string>
+            {
+                ["type"] = "driver_arrived",
+                ["tripId"] = notification.TripId.ToString()
+            },
+            cancellationToken);
 
         _logger.LogInformation("Notified rider {RiderId} that driver has arrived for trip {TripId}",
             notification.RiderId, notification.TripId);

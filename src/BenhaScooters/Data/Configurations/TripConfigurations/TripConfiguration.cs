@@ -1,6 +1,7 @@
 using BenhaScooters.Domain.Trips;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Thinktecture;
 
 namespace BenhaScooters.Data.Configurations.TripConfigurations;
 
@@ -56,7 +57,7 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
         builder.Property(t => t.CompletedAt);
 
 
-        builder.OwnsOne(t => t.FinalFare, ef =>
+        builder.ComplexProperty(t => t.FinalFare, ef =>
         {
             ef.Property(e => e.Amount)
                 .HasColumnName("FinalFare_Amount")
@@ -66,6 +67,8 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
                 .HasColumnName("FinalFare_Distance");
             ef.Property(e => e.Time)
                 .HasColumnName("FinalFare_Time");
+            
+            ef.AddThinktectureValueConverters();
         });
 
         builder.OwnsOne(t => t.TripPayment, tp =>

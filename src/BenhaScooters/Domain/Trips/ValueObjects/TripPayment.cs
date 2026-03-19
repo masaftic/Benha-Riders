@@ -15,19 +15,19 @@ public class TripPayment : ValueObject
     public bool IsPaid => Status == PaymentStatus.Paid;
 
     public static TripPayment Cash(decimal amount) =>
-        new(PaymentMethod.Cash, amount, null);
+        new(PaymentMethod.Cash, amount, null, PaymentStatus.Paid); // Cash payments are considered paid immediately
 
     public static TripPayment Online(decimal amount, string reference) =>
-        new(PaymentMethod.Online, amount, reference);
+        new(PaymentMethod.Online, amount, reference, PaymentStatus.Pending); // Online payments start as pending until confirmed
 
     private TripPayment() { }
 
-    private TripPayment(PaymentMethod method, decimal amount, string? externalRef)
+    private TripPayment(PaymentMethod method, decimal amount, string? externalRef, PaymentStatus status = PaymentStatus.Pending)
     {
         Method = method;
         Amount = amount;
         ExternalReference = externalRef;
-        Status = PaymentStatus.Pending; // Default status
+        Status = status; 
     }
 
     public ErrorOr<Success> MarkAsPaid(decimal paidAmount)

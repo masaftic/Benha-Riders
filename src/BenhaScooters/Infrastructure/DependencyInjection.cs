@@ -27,6 +27,9 @@ using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Infrastructure.GoogleMaps;
 using BenhaScooters.Infrastructure.Security;
 using System.Net.Http.Headers;
+using BenhaScooters.Infrastructure.Notifications;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 namespace BenhaScooters.Infrastructure;
 
@@ -147,6 +150,22 @@ public static class DependencyInjection
         services.AddHostedService<HungTripCleanupService>();
 
         services.AddScoped<PublishDomainEventsInterceptor>();
+
+        // Firebase Cloud Messaging (FCM)
+        var firebaseCredentialPath = configuration["Firebase:CredentialPath"];
+        if (!string.IsNullOrEmpty(firebaseCredentialPath) && File.Exists(firebaseCredentialPath))
+        {
+            FirebaseApp.Create(new AppOptions
+            {
+                Credential = GoogleCredential.FromFile(firebaseCredentialPath)
+            });
+            services.AddScoped<IPushNotificationService, FirebasePushNotificationService>();
+        }
+        else
+        {
+            // No-op implementation when Firebase is not configured
+            services.AddScoped<IPushNotificationService, NoOpPushNotificationService>();
+        }
 
         var jwtOptions = new JwtOptions();
         configuration.Bind(JwtOptions.SectionName, jwtOptions);
