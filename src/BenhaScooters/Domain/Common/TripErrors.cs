@@ -73,10 +73,6 @@ public static class TripErrors
             "TRIP_INVALID_STATUS",
             "لا يمكن تنفيذ هذه العملية مع حالة الرحلة الحالية");
 
-        public static readonly Error FareAlreadySet = Error.Conflict(
-            "TRIP_FARE_ALREADY_SET",
-            "تم تحديد تكلفة الرحلة بالفعل");
-
         public static readonly Error PaymentAlreadySet = Error.Conflict(
             "TRIP_PAYMENT_ALREADY_SET",
             "تم تحديد طريقة الدفع للرحلة بالفعل");

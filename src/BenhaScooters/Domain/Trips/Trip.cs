@@ -41,7 +41,6 @@ public class Trip : AggregateRoot
     // Final fare (locked at trip creation, no recalculation)
     public FareEstimate FinalFare { get; private set; } = null!;
 
-    public TripFare? TripFare { get; private set; } // Actual fare details after completion
     public TripPayment? TripPayment { get; private set; } // Payment details
 
 
@@ -146,21 +145,6 @@ public class Trip : AggregateRoot
         // System user ID (0)
         RaiseDomainEvent(new TripCancelledEvent(Id, DriverId, RiderId, UserId.Create(0), cancellationReason));
 
-        return Result.Success;
-    }
-
-    public ErrorOr<Success> SetTripFare(TripFare tripFare)
-    {
-        if (tripFare == null)
-            throw new ArgumentNullException(nameof(tripFare), "Trip fare cannot be null");
-
-        if (Status != TripStatus.Completed)
-            return TripErrors.Trip.InvalidStatus;
-
-        if (TripFare != null)
-            return TripErrors.Trip.FareAlreadySet;
-
-        TripFare = tripFare;
         return Result.Success;
     }
 

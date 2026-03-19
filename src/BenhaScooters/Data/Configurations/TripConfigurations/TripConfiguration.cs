@@ -24,26 +24,6 @@ public class TripConfiguration : IEntityTypeConfiguration<Trip>
         builder.Property(t => t.DropoffAddress)
             .HasMaxLength(500);
 
-        builder.OwnsOne(t => t.TripFare, fare =>
-        {
-            fare.Property(tf => tf.BaseFare)
-                .HasColumnType("decimal(18,2)")
-                .IsRequired();
-
-            fare.Property(tf => tf.DistanceFare)
-                .HasColumnType("decimal(18,2)")
-                .IsRequired();
-
-            fare.Property(tf => tf.DurationFare)
-                .HasColumnType("decimal(18,2)")
-                .IsRequired();
-
-            fare.Property(tf => tf.TotalFare)
-                .HasColumnName("TotalFare")
-                .HasColumnType("decimal(18,2)")
-                .IsRequired();
-        });
-
         builder.Property(t => t.Status)
             .HasConversion<string>();
 

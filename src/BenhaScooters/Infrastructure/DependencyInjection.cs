@@ -50,15 +50,8 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddScoped<IFareEstimator, FareEstimator>();
-        services.AddScoped<ITripFareService, TripFareService>();
-
 
         services.AddMemoryCache();
-
-        services.AddOptions<TripFareConfiguration>()
-            .Bind(configuration.GetSection(TripFareConfiguration.SectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
 
         // Configure driver ranking options (search radius, etc.)
         services.AddOptions<DriverRankingOptions>()

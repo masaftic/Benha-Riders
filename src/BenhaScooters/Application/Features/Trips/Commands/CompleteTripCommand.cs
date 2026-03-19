@@ -1,4 +1,3 @@
-using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
@@ -23,7 +22,7 @@ public record CompleteTripResult(
     decimal FinalFare);
 
 
-public class CompleteTripCommandHandler(AppDbContext db, ITripFareService tripFareService) : IRequestHandler<CompleteTripCommand, ErrorOr<CompleteTripResult>>
+public class CompleteTripCommandHandler(AppDbContext db) : IRequestHandler<CompleteTripCommand, ErrorOr<CompleteTripResult>>
 {
     public async Task<ErrorOr<CompleteTripResult>> Handle(CompleteTripCommand request, CancellationToken cancellationToken)
     {

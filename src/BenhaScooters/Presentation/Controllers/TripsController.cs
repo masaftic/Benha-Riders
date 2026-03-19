@@ -53,31 +53,32 @@ public class TripsController : BaseApiController
         return result.Match(Ok, HandleErrors);
     }
 
-    /// <summary>
-    /// Get driver's recent trips
-    /// </summary>
-    [HttpGet("recent")]
-    [Authorize(Policy = PolicyConstants.ApprovedDriverPolicy)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetDriverRecentTrips([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
-    {
-        var query = new GetDriverRecentTripsQuery(HttpContext.GetDriverId(), page, pageSize);
-        var result = await _sender.Send(query);
+    // /// <summary>
+    // /// Get driver's recent trips
+    // /// </summary>
+    // [HttpGet("recent")]
+    // [Authorize(Policy = PolicyConstants.ApprovedDriverPolicy)]
+    // [ProducesResponseType(StatusCodes.Status200OK)]
+    // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    // public async Task<IActionResult> GetDriverRecentTrips([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    // {
+    //     var query = new GetDriverRecentTripsQuery(HttpContext.GetDriverId(), page, pageSize);
+    //     var result = await _sender.Send(query);
 
-        return result.Match(Ok, HandleErrors);
-    }
+    //     return result.Match(Ok, HandleErrors);
+    // }
 
     /// <summary>
-    /// Get driver trip by ID
+    /// Get trip details by ID (works for both riders and drivers)
     /// </summary>
     [HttpGet("{tripId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Authorize]
+    [ProducesResponseType<GetTripDetailsByIdResult>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTripById([FromRoute] TripId tripId)
     {
-        var query = new GetDriverTripByIdQuery(tripId, HttpContext.GetDriverId());
+        var query = new GetTripDetailsByIdQuery(tripId, HttpContext.GetCurrentUserId());
         var result = await _sender.Send(query);
 
         return result.Match(Ok, HandleErrors);
