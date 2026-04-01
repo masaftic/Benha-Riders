@@ -54,26 +54,11 @@ try
     }
 
     // Serve uploaded files (driver photos/documents) from the uploads folder at '/files' path
-    // This must come BEFORE the Angular app's UseStaticFiles to avoid conflicts
     app.UseStaticFiles(new Microsoft.AspNetCore.Builder.StaticFileOptions
     {
         FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
         RequestPath = "/files"
     });
-
-    // Serve static files from wwwroot/browser (Angular build output)
-    var browserPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "browser");
-    if (Directory.Exists(browserPath))
-    {
-        app.UseDefaultFiles(new DefaultFilesOptions
-        {
-            FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(browserPath)
-        });
-        app.UseStaticFiles(new StaticFileOptions
-        {
-            FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(browserPath)
-        });
-    }
 
     using (var scope = app.Services.CreateScope())
     {

@@ -48,30 +48,12 @@
     <Folder Include="Application\Features\Authentication\Queries\" />
   </ItemGroup>
 
-  <!-- Angular Dashboard Build Configuration -->
-  <PropertyGroup>
-    <SpaRoot>Dashboard\</SpaRoot>
-    <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
-  </PropertyGroup>
 
+  <!-- Copy JSON data files to output directory -->
   <ItemGroup>
     <None Update="Data\**\*.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <!-- Build Angular app during .NET build -->
-  <Target Name="BuildClientApp" BeforeTargets="Build" Condition="!Exists('wwwroot\browser\index.html')">
-    <Message Importance="high" Text="Building Angular dashboard app..." />
-    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
-    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
-  </Target>
-
-  <!-- Ensure Angular app is built before publish -->
-  <Target Name="PublishClientApp" BeforeTargets="BeforePublish">
-    <Message Importance="high" Text="Building Angular dashboard app for publish..." />
-    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
-    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
-  </Target>
 
 </Project>
