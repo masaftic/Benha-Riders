@@ -23,13 +23,13 @@ public interface IJwtService
 
 public class JwtService : IJwtService
 {
-    private readonly IOptions<JwtOptions> _jwtOptions;
+    private readonly JwtOptions _jwtOptions;
     private readonly string _signingKey;
 
     public JwtService(IOptions<JwtOptions> jwtOptions)
     {
-        _jwtOptions = jwtOptions;
-        _signingKey = _jwtOptions.Value.SigningKey;
+        _jwtOptions = jwtOptions.Value;
+        _signingKey = _jwtOptions.SigningKey;
     }
 
     public string GenerateAccessToken(User user, App app, DriverProfile? driverProfile = null, RiderProfile? riderProfile = null)
@@ -62,6 +62,8 @@ public class JwtService : IJwtService
         {
             Subject = new ClaimsIdentity(claims),
             Expires = expiresAt,
+            Issuer = _jwtOptions.Issuer,
+            Audience = _jwtOptions.Audience,
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_signingKey)),
                 SecurityAlgorithms.HmacSha256)
@@ -82,13 +84,13 @@ public class JwtService : IJwtService
 
     public DateTime GetAccessTokenExpiryTime()
     {
-        var accessTokenLifetime = _jwtOptions.Value.AccessTokenLifetimeMinutes;
+        var accessTokenLifetime = _jwtOptions.AccessTokenLifetimeMinutes;
         return DateTime.UtcNow.AddMinutes(accessTokenLifetime);
     }
 
     public DateTime GetRefreshTokenExpiryTime()
     {
-        var refreshTokenLifetime = _jwtOptions.Value.RefreshTokenLifetimeDays;
+        var refreshTokenLifetime = _jwtOptions.RefreshTokenLifetimeDays;
         return DateTime.UtcNow.AddDays(refreshTokenLifetime);
     }
 }

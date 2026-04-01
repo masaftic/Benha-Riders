@@ -5,6 +5,7 @@ namespace BenhaScooters.Domain.Drivers.ValueObjects;
 
 [ValueObject<string>]
 [KeyMemberEqualityComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
+[KeyMemberComparer<ComparerAccessors.StringOrdinalIgnoreCase, string>]
 public partial class LicensePlate
 {
     static partial void ValidateFactoryArguments(

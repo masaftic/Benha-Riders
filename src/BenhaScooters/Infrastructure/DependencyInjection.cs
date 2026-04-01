@@ -177,11 +177,14 @@ public static class DependencyInjection
             {
                 options.TokenValidationParameters = new()
                 {
-                    ValidateAudience = false,
-                    ValidateIssuer = false,
+                    ValidateAudience = true,
+                    ValidAudience = jwtOptions.Audience,
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtOptions.Issuer,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+                    ClockSkew = TimeSpan.Zero
                 };
 
                 options.Events = new JwtBearerEvents

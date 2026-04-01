@@ -10,4 +10,9 @@ public class JwtOptions
     public string SigningKey { get; set; } = null!;
     public int AccessTokenLifetimeMinutes { get; set; } = 15;
     public int RefreshTokenLifetimeDays { get; set; } = 7;
+
+    [Required]
+    public string Issuer { get; set; } = null!;
+    [Required]
+    public string Audience { get; set; } = null!;
 }
