@@ -47,6 +47,7 @@ public class RequestTripCommandValidator : AbstractValidator<RequestTripCommand>
 public class RequestTripCommandHandler(
     AppDbContext db,
     IFareEstimator fareEstimator,
+    IServiceAreaValidator serviceAreaValidator,
     IGoogleMapsService googleMapsService) : IRequestHandler<RequestTripCommand, ErrorOr<RequestTripResult>>
 {
     public async Task<ErrorOr<RequestTripResult>> Handle(RequestTripCommand request, CancellationToken cancellationToken)
@@ -70,6 +71,15 @@ public class RequestTripCommandHandler(
         if (hasActiveTrip)
         {
             return TripErrors.Rider.HasActiveTrip;
+        }
+
+        
+        if (!await serviceAreaValidator.AreLocationsWithinServiceAreaAsync(
+            request.PickupCoordinate, 
+            request.DropoffCoordinate, 
+            cancellationToken: cancellationToken))
+        {
+            return TripErrors.ServiceArea.LocationNotCovered;
         }
 
 

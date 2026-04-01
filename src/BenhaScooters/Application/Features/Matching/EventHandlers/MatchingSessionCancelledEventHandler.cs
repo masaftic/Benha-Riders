@@ -48,22 +48,26 @@ public class MatchingSessionCancelledEventHandler : INotificationHandler<Matchin
             return;
         }
 
-        await _hub.Clients.Group(tripRequest.RiderId.ToString())
-            .NotifyTripRequestCanceled(new TripRequestCanceledNotification(
-                tripRequest.Id,
-                notification.Reason,
-                DateTime.UtcNow));
+        if (!notification.IsCanceledByUser)
+        {
+            await _hub.Clients.Group(tripRequest.RiderId.ToString())
+                .NotifyTripRequestCanceled(new TripRequestCanceledNotification(
+                    tripRequest.Id,
+                    notification.Reason,
+                    DateTime.UtcNow));
 
-        _logger.LogInformation("Notified rider {RiderId} about cancellation of trip request {TripRequestId} via SignalR",
-            tripRequest.RiderId, tripRequest.Id);
+            _logger.LogInformation("Notified rider {RiderId} about cancellation of trip request {TripRequestId} via SignalR",
+                tripRequest.RiderId, tripRequest.Id);
 
-        await _pushNotification.SendToUserAsync(tripRequest.RiderId,
-            "طلب الرحلة ملغاة", $"تم إلغاء طلب الرحلة الخاص بك. السبب: {notification.Reason}", new Dictionary<string, string>
-            {
-                ["type"] = "trip_request_canceled",
-                ["tripRequestId"] = tripRequest.Id.ToString(),
-                ["reason"] = notification.Reason
-            }, cancellationToken);
+            await _pushNotification.SendToUserAsync(tripRequest.RiderId,
+                "طلب الرحلة ملغاة", 
+                $"تم إلغاء طلب الرحلة الخاص بك. لم يتم العثور على سائقين، يرجى المحاولة لاحقًا.", 
+                new Dictionary<string, string>
+                {
+                    ["type"] = "trip_request_canceled",
+                    ["tripRequestId"] = tripRequest.Id.ToString(),
+                }, cancellationToken);
+        }
 
         await _db.SaveChangesAsync(cancellationToken);
     }

@@ -30,6 +30,7 @@ using System.Net.Http.Headers;
 using BenhaScooters.Infrastructure.Notifications;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using BenhaScooters.Data.MapData;
 
 namespace BenhaScooters.Infrastructure;
 
@@ -135,6 +136,8 @@ public static class DependencyInjection
         services.AddScoped<IOtpSecurityService, OtpSecurityService>();
         services.AddScoped<IFareEstimator, FareEstimator>();
         services.AddScoped<IGeoService, GeoService>();
+        services.AddScoped<ServiceAreasPolygonSeeder>();
+        services.AddScoped<IServiceAreaValidator, ServiceAreaValidator>();
 
         services.AddScoped<TokenCleanupService>();
         services.AddScoped<MatchingCleanupService>();

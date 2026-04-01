@@ -28,12 +28,19 @@ public class MatchingSessionOptions
     [Range(1, 10)]
     public int NumberOfRounds { get; set; }
 
+    /// <summary>
+    /// Minimum time a session should stay open if it had any match attempts,
+    /// even if later rounds found no drivers. Prevents premature cancellation.
+    /// </summary>
+    public int MinimumSessionDurationSeconds { get; set; } = 180;
+
     [Required]
     [MinLength(1)]
     public int[] OffersPerRound { get; set; } = null!;
 
 
     public TimeSpan EmptyRoundTimeout => TimeSpan.FromSeconds(EmptyRoundTimeoutSeconds);
+    public TimeSpan MinimumSessionDuration => TimeSpan.FromSeconds(MinimumSessionDurationSeconds);
     public TimeSpan RoundTimeout => TimeSpan.FromSeconds(RoundTimeoutSeconds);
     public TimeSpan FinalRoundWait => TimeSpan.FromSeconds(FinalRoundWaitSeconds);
 }

@@ -13,4 +13,5 @@ public record DriverInfo(
     string VehicleModel,
     string VehicleBrand,
     string VehicleColor, 
-    LicensePlate VehicleLicensePlate);
+    LicensePlate VehicleLicensePlate,
+    decimal AverageRating);

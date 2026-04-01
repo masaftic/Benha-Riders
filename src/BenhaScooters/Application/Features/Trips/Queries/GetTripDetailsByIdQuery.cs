@@ -67,6 +67,7 @@ public class GetTripDetailsByIdQueryHandler : IRequestHandler<GetTripDetailsById
                 t.DriverArrivedAt,
                 t.StartedAt,
                 t.CompletedAt,
+                t.DriverId,
                 RiderName = t.RiderProfile.PreferredName ?? t.RiderProfile.User.Name,
                 RiderPhoneNumber = t.RiderProfile.User.PhoneNumber,
                 DriverName = t.DriverProfile.PersonalInfo!.FullName,
@@ -92,6 +93,11 @@ public class GetTripDetailsByIdQueryHandler : IRequestHandler<GetTripDetailsById
         var driverPhotoUrl = tripResult.DriverPhotoUrl != null
             ? await _s3Service.GetPreSignedUrlAsync(tripResult.DriverPhotoUrl, TimeSpan.FromHours(1), cancellationToken)
             : null;
+
+        var driverRating = await _db.DriverStats
+            .Where(ds => ds.UserId == tripResult.DriverId)
+            .Select(ds => ds.AverageRating)
+            .FirstOrDefaultAsync(cancellationToken);
 
         double? actualDurationMinutes = tripResult.StartedAt.HasValue && tripResult.CompletedAt.HasValue
             ? (tripResult.CompletedAt.Value - tripResult.StartedAt.Value).TotalMinutes
@@ -124,7 +130,8 @@ public class GetTripDetailsByIdQueryHandler : IRequestHandler<GetTripDetailsById
                 tripResult.DriverVehicleModel,
                 tripResult.DriverVehicleBrand,
                 tripResult.DriverVehicleColor,
-                tripResult.DriverVehicleLicensePlate),
+                tripResult.DriverVehicleLicensePlate,
+                driverRating),
             tripResult.Rating?.Rating,
             tripResult.Rating?.Comment);
     }

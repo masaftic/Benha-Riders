@@ -140,7 +140,7 @@ public class MatchingSession : AggregateRoot
         return Result.Success;
     }
 
-    public ErrorOr<Success> Cancel(string reason)
+    public ErrorOr<Success> Cancel(bool isCanceledByUser, string reason)
     {
         if (Status != MatchingSessionStatus.Active)
             return MatchingErrors.Session.NotActive;
@@ -156,6 +156,7 @@ public class MatchingSession : AggregateRoot
         RaiseDomainEvent(new MatchingSessionCancelledEvent(
             Id,
             TripRequestId,
+            isCanceledByUser,
             reason));
 
         return Result.Success;
@@ -207,7 +208,7 @@ public class MatchingSession : AggregateRoot
 
         if (isLastRound)
         {
-            Cancel("لا يوجد سائقون متاحون في الوقت الحالي، يرجى المحاولة لاحقًا");
+            Cancel(false, "لا يوجد سائقون متاحون في الوقت الحالي، يرجى المحاولة لاحقًا");
             return new MatchingCanceled();
         }
 

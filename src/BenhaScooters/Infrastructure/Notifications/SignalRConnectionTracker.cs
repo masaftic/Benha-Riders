@@ -7,7 +7,7 @@ namespace BenhaScooters.Infrastructure.Notifications;
 
 public class SignalRConnectionTracker(IServiceScopeFactory scopeFactory) : ISignalRConnectionTracker
 {
-    public static readonly TimeSpan HeartbeatTimeout = TimeSpan.FromSeconds(40);
+    public static readonly TimeSpan HeartbeatTimeout = TimeSpan.FromSeconds(30);
 
     public async Task RecordHeartbeat(UserId userId)
     {

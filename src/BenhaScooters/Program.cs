@@ -1,6 +1,7 @@
 using BenhaScooters.Application;
 using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
+using BenhaScooters.Data.MapData;
 using BenhaScooters.Infrastructure;
 using BenhaScooters.Infrastructure.Notifications;
 using BenhaScooters.Infrastructure.S3;
@@ -83,6 +84,9 @@ try
             await db.Database.MigrateAsync();
             var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
             await dataSeeder.SeedAsync();
+
+            var serviceAreasSeeder = scope.ServiceProvider.GetRequiredService<ServiceAreasPolygonSeeder>();
+            await serviceAreasSeeder.SeedStatesAsync();
 
             // Initialize S3 bucket
             var s3InitService = scope.ServiceProvider.GetRequiredService<IS3InitializationService>();

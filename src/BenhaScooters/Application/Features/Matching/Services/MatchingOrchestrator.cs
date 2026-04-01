@@ -1,12 +1,15 @@
+using BenhaScooters.Application.Features.Matching.Settings;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Infrastructure.Notifications;
 using ErrorOr;
+using Hangfire;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace BenhaScooters.Application.Features.Matching.Services;
 
@@ -20,6 +23,7 @@ public interface IMatchingOrchestrator
 public class MatchingOrchestrator(
     AppDbContext dbContext,
     IDriverMatchingService driverMatchingService,
+    IOptions<MatchingSessionOptions> options,
     ILogger<MatchingOrchestrator> logger) : IMatchingOrchestrator
 {
     public async Task<ErrorOr<RoundTransitionResult>> HandlePostOutcomeAsync(
@@ -47,6 +51,29 @@ public class MatchingOrchestrator(
                 "Match already accepted for session {MatchingSessionId}, no further action needed",
                 matchingSession.Id);
             return new MatchingCompleted();
+        }
+
+        // If this is the last round and the session had real offers,
+        // wait until the minimum session duration before cancelling.
+        var settings = options.Value;
+        if (matchingSession.IsLastRound() && matchingSession.MatchAttempts.Count > 0)
+        {
+            var elapsed = DateTime.UtcNow - matchingSession.CreatedAt;
+            var remaining = settings.MinimumSessionDuration - elapsed;
+
+            if (remaining > TimeSpan.Zero)
+            {
+                logger.LogInformation(
+                    "Session {MatchingSessionId} has match attempts but hasn't reached minimum duration. " +
+                    "Waiting {RemainingSeconds:F0}s before final cancellation",
+                    matchingSession.Id, remaining.TotalSeconds);
+
+                BackgroundJob.Schedule<IMatchingOrchestrator>(
+                    o => o.HandlePostOutcomeAsync(tripRequestId, cancellationToken),
+                    remaining);
+
+                return new NoTransition();
+            }
         }
 
         var transitionResult = matchingSession.TryTransitionToNextRound();

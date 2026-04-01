@@ -115,4 +115,12 @@ public static class TripErrors
             "RIDER_HAS_ACTIVE_TRIP",
             "الراكب في رحلة نشطة بالفعل");
     }
+
+
+    public static class ServiceArea
+    {
+        public static readonly Error LocationNotCovered = Error.Conflict(
+            "SERVICE_AREA_LOCATION_NOT_COVERED",
+            "موقع نقطة الانطلاق أو الوصول خارج منطقة الخدمة");
+    }
 }

@@ -4,6 +4,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Ratings;
 using BenhaScooters.Domain.Riders;
+using BenhaScooters.Domain.ServiceAreas;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Users;
@@ -50,6 +51,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, PublishDomainE
 
     // Ratings
     public DbSet<DriverRating> DriverRatings => Set<DriverRating>();
+
+
+    // Service Area
+    public DbSet<ServiceArea> ServiceAreas => Set<ServiceArea>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

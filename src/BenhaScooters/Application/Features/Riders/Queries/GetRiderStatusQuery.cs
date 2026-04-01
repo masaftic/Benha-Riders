@@ -107,6 +107,11 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
                 ? await _s3Service.GetPreSignedUrlAsync(tripResult.DriverPhotoUrl, TimeSpan.FromHours(1), cancellationToken)
                 : null;
 
+            var driverRating = await _db.DriverStats
+                .Where(ds => ds.UserId == tripResult.DriverId)
+                .Select(ds => ds.AverageRating)
+                .FirstOrDefaultAsync(cancellationToken);
+
             var estimatedArrivalMinutes = await TripDataHelper.CalculateEstimatedArrivalMinutesAsync(
                 _db,
                 _geoService,
@@ -133,7 +138,8 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
                     tripResult.DriverVehicleModel,
                     tripResult.DriverVehicleBrand,
                     tripResult.DriverVehicleColor,
-                    tripResult.DriverVehicleLicensePlate)
+                    tripResult.DriverVehicleLicensePlate,
+                    driverRating)
             );
 
             return new GetRiderStatusResult(

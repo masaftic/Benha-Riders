@@ -8,7 +8,8 @@ namespace BenhaScooters.Application.Features.Matching.EventHandlers;
 /// in AcceptMatchCommandHandler. This handler is kept for future
 /// analytics or notifications related to accepted matches.
 /// </summary>
-public class TripMatchAcceptedEventHandler(ILogger<TripMatchAcceptedEventHandler> logger)
+public class TripMatchAcceptedEventHandler(
+    ILogger<TripMatchAcceptedEventHandler> logger)
     : INotificationHandler<TripMatchAcceptedEvent>
 {
     public Task Handle(TripMatchAcceptedEvent notification, CancellationToken cancellationToken)

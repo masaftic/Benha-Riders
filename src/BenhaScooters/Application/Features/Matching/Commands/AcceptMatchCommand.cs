@@ -50,6 +50,7 @@ public class AcceptMatchCommandHandler(
     IHubContext<RiderHub, IRiderNotifications> riderHub,
     IS3Service s3Service,
     IGeoService geoService,
+    IPushNotificationService pushNotificationService,
     ILogger<AcceptMatchCommandHandler> logger) : IRequestHandler<AcceptMatchCommand, ErrorOr<AcceptMatchResult>>
 {
     public async Task<ErrorOr<AcceptMatchResult>> Handle(AcceptMatchCommand request, CancellationToken cancellationToken)
@@ -79,6 +80,8 @@ public class AcceptMatchCommandHandler(
         var matchAttempt = await db.DriverMatchAttempts
             .Include(ma => ma.MatchingSession)
             .ThenInclude(ms => ms.TripRequest)
+            .Include(ma => ma.MatchingSession)
+            .ThenInclude(ms => ms.MatchAttempts)
             .FirstOrDefaultAsync(ma => ma.Id == request.DriverMatchAttemptId, cancellationToken);
 
         if (matchAttempt is null || matchAttempt.DriverUserId != request.DriverId)
@@ -104,6 +107,15 @@ public class AcceptMatchCommandHandler(
             return MatchingErrors.Session.NotFound;
         }
 
+        var tripRequest = matchingSession.TripRequest;
+
+        if (request.DriverId == tripRequest.RiderId)
+        {
+            logger.LogWarning("Driver {DriverId} attempted to accept match for trip request {TripRequestId} where they are the rider",
+                request.DriverId, tripRequest.Id);
+            return MatchingErrors.MatchAttempt.CannotAcceptYourOwnRequest;
+        }
+
         var acceptResult = matchingSession.AcceptMatch(request.DriverId);
         if (acceptResult.IsError)
         {
@@ -122,7 +134,6 @@ public class AcceptMatchCommandHandler(
             return DriverErrors.DriverNotFound;
         }
 
-        var tripRequest = matchingSession.TripRequest;
 
         var trip = new Trip(
             driverStatus.UserId,
@@ -181,7 +192,12 @@ public class AcceptMatchCommandHandler(
         {
             var driverPhotoUrl = driverProfile.Documents.FirstOrDefault(d => d.Type == DocumentType.DriverPhoto)?.ImageUrl;
             var fullDriverPhotoUrl = await s3Service.GetPreSignedUrlAsync(driverPhotoUrl!, TimeSpan.FromHours(1), cancellationToken);
-            
+
+            var driverRating = await db.DriverStats
+                .Where(ds => ds.UserId == driverStatus.UserId)
+                .Select(ds => ds.AverageRating)
+                .FirstOrDefaultAsync(cancellationToken);
+
             var driverInfo = new DriverInfoDto(
                 driverProfile.PersonalInfo?.FullName ?? "Driver",
                 driverProfile.User.PhoneNumber!,
@@ -189,7 +205,8 @@ public class AcceptMatchCommandHandler(
                 driverProfile.Vehicle?.Model ?? "Unknown",
                 driverProfile.Vehicle?.Brand ?? "Unknown",
                 driverProfile.Vehicle?.Color ?? "Unknown",
-                driverProfile.Vehicle?.LicensePlate ?? LicensePlate.Create("UNKNOWN"));
+                driverProfile.Vehicle?.LicensePlate ?? LicensePlate.Create("UNKNOWN"),
+                driverRating);
 
             // Calculate proper ETA based on driver location and trip status
             var estimatedArrivalMinutes = await TripDataHelper.CalculateEstimatedArrivalMinutesAsync(
@@ -212,6 +229,17 @@ public class AcceptMatchCommandHandler(
 
             logger.LogInformation("Notified rider {RiderId} about trip assignment {TripId}",
                 tripRequest.RiderId, trip.Id);
+
+            await pushNotificationService.SendToUserAsync(tripRequest.RiderId,
+                "تم تعيين سائق لرحلتك", 
+                $"تم تعيين سائق لرحلتك. اسم السائق: {driverInfo.Name}, رقم المركبة: {driverInfo.VehicleLicensePlate}.", 
+                new Dictionary<string, string>
+                {
+                    ["type"] = "trip_assigned",
+                    ["tripId"] = trip.Id.ToString(),
+                    ["driverName"] = driverInfo.Name,
+                    ["vehicleLicensePlate"] = driverInfo.VehicleLicensePlate,
+                }, cancellationToken);
         }
 
         return new AcceptMatchResult(trip.Id, trip.AssignedAt);

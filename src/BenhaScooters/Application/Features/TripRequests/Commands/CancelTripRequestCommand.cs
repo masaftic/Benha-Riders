@@ -71,7 +71,7 @@ public class CancelTripRequestCommandHandler(AppDbContext db) : IRequestHandler<
 
             if (matchingSession != null && matchingSession.IsActive)
             {
-                matchingSession.Cancel("Trip request cancelled by rider");
+                matchingSession.Cancel(true, "Trip request cancelled by rider");
             }
             
             await db.SaveChangesAsync(cancellationToken);

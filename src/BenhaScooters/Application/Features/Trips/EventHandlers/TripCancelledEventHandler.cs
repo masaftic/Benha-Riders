@@ -65,7 +65,7 @@ public class TripCancelledEventHandler : INotificationHandler<TripCancelledEvent
             await _pushNotification.SendToUserAsync(
                 notification.RiderId,
                 "تم إلغاء الرحلة",
-                $"تم إلغاء رحلتك. السبب: {notification.CancellationReason}",
+                $"تم إلغاء رحلتك. يمكنك البحث عن رحلة أخرى.",
                 new Dictionary<string, string>
                 {
                     ["type"] = "trip_cancelled",
@@ -84,7 +84,7 @@ public class TripCancelledEventHandler : INotificationHandler<TripCancelledEvent
             await _pushNotification.SendToUserAsync(
                 notification.DriverId,
                 "تم إلغاء الرحلة",
-                $"تم إلغاء الرحلة. السبب: {notification.CancellationReason}",
+                $"تم إلغاء الرحلة من قبل الراكب. يمكنك البحث عن رحلة أخرى.",
                 new Dictionary<string, string>
                 {
                     ["type"] = "trip_cancelled",

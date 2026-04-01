@@ -133,8 +133,6 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
             await _db.SaveChangesAsync(cancellationToken);
         }
 
-        _logger.LogInformation("Updated location for driver {DriverId}: ({Latitude}, {Longitude}) for trip {TripId}", userId, request.Latitude, request.Longitude, tripId);
-
         // Broadcast location to rider if driver is on trip
         if (tripId.HasValue && riderId.HasValue && pickupLocation != null && dropoffLocation != null && tripStatus.HasValue && tripStatus == TripStatus.Assigned)
         {

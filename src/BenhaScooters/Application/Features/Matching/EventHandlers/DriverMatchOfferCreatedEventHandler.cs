@@ -72,16 +72,15 @@ public class DriverMatchOfferCreatedEventHandler : INotificationHandler<DriverMa
             e.EstimatedArrival.ToMinutes(),
             e.OfferedAt);
 
-        if (isActivelyConnected)
-        {
-            await _hub.Clients.Groups(driverIdString)
-                .NotifyRideRequestOffer(driverIdString, notification);
 
-            _logger.LogInformation(
-                "Sent ride offer to driver {DriverId} for match attempt {MatchAttemptId} via SignalR",
-                e.DriverId, e.MatchAttemptId);
-        }
-        else
+        await _hub.Clients.Groups(driverIdString)
+            .NotifyRideRequestOffer(driverIdString, notification);
+
+        _logger.LogInformation(
+            "Sent ride offer to driver {DriverId} for match attempt {MatchAttemptId} via SignalR",
+            e.DriverId, e.MatchAttemptId);
+        
+        if (!isActivelyConnected)
         {
             await _pushNotification.SendToUserAsync(
                 e.DriverId,

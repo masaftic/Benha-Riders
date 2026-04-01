@@ -55,10 +55,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Exclude Dashboard from being published with the project -->
-    <Content Remove="$(SpaRoot)**" />
-    <None Remove="$(SpaRoot)**" />
-    <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+    <None Update="Data\**\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <!-- Build Angular app during .NET build -->

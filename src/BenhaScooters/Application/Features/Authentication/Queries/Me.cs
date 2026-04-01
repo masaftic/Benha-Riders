@@ -60,6 +60,12 @@ public class MeQueryHandler : IRequestHandler<MeQuery, ErrorOr<MeResponse>>
             profileImage = await _s3Service.GetPreSignedUrlAsync(driverPhotoUrl, TimeSpan.FromMinutes(60), cancellationToken);
         }
 
+        // Update driver stats with new rating
+        var driverRating = await _db.DriverStats
+            .Where(ds => ds.UserId == user.Id)
+            .Select(ds => ds.AverageRating)
+            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+
         DriverInfo? driverInfo = null;
         if (user.DriverProfile?.Vehicle is not null && user.DriverProfile.PersonalInfo is not null && user.PhoneNumber is not null)
         {
@@ -70,7 +76,8 @@ public class MeQueryHandler : IRequestHandler<MeQuery, ErrorOr<MeResponse>>
                 user.DriverProfile.Vehicle.Model,
                 user.DriverProfile.Vehicle.Brand,
                 user.DriverProfile.Vehicle.Color,
-                user.DriverProfile.Vehicle.LicensePlate);
+                user.DriverProfile.Vehicle.LicensePlate,
+                driverRating);
         }
 
         var response = new MeResponse(

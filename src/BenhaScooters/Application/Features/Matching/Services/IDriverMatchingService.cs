@@ -89,16 +89,15 @@ public class DriverMatchingService : IDriverMatchingService
                 excludedDrivers: matchingSession.GetRejectedOrPendingDrivers(),
                 cancellationToken: cancellationToken);
 
-            if (rankedDrivers.Count == 0) 
+            if (rankedDrivers.Count == 0)
             {
                 _logger.LogInformation("No available drivers found for matching session {MatchingSessionId} in round {CurrentRound}",
                     matchingSessionId, matchingSession.CurrentRound);
 
-                BackgroundJob.Schedule<IMatchingOrchestrator>(
+                BackgroundJob.Enqueue<IMatchingOrchestrator>(
                     orchestrator => orchestrator.HandlePostOutcomeAsync(
                         tripRequest.Id,
-                        cancellationToken),
-                    _settings.EmptyRoundTimeout); // delay then advance to next round or cancel 
+                        cancellationToken));
 
                 return Result.Success;
             }
@@ -141,8 +140,9 @@ public class DriverMatchingService : IDriverMatchingService
             // Send notifications to drivers with full trip details
             var riderName = tripRequest.RiderProfile.PreferredName ?? tripRequest.RiderProfile.User.Name;
 
-            await Task.WhenAll(matchAttempts.Select(match =>
-                _publisher.Publish(new DriverMatchOfferCreatedEvent(
+            foreach (var match in matchAttempts)
+            {
+                await _publisher.Publish(new DriverMatchOfferCreatedEvent(
                     match.Id,
                     tripRequest.Id,
                     match.DriverUserId,
@@ -155,7 +155,8 @@ public class DriverMatchingService : IDriverMatchingService
                     tripRequest.FinalFare.Distance,
                     match.DistanceToPickup,
                     match.EstimatedArrivalTime,
-                    match.CreatedAt), cancellationToken)));
+                    match.CreatedAt), cancellationToken);
+            }
 
             return Result.Success;
         }
@@ -191,7 +192,7 @@ public class DriverMatchingService : IDriverMatchingService
                 {
                     _logger.LogInformation("Matching session {MatchingSessionId} has expired, cancelling",
                         matchingSessionId);
-                    matchingSession.Cancel("انتهت مهلة جلسة المطابقة");
+                    matchingSession.Cancel(false, "انتهت مهلة جلسة المطابقة");
                     await _dbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
                 }
@@ -219,8 +220,8 @@ public class DriverMatchingService : IDriverMatchingService
             await transaction.CommitAsync(cancellationToken);
 
             // Let the orchestrator decide whether to advance to next round or cancel
-            var timeoutDelay = matchingSession.IsLastRound() 
-                ? _settings.FinalRoundWait 
+            var timeoutDelay = matchingSession.IsLastRound()
+                ? _settings.RoundTimeout
                 : TimeSpan.Zero; // Immediately advance if not last round
 
             BackgroundJob.Schedule<IMatchingOrchestrator>(

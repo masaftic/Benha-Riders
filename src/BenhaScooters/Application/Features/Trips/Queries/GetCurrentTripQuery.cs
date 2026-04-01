@@ -94,6 +94,11 @@ public class GetCurrentTripQueryHandler : IRequestHandler<GetCurrentTripQuery, E
             ? await _s3Service.GetPreSignedUrlAsync(tripResult.DriverPhotoUrl, TimeSpan.FromHours(1), cancellationToken)
             : null;
 
+        var driverRating = await _db.DriverStats
+            .Where(ds => ds.UserId == tripResult.DriverId)
+            .Select(ds => ds.AverageRating)
+            .FirstOrDefaultAsync(cancellationToken);
+
         // Calculate distance and duration
         var distance = _geoService.CalculateDistance(tripResult.PickupLocation, tripResult.DropoffLocation);
         var duration = _geoService.EstimateArrivalTime(distance);
@@ -141,7 +146,8 @@ public class GetCurrentTripQueryHandler : IRequestHandler<GetCurrentTripQuery, E
                 tripResult.DriverVehicleModel,
                 tripResult.DriverVehicleBrand,
                 tripResult.DriverVehicleColor,
-                tripResult.DriverVehicleLicensePlate),
+                tripResult.DriverVehicleLicensePlate,
+                driverRating),
             duration.ToMinutes(),
             distance.ToKilometers(),
             distanceToPickup,

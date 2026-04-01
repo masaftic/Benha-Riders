@@ -43,5 +43,9 @@ public static class MatchingErrors
         public static Error InvalidStatus => Error.Validation(
             "MATCH_ATTEMPT_INVALID_STATUS",
             "Match attempt is not in a valid state for this operation");
+        
+        public static Error CannotAcceptYourOwnRequest => Error.Validation(
+            "MATCH_ATTEMPT_CANNOT_ACCEPT_OWN_REQUEST",
+            "لا يمكنك قبول عرضك الخاص، يرجى الانتظار حتى يتم عرض طلبك على سائق آخر");
     }
 }

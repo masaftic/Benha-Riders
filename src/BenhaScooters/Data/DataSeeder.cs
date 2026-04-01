@@ -51,19 +51,19 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender
                 await db.SaveChangesAsync();
 
                 var driverProfile = new DriverProfile(user.Id);
-                
+
                 var personalInfo = new DriverPersonalInfo(
-                    "Sample Driver", 
+                    "Sample Driver",
                     NationalId.Create("12345678901234"));
-                
+
                 var vehicleInfo = new DriverVehicleInfo(
-                    VehicleType.Scooter, 
-                    "Brand", 
-                    "Model", 
-                    "Color", 
-                    LicensePlate.Create("ABC1234"), 
+                    VehicleType.Scooter,
+                    "Brand",
+                    "Model",
+                    "Color",
+                    LicensePlate.Create("ABC1234"),
                     2020);
-                
+
                 driverProfile.UpdatePersonalInfo(personalInfo);
                 driverProfile.UpdateVehicle(vehicleInfo);
                 driverProfile.AddDocument(DocumentType.DrivingLicense, "url://image1", DateOnly.FromDateTime(DateTime.UtcNow.AddYears(5)));
@@ -74,9 +74,54 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender
                 db.DriverProfiles.Add(driverProfile);
 
                 await db.SaveChangesAsync();
-                
+
                 await sender.Send(new ApproveDriverCommand(user.Id)); // automatically approve the driver
-                
+
+                await db.SaveChangesAsync();
+            }
+
+            if (!db.DriverProfiles.Any(dp => dp.PersonalInfo!.FullName == "Sample Driver 2"))
+            {
+                var user = new User(
+                    "Driver",
+                    Email.Create("driver2@gmail.com"),
+                    PhoneNumber.Create("01234567899"),
+                    passwordHasher.Hash("password"));
+
+                user.VerifyPhoneNumber();
+
+                user.AddRole(new UserRole(RoleName.Driver));
+
+                db.Users.Add(user);
+                await db.SaveChangesAsync();
+
+                var driverProfile = new DriverProfile(user.Id);
+
+                var personalInfo = new DriverPersonalInfo(
+                    "Sample Driver 2",
+                    NationalId.Create("12345678901237"));
+
+                var vehicleInfo = new DriverVehicleInfo(
+                    VehicleType.Scooter,
+                    "Brand",
+                    "Model",
+                    "Color",
+                    LicensePlate.Create("ABC1235"),
+                    2020);
+
+                driverProfile.UpdatePersonalInfo(personalInfo);
+                driverProfile.UpdateVehicle(vehicleInfo);
+                driverProfile.AddDocument(DocumentType.DrivingLicense, "urlimage1", DateOnly.FromDateTime(DateTime.UtcNow.AddYears(5)));
+                driverProfile.AddDocument(DocumentType.VehicleRegistration, "urlimage2");
+                driverProfile.AddDocument(DocumentType.DriverPhoto, "urlimage3");
+
+                driverProfile.SubmitForReview();
+                db.DriverProfiles.Add(driverProfile);
+
+                await db.SaveChangesAsync();
+
+                await sender.Send(new ApproveDriverCommand(user.Id)); // automatically approve the driver
+
                 await db.SaveChangesAsync();
             }
 
