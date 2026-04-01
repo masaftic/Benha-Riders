@@ -90,6 +90,9 @@ public static class DependencyInjection
         // Register matching services
         services.AddScoped<IDriverRankingService, DriverRankingService>();
 
+        // Register SignalR connection tracker (singleton to persist across requests)
+        services.AddSingleton<ISignalRConnectionTracker, SignalRConnectionTracker>();
+
         // Register background services
         // services.AddHostedService<MatchTimeoutBackgroundService>();
 
@@ -133,14 +136,10 @@ public static class DependencyInjection
         services.AddScoped<IFareEstimator, FareEstimator>();
         services.AddScoped<IGeoService, GeoService>();
 
-        // Add the token cleanup background service
-        services.AddHostedService<TokenCleanupService>();
-        
-        // Add the matching cleanup background service
-        services.AddHostedService<MatchingCleanupService>();
-        
-        // Add the hung trip cleanup background service
-        services.AddHostedService<HungTripCleanupService>();
+        services.AddScoped<TokenCleanupService>();
+        services.AddScoped<MatchingCleanupService>();
+        services.AddScoped<HungTripCleanupService>();
+        services.AddScoped<InactiveDriverCleanupService>();
 
         services.AddScoped<PublishDomainEventsInterceptor>();
 

@@ -183,14 +183,6 @@ public class MatchingSession : AggregateRoot
 
         _matchAttempts.Add(matchAttempt);
 
-        // Publish domain event for trip assignment offer
-        RaiseDomainEvent(new DriverMatchOfferCreatedEvent(
-            TripRequestId,
-            driverId,
-            distanceToPickup,
-            estimatedArrivalTime,
-            driverScore)); // No expiration time since offers don't expire
-
         return matchAttempt;
     }
 

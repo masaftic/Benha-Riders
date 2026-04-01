@@ -16,11 +16,13 @@ public class DriverHub : Hub<IDriverNotifications>
 {
     private readonly ILogger<DriverHub> _logger;
     private readonly AppDbContext _dbContext;
+    private readonly ISignalRConnectionTracker _connectionTracker;
 
-    public DriverHub(ILogger<DriverHub> logger, AppDbContext dbContext)
+    public DriverHub(ILogger<DriverHub> logger, AppDbContext dbContext, ISignalRConnectionTracker connectionTracker)
     {
         _logger = logger;
         _dbContext = dbContext;
+        _connectionTracker = connectionTracker;
     }
 
     public override async Task OnConnectedAsync()
@@ -29,6 +31,7 @@ public class DriverHub : Hub<IDriverNotifications>
         if (driverId != null)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, driverId);
+            await _connectionTracker.RecordHeartbeat(UserId.Create(int.Parse(driverId)));
             _logger.LogInformation("Driver connected: {DriverId}", driverId);
 
             // Send any pending offers the driver missed while offline
@@ -50,6 +53,15 @@ public class DriverHub : Hub<IDriverNotifications>
         return base.OnDisconnectedAsync(exception);
     }
 
+    public async Task Heartbeat()
+    {
+        var driverIdString = Context.User?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (driverIdString != null && int.TryParse(driverIdString, out var driverIdValue))
+        {
+            await _connectionTracker.RecordHeartbeat(UserId.Create(driverIdValue));
+        }
+    }
+
     private async Task SendPendingOffersAsync(string driverIdString)
     {
         try
@@ -68,7 +80,10 @@ public class DriverHub : Hub<IDriverNotifications>
                     .ThenInclude(ms => ms.TripRequest)
                         .ThenInclude(tr => tr.RiderProfile)
                             .ThenInclude(rp => rp.User)
-                .Where(dma => dma.DriverUserId == driverId && dma.Status == MatchAttemptStatus.Pending)
+                .Where(dma => dma.DriverUserId == driverId
+                    && dma.Status == MatchAttemptStatus.Pending
+                    && dma.MatchingSession.Status == MatchingSessionStatus.Active
+                    && dma.MatchingSession.ExpiresAt > DateTime.UtcNow)
                 .ToListAsync();
 
             if (pendingOffers.Any())

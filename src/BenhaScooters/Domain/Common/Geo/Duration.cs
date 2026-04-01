@@ -19,6 +19,7 @@ public partial struct Duration
     public static Duration FromSeconds(double seconds) => new Duration(seconds / 60);
     public static Duration FromHours(double hours) => new Duration(hours * 60);
 
+    public double ToHours() => _value / 60;
     public double ToMinutes() => _value;
     public double ToSeconds() => _value * 60;
 }

@@ -6,7 +6,15 @@ namespace BenhaScooters.Domain.Drivers;
 
 public enum DriverAvailabilityStatus
 {
+    /// <summary>
+    /// Driver does not wish to receive ride offers AFTER they close the app.
+    /// </summary>
     Offline = 0,
+
+    /// <summary>
+    /// Driver wishes to receive ride offers even if they close the app. 
+    /// We will use LastHeartbeat to track active drivers and avoid sending offers to inactive ones.
+    /// </summary>
     Online = 1,
     OnTrip = 2
 }
@@ -19,6 +27,12 @@ public class DriverStatus
 {
     public UserId UserId { get; private set; }  // PK & FK
     public DriverAvailabilityStatus Status { get; private set; }
+
+    /// <summary>
+    /// Will be used for reliably tracking online drivers (the ones who are actively using the app)
+    /// Status.Online is the intent to receive ride offers, even if they close the app
+    /// </summary>
+    public DateTime? LastHeartbeat { get; private set; } 
     public TripId? CurrentTripId { get; private set; }
     public DateTime LastStatusChange { get; private set; }
     public DateTime? OnlineSessionStart { get; private set; }
@@ -65,8 +79,8 @@ public class DriverStatus
 
     public ErrorOr<Success> StartTrip(TripId tripId)
     {
-        if (Status != DriverAvailabilityStatus.Online)
-            return DriverErrors.Status.MustBeOnlineToStartTrip;
+        if (Status == DriverAvailabilityStatus.OnTrip)
+            return DriverErrors.Status.AlreadyOnTrip;
 
         Status = DriverAvailabilityStatus.OnTrip;
         CurrentTripId = tripId;

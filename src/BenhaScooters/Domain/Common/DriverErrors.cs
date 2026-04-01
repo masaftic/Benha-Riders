@@ -220,10 +220,10 @@ public static class DriverErrors
         public static readonly Error NotOnTrip = Error.Conflict(
             "NOT_ON_TRIP",
             "أنت لست في رحلة حالياً.");
-
-        public static readonly Error MustBeOnlineToSetBusy = Error.Conflict(
-            "MUST_BE_ONLINE_TO_SET_BUSY",
-            "يجب أن تكون متصلاً لتعيين حالة مشغول.");
+        
+        public static readonly Error AlreadyOnTrip = Error.Conflict(
+            "ALREADY_ON_TRIP",
+            "أنت بالفعل في رحلة حالياً.");
 
         public static readonly Error NotFound = Error.NotFound(
             "DRIVER_STATUS_NOT_FOUND",

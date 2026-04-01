@@ -83,6 +83,17 @@ public class DriversController : BaseApiController
         return result.Match(Ok, HandleErrors);
     }
 
+    [HttpPost("heartbeat")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> RecordHeartbeat()
+    {
+        var command = new RecordHeartbeatCommand(HttpContext.GetDriverId());
+        await _sender.Send(command);
+        return Ok();
+    }
+
     // ── Wallet ────────────────────────────────────────────────────────────────
 
     /// <summary>

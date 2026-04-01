@@ -6,6 +6,7 @@ using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Common.Geo;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
+using BenhaScooters.Domain.Matching.Events;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Users;
@@ -13,6 +14,7 @@ using BenhaScooters.Infrastructure.Matching.Services;
 using BenhaScooters.Infrastructure.Notifications;
 using ErrorOr;
 using Hangfire;
+using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -32,8 +34,7 @@ public class DriverMatchingService : IDriverMatchingService
     private readonly IDriverRankingService _driverRanking;
     private readonly IGeoService _geoService;
     private readonly ILogger<DriverMatchingService> _logger;
-    private readonly IHubContext<DriverHub, IDriverNotifications> _hub;
-    private readonly IPushNotificationService _pushNotification;
+    private readonly IPublisher _publisher;
     private readonly MatchingSessionOptions _settings;
 
     public DriverMatchingService(
@@ -41,16 +42,14 @@ public class DriverMatchingService : IDriverMatchingService
         IDriverRankingService driverRanking,
         IGeoService geoService,
         ILogger<DriverMatchingService> logger,
-        IHubContext<DriverHub, IDriverNotifications> hub,
-        IPushNotificationService pushNotification,
+        IPublisher publisher,
         IOptions<MatchingSessionOptions> options)
     {
         _dbContext = dbContext;
         _driverRanking = driverRanking;
         _geoService = geoService;
         _logger = logger;
-        _hub = hub;
-        _pushNotification = pushNotification;
+        _publisher = publisher;
         _settings = options.Value;
     }
 
@@ -99,7 +98,7 @@ public class DriverMatchingService : IDriverMatchingService
                     orchestrator => orchestrator.HandlePostOutcomeAsync(
                         tripRequest.Id,
                         cancellationToken),
-                    _settings.RoundTimeout); // delay then advance to next round or cancel 
+                    _settings.EmptyRoundTimeout); // delay then advance to next round or cancel 
 
                 return Result.Success;
             }
@@ -140,45 +139,23 @@ public class DriverMatchingService : IDriverMatchingService
                 _settings.RoundTimeout);
 
             // Send notifications to drivers with full trip details
-            await Task.WhenAll(matchAttempts.Select(async match =>
-            {
-                var notification = new RideRequestOfferNotification(
-                    match.Id.ToString(),
-                    tripRequest.RiderProfile.PreferredName ?? tripRequest.RiderProfile.User.Name,
-                    tripRequest.PickupLocation.Y,
-                    tripRequest.PickupLocation.X,
-                    tripRequest.DropoffLocation.Y,
-                    tripRequest.DropoffLocation.X,
+            var riderName = tripRequest.RiderProfile.PreferredName ?? tripRequest.RiderProfile.User.Name;
+
+            await Task.WhenAll(matchAttempts.Select(match =>
+                _publisher.Publish(new DriverMatchOfferCreatedEvent(
+                    match.Id,
+                    tripRequest.Id,
+                    match.DriverUserId,
+                    riderName,
+                    tripRequest.PickupLocation.ToCoordinate(),
+                    tripRequest.DropoffLocation.ToCoordinate(),
                     tripRequest.PickupAddress,
                     tripRequest.DropoffAddress,
                     tripRequest.FinalFare.Amount,
-                    tripRequest.FinalFare.Distance.ToKilometers(),
-                    match.DistanceToPickup.ToKilometers(),
-                    match.EstimatedArrivalTime.ToMinutes(),
-                    match.CreatedAt); 
-
-                await _hub.Clients.Groups(match.DriverUserId.ToString())
-                    .NotifyRideRequestOffer(match.DriverUserId.ToString(), notification);
-
-                // Also send FCM push notification for drivers not connected via SignalR
-                await _pushNotification.SendToUserAsync(
-                    match.DriverUserId,
-                    "طلب رحلة جديد",
-                    $"لديك طلب رحلة من {notification.RiderName} - {notification.EstimatedFare:F0} جنيه",
-                    new Dictionary<string, string>
-                    {
-                        ["type"] = "ride_request_offer",
-                        ["matchAttemptId"] = match.Id.ToString(),
-                        ["riderName"] = notification.RiderName,
-                        ["pickupLocation"] = $"{notification.PickupLatitude},{notification.PickupLongitude}",
-                        ["dropoffLocation"] = $"{notification.DropoffLatitude},{notification.DropoffLongitude}",
-                        ["pickupAddress"] = notification.PickupAddress ?? "Unknown pickup location",
-                        ["dropoffAddress"] = notification.DropoffAddress ?? "Unknown dropoff location",
-                        ["fare"] = notification.EstimatedFare.ToString(),
-                        ["distanceToPickup"] = notification.DistanceToPickup.ToString(),
-                        ["estimatedArrival"] = notification.EstimatedArrivalTime.ToString(),
-                    });
-            }));
+                    tripRequest.FinalFare.Distance,
+                    match.DistanceToPickup,
+                    match.EstimatedArrivalTime,
+                    match.CreatedAt), cancellationToken)));
 
             return Result.Success;
         }
@@ -200,10 +177,29 @@ public class DriverMatchingService : IDriverMatchingService
                 .Include(ms => ms.MatchAttempts)
                 .FirstOrDefaultAsync(ms => ms.Id == matchingSessionId, cancellationToken);
 
-            if (matchingSession == null || !matchingSession.IsActive)
+            if (matchingSession == null)
             {
-                _logger.LogInformation("Matching session {MatchingSessionId} is not active, skipping round timeout",
+                _logger.LogInformation("Matching session {MatchingSessionId} not found, skipping round timeout",
                     matchingSessionId);
+                return;
+            }
+
+            if (!matchingSession.IsActive)
+            {
+                // If the session expired by time but was never formally cancelled, cancel it now
+                if (matchingSession.IsExpired && matchingSession.Status == MatchingSessionStatus.Active)
+                {
+                    _logger.LogInformation("Matching session {MatchingSessionId} has expired, cancelling",
+                        matchingSessionId);
+                    matchingSession.Cancel("انتهت مهلة جلسة المطابقة");
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                }
+                else
+                {
+                    _logger.LogInformation("Matching session {MatchingSessionId} is not active, skipping round timeout",
+                        matchingSessionId);
+                }
                 return;
             }
 

@@ -6,6 +6,13 @@ public class MatchingSessionOptions
 {
     public const string SectionName = "MatchingSession";
 
+
+    /// <summary>
+    /// How long to wait on empty rounds before advancing to the next round.  
+    /// </summary>
+    public int EmptyRoundTimeoutSeconds { get; set; } = 2;
+
+
     /// <summary>
     /// How long to wait in each round before advancing to the next round
     /// </summary>
@@ -26,6 +33,7 @@ public class MatchingSessionOptions
     public int[] OffersPerRound { get; set; } = null!;
 
 
+    public TimeSpan EmptyRoundTimeout => TimeSpan.FromSeconds(EmptyRoundTimeoutSeconds);
     public TimeSpan RoundTimeout => TimeSpan.FromSeconds(RoundTimeoutSeconds);
     public TimeSpan FinalRoundWait => TimeSpan.FromSeconds(FinalRoundWaitSeconds);
 }

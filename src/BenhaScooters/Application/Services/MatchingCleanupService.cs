@@ -1,79 +1,42 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Matching;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace BenhaScooters.Application.Services;
 
 /// <summary>
-/// Background service that periodically cleans up old match attempts
+/// Hangfire job that cleans up old match attempts
 /// </summary>
-public class MatchingCleanupService : BackgroundService
+public class MatchingCleanupService
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly AppDbContext _dbContext;
     private readonly ILogger<MatchingCleanupService> _logger;
-    private readonly TimeSpan _cleanupInterval = TimeSpan.FromHours(1); // Run every hour
-    private readonly TimeSpan _offerRetentionPeriod = TimeSpan.FromHours(24); // Keep offers for 24 hours
+    private static readonly TimeSpan OfferRetentionPeriod = TimeSpan.FromHours(24);
 
-    public MatchingCleanupService(IServiceProvider serviceProvider, ILogger<MatchingCleanupService> logger)
+    public MatchingCleanupService(AppDbContext dbContext, ILogger<MatchingCleanupService> logger)
     {
-        _serviceProvider = serviceProvider;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task CleanupOldOffersAsync()
     {
-        _logger.LogInformation("Matching Cleanup Service started");
+        var cutoffTime = DateTime.UtcNow - OfferRetentionPeriod;
 
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await CleanupOldOffersAsync(stoppingToken);
-                await Task.Delay(_cleanupInterval, stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                // Normal shutdown
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during matching cleanup");
-                // Wait a bit before retrying
-                await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
-            }
-        }
-
-        _logger.LogInformation("Matching Cleanup Service stopped");
-    }
-
-    private async Task CleanupOldOffersAsync(CancellationToken cancellationToken)
-    {
-        using var scope = _serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        var cutoffTime = DateTime.UtcNow - _offerRetentionPeriod;
-
-        // Delete old match attempts that are no longer needed
-        var oldOffers = await dbContext.DriverMatchAttempts
+        var oldOffers = await _dbContext.DriverMatchAttempts
             .Where(dma => dma.CreatedAt < cutoffTime)
-            .ToListAsync(cancellationToken);
+            .ToListAsync();
 
-        if (oldOffers.Any())
-        {
-            dbContext.DriverMatchAttempts.RemoveRange(oldOffers);
-            await dbContext.SaveChangesAsync(cancellationToken);
-
-            _logger.LogInformation(
-                "Cleaned up {Count} old match attempts older than {CutoffTime}",
-                oldOffers.Count,
-                cutoffTime);
-        }
-        else
+        if (oldOffers.Count == 0)
         {
             _logger.LogDebug("No old match attempts to clean up");
+            return;
         }
+
+        _dbContext.DriverMatchAttempts.RemoveRange(oldOffers);
+        await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Cleaned up {Count} old match attempts older than {CutoffTime}",
+            oldOffers.Count, cutoffTime);
     }
 }
