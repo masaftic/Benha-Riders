@@ -128,6 +128,14 @@ public class RiderProfile
         IsActive = true;
     }
 
+    public void Anonymize(string anonymizedName)
+    {
+        PreferredName = anonymizedName.Trim();
+        DefaultPaymentMethodId = null;
+        _savedAddresses.Clear();
+        IsActive = false;
+    }
+
     // Calculated properties
     public bool IsNewRider => TotalTrips == 0;
     public bool IsFrequentRider => TotalTrips >= 10;

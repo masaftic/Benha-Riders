@@ -10,7 +10,7 @@ public class MatchingSessionOptions
     /// <summary>
     /// How long to wait on empty rounds before advancing to the next round.  
     /// </summary>
-    public int EmptyRoundTimeoutSeconds { get; set; } = 2;
+    public int EmptyRoundTimeoutSeconds { get; set; } = 5;
 
 
     /// <summary>

@@ -57,6 +57,11 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, E
             return AppErrors.User.NotFound();
         }
 
+        if (!user.IsActive)
+        {
+            return AppErrors.User.AccountDeactivated();
+        }
+
         // Load or create profiles based on app
         var driverProfile = await _db.DriverProfiles
             .FirstOrDefaultAsync(d => d.UserId == user.Id, cancellationToken);

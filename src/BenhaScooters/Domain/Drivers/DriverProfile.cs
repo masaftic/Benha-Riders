@@ -1,5 +1,7 @@
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Users;
+using BenhaScooters.Domain.Drivers.Enums;
+using BenhaScooters.Domain.Drivers.ValueObjects;
 using NetTopologySuite.Geometries;
 using Thinktecture;
 
@@ -208,6 +210,25 @@ public class DriverProfile
     
     public bool IsComplete => PersonalInfo != null && Vehicle != null && 
                               GetRequiredDocumentTypes().All(t => _documents.Any(d => d.Type == t));
+
+    public void Anonymize(UserId userId)
+    {
+        PersonalInfo = new DriverPersonalInfo(
+            "Deleted Driver",
+            NationalId.Create(userId.ToString("D14"))); // Fake national ID;
+
+        Vehicle = new DriverVehicleInfo(
+            Vehicle?.VehicleType ?? VehicleType.Scooter,
+            "Deleted",
+            "Vehicle",
+            "Hidden",
+            LicensePlate.Create("DELETED"),
+            DateTime.UtcNow.Year);
+
+        _documents.Clear();
+        OnboardingStatus = DriverOnboardingStatus.Suspended;
+        RejectionReason = "Account deleted by user.";
+    }
 
     public static List<DocumentType> GetRequiredDocumentTypes() =>
     [

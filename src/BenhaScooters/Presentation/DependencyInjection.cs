@@ -100,9 +100,10 @@ public static class DependencyInjection
         {
             c.CustomizeProblemDetails = ctx =>
             {
+                var requestId = ctx.HttpContext.TraceIdentifier;
+
                 ctx.ProblemDetails.Instance = $"{ctx.HttpContext.Request.Method} {ctx.HttpContext.Request.Path}";
-                // trace id
-                ctx.ProblemDetails.Extensions["traceId"] = ctx.HttpContext.TraceIdentifier;
+                ctx.ProblemDetails.Extensions["requestId"] = requestId;
 
                 if (ctx.HttpContext.Items.TryGetValue("ErrorCodes", out var errorCodes))
                 {

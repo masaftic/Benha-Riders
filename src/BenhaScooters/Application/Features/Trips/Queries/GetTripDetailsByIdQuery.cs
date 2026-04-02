@@ -73,7 +73,9 @@ public class GetTripDetailsByIdQueryHandler : IRequestHandler<GetTripDetailsById
                 DriverName = t.DriverProfile.PersonalInfo!.FullName,
                 DriverPhoneNumber = t.DriverProfile.User.PhoneNumber,
                 DriverPhotoUrl = t.DriverProfile.Documents
-                    .FirstOrDefault(d => d.Type == DocumentType.DriverPhoto)!.ImageUrl,
+                    .Where(d => d.Type == DocumentType.DriverPhoto)
+                    .Select(d => d.ImageUrl)
+                    .FirstOrDefault(),
                 DriverVehicleBrand = t.DriverProfile.Vehicle!.Brand,
                 DriverVehicleColor = t.DriverProfile.Vehicle!.Color,
                 DriverVehicleModel = t.DriverProfile.Vehicle!.Model,

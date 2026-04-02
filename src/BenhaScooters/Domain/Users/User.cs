@@ -80,6 +80,8 @@ public partial class PhoneNumber
 
 public class User
 {
+    public const string DeletedAccountName = "Deleted User";
+
     public UserId Id { get; private set; }
     public string Name { get; private set; } = null!;
     public Email Email { get; private set; } = null!;
@@ -88,6 +90,8 @@ public class User
     public bool PhoneNumberVerified { get; private set; } = false;
     public string? PreferredLanguage { get; private set; }
     public string? PasswordHash { get; private set; } = null;
+    public bool IsActive { get; private set; } = true;
+    public DateTime? DeactivatedAt { get; private set; }
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
     private readonly List<UserRole> _roles = [];
@@ -191,6 +195,21 @@ public class User
         PasswordHash = newPasswordHash;
 
         // Revoke all refresh tokens to force re-login
+        RevokeAllRefreshTokens();
+    }
+
+    public void DeactivateAndAnonymize(Email anonymizedEmail, PhoneNumber anonymizedPhoneNumber)
+    {
+        Name = DeletedAccountName;
+        Email = anonymizedEmail;
+        EmailVerified = false;
+        PhoneNumber = anonymizedPhoneNumber;
+        PhoneNumberVerified = false;
+        PreferredLanguage = null;
+        PasswordHash = null;
+        IsActive = false;
+        DeactivatedAt = DateTime.UtcNow;
+
         RevokeAllRefreshTokens();
     }
 

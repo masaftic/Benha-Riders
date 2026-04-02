@@ -191,7 +191,9 @@ public class AcceptMatchCommandHandler(
         if (driverProfile != null)
         {
             var driverPhotoUrl = driverProfile.Documents.FirstOrDefault(d => d.Type == DocumentType.DriverPhoto)?.ImageUrl;
-            var fullDriverPhotoUrl = await s3Service.GetPreSignedUrlAsync(driverPhotoUrl!, TimeSpan.FromHours(1), cancellationToken);
+            var fullDriverPhotoUrl = driverPhotoUrl is not null
+                ? await s3Service.GetPreSignedUrlAsync(driverPhotoUrl, TimeSpan.FromHours(1), cancellationToken)
+                : null;
 
             var driverRating = await db.DriverStats
                 .Where(ds => ds.UserId == driverStatus.UserId)

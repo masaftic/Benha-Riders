@@ -98,6 +98,25 @@ public class AuthenticationController : BaseApiController
     }
 
     /// <summary>
+    /// Deactivate and anonymize the current user's account
+    /// </summary>
+    /// <remarks>
+    /// Preserves trip history and related records, but anonymizes personal information and blocks future access.
+    /// </remarks>
+    [HttpDelete("account")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> DeleteAccount()
+    {
+        var command = new DeleteAccountCommand(HttpContext.GetCurrentUserId());
+        var result = await _sender.Send(command);
+
+        return result.Match(_ => NoContent(), HandleErrors);
+    }
+
+    /// <summary>
     /// Get current user information
     /// </summary>
     /// <remarks>

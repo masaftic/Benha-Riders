@@ -89,7 +89,10 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
                 DriverId = t.DriverId,
                 DriverName = t.DriverProfile.PersonalInfo!.FullName,
                 DriverPhoneNumber = t.DriverProfile.User.PhoneNumber,
-                DriverPhotoUrl = t.DriverProfile.Documents.FirstOrDefault(d => d.Type == Domain.Drivers.DocumentType.DriverPhoto)!.ImageUrl,
+                DriverPhotoUrl = t.DriverProfile.Documents
+                    .Where(d => d.Type == Domain.Drivers.DocumentType.DriverPhoto)
+                    .Select(d => d.ImageUrl)
+                    .FirstOrDefault(),
                 DriverVehicleBrand = t.DriverProfile.Vehicle!.Brand,
                 DriverVehicleColor = t.DriverProfile.Vehicle!.Color,
                 DriverVehicleModel = t.DriverProfile.Vehicle!.Model,

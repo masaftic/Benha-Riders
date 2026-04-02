@@ -288,4 +288,13 @@
   <data name="MATCH_ATTEMPT_CANNOT_ACCEPT_OWN_REQUEST" xml:space="preserve">
     <value>You cannot accept your own trip request.</value>
   </data>
+  <data name="USER_ACCOUNT_DEACTIVATED" xml:space="preserve">
+    <value>This account has been deactivated.</value>
+  </data>
+  <data name="USER_ACCOUNT_DELETE_ACTIVE_TRIP" xml:space="preserve">
+    <value>You cannot delete your account while you have an active trip.</value>
+  </data>
+  <data name="USER_ACCOUNT_DELETE_PENDING_REQUEST" xml:space="preserve">
+    <value>You cannot delete your account while you have a pending trip request.</value>
+  </data>
 </root>

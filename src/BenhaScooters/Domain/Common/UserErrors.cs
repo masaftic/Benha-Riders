@@ -77,5 +77,17 @@ public static partial class AppErrors
         public static AppError InvalidDevicePlatform() => NewValidation(
             "INVALID_PLATFORM",
             "Platform must be either 'android' or 'ios'.");
+
+        public static AppError AccountDeactivated() => NewForbidden(
+            "USER_ACCOUNT_DEACTIVATED",
+            "This account has been deactivated.");
+
+        public static AppError CannotDeleteWhileTripActive() => NewConflict(
+            "USER_ACCOUNT_DELETE_ACTIVE_TRIP",
+            "You cannot delete your account while you have an active trip.");
+
+        public static AppError CannotDeleteWithPendingTripRequest() => NewConflict(
+            "USER_ACCOUNT_DELETE_PENDING_REQUEST",
+            "You cannot delete your account while you have a pending trip request.");
     }
 }

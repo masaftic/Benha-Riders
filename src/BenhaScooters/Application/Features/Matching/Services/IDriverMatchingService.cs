@@ -94,10 +94,11 @@ public class DriverMatchingService : IDriverMatchingService
                 _logger.LogInformation("No available drivers found for matching session {MatchingSessionId} in round {CurrentRound}",
                     matchingSessionId, matchingSession.CurrentRound);
 
-                BackgroundJob.Enqueue<IMatchingOrchestrator>(
+                BackgroundJob.Schedule<IMatchingOrchestrator>(
                     orchestrator => orchestrator.HandlePostOutcomeAsync(
                         tripRequest.Id,
-                        cancellationToken));
+                        cancellationToken),
+                    _settings.RoundTimeout);
 
                 return Result.Success;
             }

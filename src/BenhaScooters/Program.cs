@@ -12,6 +12,7 @@ using Hangfire;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Serilog.Context;
 using System.Globalization;
 using BenhaScooters.Shared.Localization;
 
@@ -21,12 +22,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure Serilog for file logging with 14-day retention
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
-    .WriteTo.Console()
+    .Enrich.FromLogContext()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] ({RequestId}) {SourceContext:l} → {Message:lj}{NewLine}{Exception}")
     .WriteTo.File(
         path: "logs/benha-scooters-.log",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 14,
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] ({RequestId}) {SourceContext:l} → {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
 
 try
@@ -42,7 +45,7 @@ try
     {
         var supportedCultures = AppLanguages.SupportedCultures;
 
-        options.DefaultRequestCulture = new RequestCulture(AppLanguages.English);
+        options.DefaultRequestCulture = new RequestCulture(AppLanguages.Arabic);
         options.SupportedCultures = supportedCultures;
         options.SupportedUICultures = supportedCultures;
         options.RequestCultureProviders =
@@ -63,6 +66,14 @@ try
     app.UseCors();
 
     app.UseRateLimiter();
+
+    app.Use(async (context, next) =>
+    {
+        using (LogContext.PushProperty("RequestId", context.TraceIdentifier))
+        {
+            await next();
+        }
+    });
 
 
     // Ensure uploads directory exists for PhysicalFileProvider
