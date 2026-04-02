@@ -21,6 +21,7 @@ public record MeResponse(
     PhoneNumber PhoneNumber,
     bool PhoneNumberVerified,
     DateTime CreatedAt,
+    string? PreferredLanguage,
     IEnumerable<RoleName> Roles,
     DriverInfo? DriverInfo = null);
 
@@ -88,6 +89,7 @@ public class MeQueryHandler : IRequestHandler<MeQuery, ErrorOr<MeResponse>>
             user.PhoneNumber!,
             user.PhoneNumberVerified,
             user.CreatedAt,
+            user.PreferredLanguage,
             user.Roles.Select(r => r.Name),
             driverInfo);
 

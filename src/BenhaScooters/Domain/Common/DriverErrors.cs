@@ -25,7 +25,7 @@ public static partial class AppErrors
                 "Approved driver profiles cannot be modified.");
 
             public static AppError InvalidStatusTransition() => NewConflict(
-                "INVALID_STATUS_TRANSITION",
+                "DRIVER_PROFILE_INVALID_STATUS_TRANSITION",
                 "This action is not allowed in the current onboarding status.");
 
             public static AppError PersonalInfoRequired() => NewValidation(
@@ -79,7 +79,7 @@ public static partial class AppErrors
                 "You are already on a trip.");
 
             public static AppError ManualOnTripTransitionNotAllowed() => NewValidation(
-                "INVALID_STATUS_TRANSITION",
+                "DRIVER_STATUS_MANUAL_ONTRIP_TRANSITION_NOT_ALLOWED",
                 "Driver status cannot be manually set to OnTrip.");
 
             public static AppError InvalidAvailabilityStatus() => NewValidation(

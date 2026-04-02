@@ -3,13 +3,17 @@ using BenhaScooters.Application.Services;
 using BenhaScooters.Data;
 using BenhaScooters.Data.MapData;
 using BenhaScooters.Infrastructure;
+using BenhaScooters.Infrastructure.Localization;
 using BenhaScooters.Infrastructure.Notifications;
 using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Presentation;
 using BenhaScooters.Services;
 using Hangfire;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Globalization;
+using BenhaScooters.Shared.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +37,21 @@ try
     builder.Host.UseSerilog();
 
     // Add infrastructure services
+    builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+    builder.Services.Configure<RequestLocalizationOptions>(options =>
+    {
+        var supportedCultures = AppLanguages.SupportedCultures;
+
+        options.DefaultRequestCulture = new RequestCulture(AppLanguages.English);
+        options.SupportedCultures = supportedCultures;
+        options.SupportedUICultures = supportedCultures;
+        options.RequestCultureProviders =
+        [
+            new AuthenticatedUserRequestCultureProvider(),
+            new AcceptLanguageHeaderRequestCultureProvider()
+        ];
+    });
+
     builder.Services.AddPresentation();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication(builder.Configuration);
@@ -105,6 +124,7 @@ try
     app.UseHttpsRedirection();
 
     app.UseAuthentication();
+    app.UseRequestLocalization();
     app.UseAuthorization();
 
     app.MapControllers();

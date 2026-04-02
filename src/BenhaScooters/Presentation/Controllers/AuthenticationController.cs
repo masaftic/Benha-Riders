@@ -118,6 +118,22 @@ public class AuthenticationController : BaseApiController
     }
 
     /// <summary>
+    /// Update the current user's preferred language
+    /// </summary>
+    [HttpPut("preferred-language")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> UpdatePreferredLanguage([FromBody] UpdatePreferredLanguageRequest request)
+    {
+        var command = new SetPreferredLanguageCommand(HttpContext.GetCurrentUserId(), request.Language);
+        var result = await _sender.Send(command);
+
+        return result.Match(_ => NoContent(), HandleErrors);
+    }
+
+    /// <summary>
     /// Refresh access token
     /// </summary>
     /// <remarks>

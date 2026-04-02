@@ -23,6 +23,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.PhoneNumber)
             .HasMaxLength(20);
 
+        builder.Property(x => x.PreferredLanguage)
+            .HasMaxLength(5);
 
         builder.Property(x => x.PasswordHash)
             .HasMaxLength(256);

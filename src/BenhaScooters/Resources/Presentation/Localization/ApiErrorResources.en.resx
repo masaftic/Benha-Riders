@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
+  </resheader>
+  <data name="USER_ALREADY_EXISTS" xml:space="preserve">
+    <value>A user with email '{email}' already exists.</value>
+  </data>
+  <data name="USER_PHONE_ALREADY_EXISTS" xml:space="preserve">
+    <value>A user with phone number '{phoneNumber}' already exists.</value>
+  </data>
+  <data name="INVALID_CREDENTIALS" xml:space="preserve">
+    <value>The provided credentials are invalid.</value>
+  </data>
+  <data name="USER_NOT_FOUND" xml:space="preserve">
+    <value>User was not found.</value>
+  </data>
+  <data name="PHONE_ALREADY_VERIFIED" xml:space="preserve">
+    <value>Phone number is already verified.</value>
+  </data>
+  <data name="INVALID_VERIFICATION_CODE" xml:space="preserve">
+    <value>The verification code is invalid.</value>
+  </data>
+  <data name="OTP_RATE_LIMIT_EXCEEDED" xml:space="preserve">
+    <value>OTP request rate limit exceeded. Try again in {retryAfterSeconds} seconds.</value>
+  </data>
+  <data name="OTP_DAILY_LIMIT_EXCEEDED" xml:space="preserve">
+    <value>OTP daily limit exceeded.</value>
+  </data>
+  <data name="OTP_CODE_LOCKED" xml:space="preserve">
+    <value>The verification code is locked due to too many failed attempts.</value>
+  </data>
+  <data name="OTP_VERIFICATION_LOCKED" xml:space="preserve">
+    <value>OTP verification is temporarily locked. Try again in {retryAfterSeconds} seconds.</value>
+  </data>
+  <data name="OTP_FRAUD_SUSPECTED" xml:space="preserve">
+    <value>Suspicious OTP activity was detected.</value>
+  </data>
+  <data name="INCORRECT_CURRENT_PASSWORD" xml:space="preserve">
+    <value>The current password is incorrect.</value>
+  </data>
+  <data name="INVALID_REFRESH_TOKEN" xml:space="preserve">
+    <value>The refresh token is invalid or expired.</value>
+  </data>
+  <data name="INVALID_GOOGLE_ID_TOKEN" xml:space="preserve">
+    <value>The Google ID token is invalid.</value>
+  </data>
+  <data name="USER_ALREADY_HAS_ROLE" xml:space="preserve">
+    <value>User already has this role.</value>
+  </data>
+  <data name="INVALID_PLATFORM" xml:space="preserve">
+    <value>Platform must be either 'android' or 'ios'.</value>
+  </data>
+  <data name="ADMIN_DRIVER_NOT_FOUND" xml:space="preserve">
+    <value>Driver was not found.</value>
+  </data>
+  <data name="DRIVER_NOT_FOUND" xml:space="preserve">
+    <value>Driver was not found.</value>
+  </data>
+  <data name="DRIVER_DOCUMENT_UPLOAD_FAILED" xml:space="preserve">
+    <value>Failed to upload driver documents.</value>
+  </data>
+  <data name="DRIVER_NOT_ONLINE" xml:space="preserve">
+    <value>Driver must be online to access available trips.</value>
+  </data>
+  <data name="CANNOT_MODIFY_APPROVED_PROFILE" xml:space="preserve">
+    <value>Approved driver profiles cannot be modified.</value>
+  </data>
+  <data name="DRIVER_PROFILE_INVALID_STATUS_TRANSITION" xml:space="preserve">
+    <value>This action is not allowed in the current onboarding status.</value>
+  </data>
+  <data name="PERSONAL_INFO_REQUIRED" xml:space="preserve">
+    <value>Personal information must be completed first.</value>
+  </data>
+  <data name="VEHICLE_INFO_REQUIRED" xml:space="preserve">
+    <value>Vehicle information must be completed first.</value>
+  </data>
+  <data name="DOCUMENTS_REQUIRED" xml:space="preserve">
+    <value>All required documents must be uploaded first.</value>
+  </data>
+  <data name="REJECTION_REASON_REQUIRED" xml:space="preserve">
+    <value>A rejection reason is required.</value>
+  </data>
+  <data name="SUSPENSION_REASON_REQUIRED" xml:space="preserve">
+    <value>A suspension reason is required.</value>
+  </data>
+  <data name="DRIVER_PROFILE_NOT_FOUND" xml:space="preserve">
+    <value>Driver profile was not found.</value>
+  </data>
+  <data name="DOCUMENT_NOT_FOUND" xml:space="preserve">
+    <value>Document was not found.</value>
+  </data>
+  <data name="CANNOT_GO_ONLINE_WHILE_ON_TRIP" xml:space="preserve">
+    <value>You cannot go online while on a trip.</value>
+  </data>
+  <data name="CANNOT_GO_OFFLINE_WHILE_ON_TRIP" xml:space="preserve">
+    <value>You cannot go offline while on a trip.</value>
+  </data>
+  <data name="NOT_ON_TRIP" xml:space="preserve">
+    <value>You are not currently on a trip.</value>
+  </data>
+  <data name="ALREADY_ON_TRIP" xml:space="preserve">
+    <value>You are already on a trip.</value>
+  </data>
+  <data name="DRIVER_STATUS_MANUAL_ONTRIP_TRANSITION_NOT_ALLOWED" xml:space="preserve">
+    <value>Driver status cannot be manually set to OnTrip.</value>
+  </data>
+  <data name="INVALID_STATUS" xml:space="preserve">
+    <value>Invalid driver availability status.</value>
+  </data>
+  <data name="INVALID_OPERATION" xml:space="preserve">
+    <value>Driver status change is invalid.</value>
+  </data>
+  <data name="WALLET_NOT_FOUND" xml:space="preserve">
+    <value>Driver wallet was not found.</value>
+  </data>
+  <data name="WALLET_DEBT_LIMIT_EXCEEDED" xml:space="preserve">
+    <value>You cannot accept trips until your wallet balance is settled.</value>
+  </data>
+  <data name="WALLET_INVALID_AMOUNT" xml:space="preserve">
+    <value>Wallet amount is invalid.</value>
+  </data>
+  <data name="WALLET_ADJUSTMENT_REASON_REQUIRED" xml:space="preserve">
+    <value>An adjustment reason is required.</value>
+  </data>
+  <data name="WALLET_TOPUP_ALREADY_REVIEWED" xml:space="preserve">
+    <value>This top-up request has already been reviewed.</value>
+  </data>
+  <data name="WALLET_TOPUP_REJECTION_REASON_REQUIRED" xml:space="preserve">
+    <value>A rejection reason is required.</value>
+  </data>
+  <data name="WALLET_TOPUP_NOT_FOUND" xml:space="preserve">
+    <value>Top-up request was not found.</value>
+  </data>
+  <data name="WALLET_TOPUP_PENDING_EXISTS" xml:space="preserve">
+    <value>You already have a pending top-up request.</value>
+  </data>
+  <data name="INVALID_FILE_TYPE" xml:space="preserve">
+    <value>This file type '{extension}' is not allowed. Allowed file types: {allowedExtensions}.</value>
+  </data>
+  <data name="INVALID_FILE_SIZE" xml:space="preserve">
+    <value>File size exceeds the maximum allowed limit of {maxFileSizeBytes} bytes.</value>
+  </data>
+  <data name="FILE_UPLOAD_FAILED" xml:space="preserve">
+    <value>File upload failed.</value>
+  </data>
+  <data name="GOOGLE_MAPS_GEOCODE_NULL_RESPONSE" xml:space="preserve">
+    <value>Unable to retrieve location details right now.</value>
+  </data>
+  <data name="GOOGLE_MAPS_GEOCODE_HTTP_ERROR" xml:space="preserve">
+    <value>Unable to retrieve location details right now.</value>
+  </data>
+  <data name="GOOGLE_MAPS_GEOCODE_UNEXPECTED_ERROR" xml:space="preserve">
+    <value>An unexpected location lookup error occurred.</value>
+  </data>
+  <data name="GOOGLE_MAPS_AUTOCOMPLETE_NULL_RESPONSE" xml:space="preserve">
+    <value>Unable to load address suggestions right now.</value>
+  </data>
+  <data name="GOOGLE_MAPS_AUTOCOMPLETE_HTTP_ERROR" xml:space="preserve">
+    <value>Unable to load address suggestions right now.</value>
+  </data>
+  <data name="GOOGLE_MAPS_AUTOCOMPLETE_UNEXPECTED_ERROR" xml:space="preserve">
+    <value>An unexpected address suggestion error occurred.</value>
+  </data>
+  <data name="GOOGLE_MAPS_PLACE_DETAILS_NULL_RESPONSE" xml:space="preserve">
+    <value>Unable to load place details right now.</value>
+  </data>
+  <data name="GOOGLE_MAPS_PLACE_DETAILS_HTTP_ERROR" xml:space="preserve">
+    <value>Unable to load place details right now.</value>
+  </data>
+  <data name="GOOGLE_MAPS_PLACE_DETAILS_UNEXPECTED_ERROR" xml:space="preserve">
+    <value>An unexpected place details error occurred.</value>
+  </data>
+  <data name="GOOGLE_MAPS_DIRECTIONS_NULL_RESPONSE" xml:space="preserve">
+    <value>Unable to load directions right now.</value>
+  </data>
+  <data name="GOOGLE_MAPS_DIRECTIONS_HTTP_ERROR" xml:space="preserve">
+    <value>Unable to load directions right now.</value>
+  </data>
+  <data name="GOOGLE_MAPS_DIRECTIONS_UNEXPECTED_ERROR" xml:space="preserve">
+    <value>An unexpected directions error occurred.</value>
+  </data>
+  <data name="TRIP_REQUEST_NOT_FOUND" xml:space="preserve">
+    <value>Trip request was not found.</value>
+  </data>
+  <data name="TRIP_REQUEST_ALREADY_MATCHED" xml:space="preserve">
+    <value>Trip request has already been matched.</value>
+  </data>
+  <data name="TRIP_REQUEST_NOT_PENDING" xml:space="preserve">
+    <value>Trip request is no longer pending.</value>
+  </data>
+  <data name="TRIP_REQUEST_EXPIRED" xml:space="preserve">
+    <value>Trip request has expired.</value>
+  </data>
+  <data name="TRIP_REQUEST_FORBIDDEN" xml:space="preserve">
+    <value>You are not allowed to confirm this trip request.</value>
+  </data>
+  <data name="TRIP_REQUEST_ALREADY_CONFIRMED" xml:space="preserve">
+    <value>Trip request has already been confirmed.</value>
+  </data>
+  <data name="TRIP_NOT_FOUND" xml:space="preserve">
+    <value>Trip was not found.</value>
+  </data>
+  <data name="TRIP_INVALID_STATUS" xml:space="preserve">
+    <value>This action is not allowed for the trip in its current status.</value>
+  </data>
+  <data name="TRIP_PAYMENT_ALREADY_SET" xml:space="preserve">
+    <value>Payment has already been set for this trip.</value>
+  </data>
+  <data name="TRIP_PAYMENT_NOT_SET" xml:space="preserve">
+    <value>Payment has not been set for this trip.</value>
+  </data>
+  <data name="TRIP_CANNOT_CANCEL" xml:space="preserve">
+    <value>This trip can no longer be cancelled.</value>
+  </data>
+  <data name="RIDER_HAS_ACTIVE_TRIP_REQUEST" xml:space="preserve">
+    <value>You already have an active trip request.</value>
+  </data>
+  <data name="RIDER_HAS_ACTIVE_TRIP" xml:space="preserve">
+    <value>You already have an active trip.</value>
+  </data>
+  <data name="SERVICE_AREA_LOCATION_NOT_COVERED" xml:space="preserve">
+    <value>The pickup or dropoff location is outside the supported service area.</value>
+  </data>
+  <data name="PAYMENT_ALREADY_PAID" xml:space="preserve">
+    <value>The payment has already been marked as paid.</value>
+  </data>
+  <data name="INVALID_PAID_AMOUNT" xml:space="preserve">
+    <value>Paid amount must be greater than zero.</value>
+  </data>
+  <data name="INSUFFICIENT_PAYMENT" xml:space="preserve">
+    <value>Paid amount is less than the required amount.</value>
+  </data>
+  <data name="INVALID_RATING" xml:space="preserve">
+    <value>Rating must be between 1 and 5.</value>
+  </data>
+  <data name="TRIP_NOT_COMPLETED" xml:space="preserve">
+    <value>You can rate the driver only after the trip is completed.</value>
+  </data>
+  <data name="ALREADY_RATED" xml:space="preserve">
+    <value>You have already rated this trip.</value>
+  </data>
+  <data name="NOT_YOUR_TRIP" xml:space="preserve">
+    <value>You cannot rate a trip that you were not part of.</value>
+  </data>
+  <data name="MATCHING_SESSION_NOT_ACTIVE" xml:space="preserve">
+    <value>Matching session is not active.</value>
+  </data>
+  <data name="MATCHING_SESSION_EXPIRED" xml:space="preserve">
+    <value>Matching session has expired.</value>
+  </data>
+  <data name="MATCHING_SESSION_NOT_FOUND" xml:space="preserve">
+    <value>Matching session was not found.</value>
+  </data>
+  <data name="MATCHING_SESSION_INVALID_NUMBER_OF_ROUNDS" xml:space="preserve">
+    <value>Number of rounds must be greater than zero.</value>
+  </data>
+  <data name="MATCHING_SESSION_INVALID_OFFERS_PER_ROUND_COUNT" xml:space="preserve">
+    <value>Offers-per-round count must match the configured number of rounds.</value>
+  </data>
+  <data name="MATCHING_SESSION_INVALID_OFFERS_PER_ROUND_VALUE" xml:space="preserve">
+    <value>All offers-per-round values must be greater than zero.</value>
+  </data>
+  <data name="DRIVER_NOT_AVAILABLE_FOR_MATCHING" xml:space="preserve">
+    <value>Driver is not available for trip matching.</value>
+  </data>
+  <data name="DRIVER_ALREADY_HAS_OFFER" xml:space="preserve">
+    <value>Driver already has a pending trip offer.</value>
+  </data>
+  <data name="MATCH_ATTEMPT_NOT_FOUND" xml:space="preserve">
+    <value>Match attempt was not found.</value>
+  </data>
+  <data name="MATCH_ATTEMPT_EXPIRED" xml:space="preserve">
+    <value>Match attempt has expired.</value>
+  </data>
+  <data name="MATCH_ATTEMPT_INVALID_STATUS" xml:space="preserve">
+    <value>Match attempt is not in a valid state for this operation.</value>
+  </data>
+  <data name="MATCH_ATTEMPT_CANNOT_ACCEPT_OWN_REQUEST" xml:space="preserve">
+    <value>You cannot accept your own trip request.</value>
+  </data>
+</root>

@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Riders;
+using BenhaScooters.Shared.Localization;
 using BenhaScooters.Shared.Validation;
 using ErrorOr;
 using Thinktecture;
@@ -85,6 +86,7 @@ public class User
     public bool EmailVerified { get; private set; } = false;
     public PhoneNumber? PhoneNumber { get; private set; }
     public bool PhoneNumberVerified { get; private set; } = false;
+    public string? PreferredLanguage { get; private set; }
     public string? PasswordHash { get; private set; } = null;
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
@@ -170,6 +172,14 @@ public class User
         }
 
         PhoneNumberVerified = true;
+    }
+
+    public void SetPreferredLanguage(string language)
+    {
+        var normalizedLanguage = AppLanguages.Normalize(language)
+            ?? throw new ArgumentException("Unsupported preferred language.", nameof(language));
+
+        PreferredLanguage = normalizedLanguage;
     }
 
 

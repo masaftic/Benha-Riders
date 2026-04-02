@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
+  </resheader>
+  <data name="USER_ALREADY_EXISTS" xml:space="preserve">
+    <value>يوجد مستخدم مسجل بالفعل بالبريد الإلكتروني '{email}'.</value>
+  </data>
+  <data name="USER_PHONE_ALREADY_EXISTS" xml:space="preserve">
+    <value>يوجد مستخدم مسجل بالفعل برقم الهاتف '{phoneNumber}'.</value>
+  </data>
+  <data name="INVALID_CREDENTIALS" xml:space="preserve">
+    <value>بيانات تسجيل الدخول غير صحيحة.</value>
+  </data>
+  <data name="USER_NOT_FOUND" xml:space="preserve">
+    <value>المستخدم غير موجود.</value>
+  </data>
+  <data name="PHONE_ALREADY_VERIFIED" xml:space="preserve">
+    <value>تم توثيق رقم الهاتف بالفعل.</value>
+  </data>
+  <data name="INVALID_VERIFICATION_CODE" xml:space="preserve">
+    <value>رمز التحقق غير صحيح.</value>
+  </data>
+  <data name="OTP_RATE_LIMIT_EXCEEDED" xml:space="preserve">
+    <value>تم تجاوز الحد المسموح لطلبات رمز التحقق. حاول مرة أخرى بعد {retryAfterSeconds} ثانية.</value>
+  </data>
+  <data name="OTP_DAILY_LIMIT_EXCEEDED" xml:space="preserve">
+    <value>تم تجاوز الحد اليومي لطلبات رمز التحقق.</value>
+  </data>
+  <data name="OTP_CODE_LOCKED" xml:space="preserve">
+    <value>تم قفل رمز التحقق بسبب كثرة المحاولات الفاشلة.</value>
+  </data>
+  <data name="OTP_VERIFICATION_LOCKED" xml:space="preserve">
+    <value>تم قفل التحقق من رمز التحقق مؤقتًا. حاول مرة أخرى بعد {retryAfterSeconds} ثانية.</value>
+  </data>
+  <data name="OTP_FRAUD_SUSPECTED" xml:space="preserve">
+    <value>تم اكتشاف نشاط مريب متعلق برمز التحقق.</value>
+  </data>
+  <data name="INCORRECT_CURRENT_PASSWORD" xml:space="preserve">
+    <value>كلمة المرور الحالية غير صحيحة.</value>
+  </data>
+  <data name="INVALID_REFRESH_TOKEN" xml:space="preserve">
+    <value>رمز التحديث غير صالح أو منتهي الصلاحية.</value>
+  </data>
+  <data name="INVALID_GOOGLE_ID_TOKEN" xml:space="preserve">
+    <value>رمز تعريف Google غير صالح.</value>
+  </data>
+  <data name="USER_ALREADY_HAS_ROLE" xml:space="preserve">
+    <value>المستخدم لديه هذا الدور بالفعل.</value>
+  </data>
+  <data name="INVALID_PLATFORM" xml:space="preserve">
+    <value>يجب أن تكون المنصة إما 'android' أو 'ios'.</value>
+  </data>
+  <data name="ADMIN_DRIVER_NOT_FOUND" xml:space="preserve">
+    <value>السائق غير موجود.</value>
+  </data>
+  <data name="DRIVER_NOT_FOUND" xml:space="preserve">
+    <value>السائق غير موجود.</value>
+  </data>
+  <data name="DRIVER_DOCUMENT_UPLOAD_FAILED" xml:space="preserve">
+    <value>فشل رفع مستندات السائق.</value>
+  </data>
+  <data name="DRIVER_NOT_ONLINE" xml:space="preserve">
+    <value>يجب أن يكون السائق متصلاً للوصول إلى الرحلات المتاحة.</value>
+  </data>
+  <data name="CANNOT_MODIFY_APPROVED_PROFILE" xml:space="preserve">
+    <value>لا يمكن تعديل ملف السائق بعد اعتماده.</value>
+  </data>
+  <data name="DRIVER_PROFILE_INVALID_STATUS_TRANSITION" xml:space="preserve">
+    <value>هذا الإجراء غير مسموح به في حالة التسجيل الحالية.</value>
+  </data>
+  <data name="PERSONAL_INFO_REQUIRED" xml:space="preserve">
+    <value>يجب استكمال البيانات الشخصية أولاً.</value>
+  </data>
+  <data name="VEHICLE_INFO_REQUIRED" xml:space="preserve">
+    <value>يجب استكمال بيانات المركبة أولاً.</value>
+  </data>
+  <data name="DOCUMENTS_REQUIRED" xml:space="preserve">
+    <value>يجب رفع جميع المستندات المطلوبة أولاً.</value>
+  </data>
+  <data name="REJECTION_REASON_REQUIRED" xml:space="preserve">
+    <value>سبب الرفض مطلوب.</value>
+  </data>
+  <data name="SUSPENSION_REASON_REQUIRED" xml:space="preserve">
+    <value>سبب الإيقاف مطلوب.</value>
+  </data>
+  <data name="DRIVER_PROFILE_NOT_FOUND" xml:space="preserve">
+    <value>ملف السائق غير موجود.</value>
+  </data>
+  <data name="DOCUMENT_NOT_FOUND" xml:space="preserve">
+    <value>المستند غير موجود.</value>
+  </data>
+  <data name="CANNOT_GO_ONLINE_WHILE_ON_TRIP" xml:space="preserve">
+    <value>لا يمكنك التحول إلى متصل أثناء وجودك في رحلة.</value>
+  </data>
+  <data name="CANNOT_GO_OFFLINE_WHILE_ON_TRIP" xml:space="preserve">
+    <value>لا يمكنك التحول إلى غير متصل أثناء وجودك في رحلة.</value>
+  </data>
+  <data name="NOT_ON_TRIP" xml:space="preserve">
+    <value>أنت لست في رحلة حالية.</value>
+  </data>
+  <data name="ALREADY_ON_TRIP" xml:space="preserve">
+    <value>أنت بالفعل في رحلة.</value>
+  </data>
+  <data name="DRIVER_STATUS_MANUAL_ONTRIP_TRANSITION_NOT_ALLOWED" xml:space="preserve">
+    <value>لا يمكن تعيين حالة السائق إلى OnTrip يدويًا.</value>
+  </data>
+  <data name="INVALID_STATUS" xml:space="preserve">
+    <value>حالة توفر السائق غير صحيحة.</value>
+  </data>
+  <data name="INVALID_OPERATION" xml:space="preserve">
+    <value>تغيير حالة السائق غير صالح.</value>
+  </data>
+  <data name="WALLET_NOT_FOUND" xml:space="preserve">
+    <value>محفظة السائق غير موجودة.</value>
+  </data>
+  <data name="WALLET_DEBT_LIMIT_EXCEEDED" xml:space="preserve">
+    <value>لا يمكنك قبول الرحلات حتى تتم تسوية رصيد محفظتك.</value>
+  </data>
+  <data name="WALLET_INVALID_AMOUNT" xml:space="preserve">
+    <value>قيمة المحفظة غير صحيحة.</value>
+  </data>
+  <data name="WALLET_ADJUSTMENT_REASON_REQUIRED" xml:space="preserve">
+    <value>سبب التعديل مطلوب.</value>
+  </data>
+  <data name="WALLET_TOPUP_ALREADY_REVIEWED" xml:space="preserve">
+    <value>تمت مراجعة طلب شحن المحفظة هذا بالفعل.</value>
+  </data>
+  <data name="WALLET_TOPUP_REJECTION_REASON_REQUIRED" xml:space="preserve">
+    <value>سبب الرفض مطلوب.</value>
+  </data>
+  <data name="WALLET_TOPUP_NOT_FOUND" xml:space="preserve">
+    <value>طلب شحن المحفظة غير موجود.</value>
+  </data>
+  <data name="WALLET_TOPUP_PENDING_EXISTS" xml:space="preserve">
+    <value>لديك بالفعل طلب شحن محفظة قيد المراجعة.</value>
+  </data>
+  <data name="INVALID_FILE_TYPE" xml:space="preserve">
+    <value>نوع الملف '{extension}' غير مسموح به. الأنواع المسموح بها هي: {allowedExtensions}.</value>
+  </data>
+  <data name="INVALID_FILE_SIZE" xml:space="preserve">
+    <value>حجم الملف يتجاوز الحد الأقصى المسموح به وهو {maxFileSizeBytes} بايت.</value>
+  </data>
+  <data name="FILE_UPLOAD_FAILED" xml:space="preserve">
+    <value>فشل رفع الملف.</value>
+  </data>
+  <data name="GOOGLE_MAPS_GEOCODE_NULL_RESPONSE" xml:space="preserve">
+    <value>تعذر الحصول على تفاصيل الموقع حاليًا.</value>
+  </data>
+  <data name="GOOGLE_MAPS_GEOCODE_HTTP_ERROR" xml:space="preserve">
+    <value>تعذر الحصول على تفاصيل الموقع حاليًا.</value>
+  </data>
+  <data name="GOOGLE_MAPS_GEOCODE_UNEXPECTED_ERROR" xml:space="preserve">
+    <value>حدث خطأ غير متوقع أثناء البحث عن الموقع.</value>
+  </data>
+  <data name="GOOGLE_MAPS_AUTOCOMPLETE_NULL_RESPONSE" xml:space="preserve">
+    <value>تعذر تحميل اقتراحات العناوين حاليًا.</value>
+  </data>
+  <data name="GOOGLE_MAPS_AUTOCOMPLETE_HTTP_ERROR" xml:space="preserve">
+    <value>تعذر تحميل اقتراحات العناوين حاليًا.</value>
+  </data>
+  <data name="GOOGLE_MAPS_AUTOCOMPLETE_UNEXPECTED_ERROR" xml:space="preserve">
+    <value>حدث خطأ غير متوقع أثناء تحميل اقتراحات العناوين.</value>
+  </data>
+  <data name="GOOGLE_MAPS_PLACE_DETAILS_NULL_RESPONSE" xml:space="preserve">
+    <value>تعذر تحميل تفاصيل المكان حاليًا.</value>
+  </data>
+  <data name="GOOGLE_MAPS_PLACE_DETAILS_HTTP_ERROR" xml:space="preserve">
+    <value>تعذر تحميل تفاصيل المكان حاليًا.</value>
+  </data>
+  <data name="GOOGLE_MAPS_PLACE_DETAILS_UNEXPECTED_ERROR" xml:space="preserve">
+    <value>حدث خطأ غير متوقع أثناء تحميل تفاصيل المكان.</value>
+  </data>
+  <data name="GOOGLE_MAPS_DIRECTIONS_NULL_RESPONSE" xml:space="preserve">
+    <value>تعذر تحميل الاتجاهات حاليًا.</value>
+  </data>
+  <data name="GOOGLE_MAPS_DIRECTIONS_HTTP_ERROR" xml:space="preserve">
+    <value>تعذر تحميل الاتجاهات حاليًا.</value>
+  </data>
+  <data name="GOOGLE_MAPS_DIRECTIONS_UNEXPECTED_ERROR" xml:space="preserve">
+    <value>حدث خطأ غير متوقع أثناء تحميل الاتجاهات.</value>
+  </data>
+  <data name="TRIP_REQUEST_NOT_FOUND" xml:space="preserve">
+    <value>طلب الرحلة غير موجود.</value>
+  </data>
+  <data name="TRIP_REQUEST_ALREADY_MATCHED" xml:space="preserve">
+    <value>تمت مطابقة طلب الرحلة بالفعل.</value>
+  </data>
+  <data name="TRIP_REQUEST_NOT_PENDING" xml:space="preserve">
+    <value>طلب الرحلة لم يعد قيد الانتظار.</value>
+  </data>
+  <data name="TRIP_REQUEST_EXPIRED" xml:space="preserve">
+    <value>انتهت صلاحية طلب الرحلة.</value>
+  </data>
+  <data name="TRIP_REQUEST_FORBIDDEN" xml:space="preserve">
+    <value>غير مسموح لك بتأكيد طلب الرحلة هذا.</value>
+  </data>
+  <data name="TRIP_REQUEST_ALREADY_CONFIRMED" xml:space="preserve">
+    <value>تم تأكيد طلب الرحلة بالفعل.</value>
+  </data>
+  <data name="TRIP_NOT_FOUND" xml:space="preserve">
+    <value>الرحلة غير موجودة.</value>
+  </data>
+  <data name="TRIP_INVALID_STATUS" xml:space="preserve">
+    <value>هذا الإجراء غير مسموح به لحالة الرحلة الحالية.</value>
+  </data>
+  <data name="TRIP_PAYMENT_ALREADY_SET" xml:space="preserve">
+    <value>تم تحديد الدفع لهذه الرحلة بالفعل.</value>
+  </data>
+  <data name="TRIP_PAYMENT_NOT_SET" xml:space="preserve">
+    <value>لم يتم تحديد الدفع لهذه الرحلة بعد.</value>
+  </data>
+  <data name="TRIP_CANNOT_CANCEL" xml:space="preserve">
+    <value>لم يعد من الممكن إلغاء هذه الرحلة.</value>
+  </data>
+  <data name="RIDER_HAS_ACTIVE_TRIP_REQUEST" xml:space="preserve">
+    <value>لديك بالفعل طلب رحلة نشط.</value>
+  </data>
+  <data name="RIDER_HAS_ACTIVE_TRIP" xml:space="preserve">
+    <value>لديك بالفعل رحلة نشطة.</value>
+  </data>
+  <data name="SERVICE_AREA_LOCATION_NOT_COVERED" xml:space="preserve">
+    <value>موقع الالتقاط أو الوصول خارج نطاق الخدمة المتاح.</value>
+  </data>
+  <data name="PAYMENT_ALREADY_PAID" xml:space="preserve">
+    <value>تم وضع علامة مدفوع على هذه الدفعة بالفعل.</value>
+  </data>
+  <data name="INVALID_PAID_AMOUNT" xml:space="preserve">
+    <value>يجب أن يكون المبلغ المدفوع أكبر من صفر.</value>
+  </data>
+  <data name="INSUFFICIENT_PAYMENT" xml:space="preserve">
+    <value>المبلغ المدفوع أقل من المبلغ المطلوب.</value>
+  </data>
+  <data name="INVALID_RATING" xml:space="preserve">
+    <value>يجب أن يكون التقييم بين 1 و5.</value>
+  </data>
+  <data name="TRIP_NOT_COMPLETED" xml:space="preserve">
+    <value>يمكنك تقييم السائق فقط بعد اكتمال الرحلة.</value>
+  </data>
+  <data name="ALREADY_RATED" xml:space="preserve">
+    <value>لقد قمت بالفعل بتقييم هذه الرحلة.</value>
+  </data>
+  <data name="NOT_YOUR_TRIP" xml:space="preserve">
+    <value>لا يمكنك تقييم رحلة لست جزءًا منها.</value>
+  </data>
+  <data name="MATCHING_SESSION_NOT_ACTIVE" xml:space="preserve">
+    <value>جلسة المطابقة غير نشطة.</value>
+  </data>
+  <data name="MATCHING_SESSION_EXPIRED" xml:space="preserve">
+    <value>انتهت صلاحية جلسة المطابقة.</value>
+  </data>
+  <data name="MATCHING_SESSION_NOT_FOUND" xml:space="preserve">
+    <value>جلسة المطابقة غير موجودة.</value>
+  </data>
+  <data name="MATCHING_SESSION_INVALID_NUMBER_OF_ROUNDS" xml:space="preserve">
+    <value>يجب أن يكون عدد الجولات أكبر من صفر.</value>
+  </data>
+  <data name="MATCHING_SESSION_INVALID_OFFERS_PER_ROUND_COUNT" xml:space="preserve">
+    <value>يجب أن يطابق عدد العروض في كل جولة عدد الجولات المكوّن.</value>
+  </data>
+  <data name="MATCHING_SESSION_INVALID_OFFERS_PER_ROUND_VALUE" xml:space="preserve">
+    <value>يجب أن تكون جميع قيم العروض لكل جولة أكبر من صفر.</value>
+  </data>
+  <data name="DRIVER_NOT_AVAILABLE_FOR_MATCHING" xml:space="preserve">
+    <value>السائق غير متاح لمطابقة الرحلات.</value>
+  </data>
+  <data name="DRIVER_ALREADY_HAS_OFFER" xml:space="preserve">
+    <value>لدى السائق بالفعل عرض رحلة معلق.</value>
+  </data>
+  <data name="MATCH_ATTEMPT_NOT_FOUND" xml:space="preserve">
+    <value>محاولة المطابقة غير موجودة.</value>
+  </data>
+  <data name="MATCH_ATTEMPT_EXPIRED" xml:space="preserve">
+    <value>انتهت صلاحية محاولة المطابقة.</value>
+  </data>
+  <data name="MATCH_ATTEMPT_INVALID_STATUS" xml:space="preserve">
+    <value>محاولة المطابقة ليست في حالة صالحة لهذا الإجراء.</value>
+  </data>
+  <data name="MATCH_ATTEMPT_CANNOT_ACCEPT_OWN_REQUEST" xml:space="preserve">
+    <value>لا يمكنك قبول طلب رحلتك الخاص.</value>
+  </data>
+</root>

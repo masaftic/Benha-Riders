@@ -1,11 +1,18 @@
+using System.Collections;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using ErrorOr;
+using BenhaScooters.Presentation.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 
 namespace BenhaScooters.Presentation.Controllers;
 
 [ApiController]
 public class BaseApiController : ControllerBase
 {
+    private static readonly Regex PlaceholderRegex = new(@"\{(?<key>[a-zA-Z0-9_]+)\}", RegexOptions.Compiled);
+
     protected IActionResult HandleErrors(List<Error> errors)
     {
         if (errors.Count == 0)
@@ -29,13 +36,61 @@ public class BaseApiController : ControllerBase
             extensions["metadata"] = metadata;
         }
 
+        var localizedDescription = LocalizeError(firstError);
+
         return Problem(
             statusCode: statusCode,
-            title: firstError.Type.ToString(),
-            detail: firstError.Description,
+            title: MapToTitle(firstError.Type),
+            detail: localizedDescription,
             instance: HttpContext.Request.Path,
             extensions: extensions
         );
+    }
+
+    private string LocalizeError(Error error)
+    {
+        var localizer = HttpContext.RequestServices.GetRequiredService<IStringLocalizer<ApiErrorResources>>();
+        var localizedTemplate = localizer[error.Code];
+
+        if (localizedTemplate.ResourceNotFound)
+        {
+            return error.Description;
+        }
+
+        if (error.Metadata is not { Count: > 0 } metadata)
+        {
+            return localizedTemplate.Value;
+        }
+
+        return PlaceholderRegex.Replace(localizedTemplate.Value, match =>
+        {
+            var key = match.Groups["key"].Value;
+
+            return metadata.TryGetValue(key, out var value)
+                ? FormatMetadataValue(value)
+                : match.Value;
+        });
+    }
+
+    private static string FormatMetadataValue(object value) => value switch
+    {
+        string text => text,
+        IEnumerable values => string.Join(", ", values.Cast<object?>().Select(FormatScalarValue)),
+        _ => FormatScalarValue(value)
+    };
+
+    private static string FormatScalarValue(object? value)
+    {
+        if (value is null)
+        {
+            return string.Empty;
+        }
+
+        return value switch
+        {
+            IFormattable formattable => formattable.ToString(null, CultureInfo.CurrentUICulture),
+            _ => value.ToString() ?? string.Empty
+        };
     }
 
     private static int MapToStatusCode(Error error)
@@ -59,4 +114,15 @@ public class BaseApiController : ControllerBase
             _ => StatusCodes.Status500InternalServerError
         };
     }
+
+    private static string MapToTitle(ErrorType errorType) => errorType switch
+    {
+        ErrorType.Validation => "Validation failed",
+        ErrorType.Conflict => "Conflict occurred",
+        ErrorType.NotFound => "Resource not found",
+        ErrorType.Unauthorized => "Unauthorized access",
+        ErrorType.Forbidden => "Forbidden access",
+        ErrorType.Unexpected => "An unexpected error occurred",
+        _ => "Error"
+    };
 }
