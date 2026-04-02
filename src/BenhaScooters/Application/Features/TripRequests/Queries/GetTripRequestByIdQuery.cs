@@ -43,7 +43,7 @@ public class GetTripRequestByIdQueryHandler(AppDbContext db) : IRequestHandler<G
 
         if (tripRequest == null)
         {
-            return TripErrors.TripRequest.NotFound;
+            return AppErrors.TripRequest.NotFound();
         }
 
         return new GetTripRequestByIdResult(

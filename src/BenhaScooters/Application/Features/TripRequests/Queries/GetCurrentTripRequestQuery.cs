@@ -64,7 +64,7 @@ public class GetCurrentTripRequestQueryHandler : IRequestHandler<GetCurrentTripR
 
         if (tripRequestResult is null)
         {
-            return TripErrors.TripRequest.NotFound;
+            return AppErrors.TripRequest.NotFound();
         }
 
         return new GetCurrentTripRequestResult(

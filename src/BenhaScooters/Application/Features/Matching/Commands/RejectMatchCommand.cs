@@ -1,4 +1,5 @@
 using BenhaScooters.Data;
+using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.TripRequests;
@@ -44,13 +45,13 @@ public class RejectMatchCommandHandler(AppDbContext db) : IRequestHandler<Reject
             .FirstOrDefaultAsync(cancellationToken);
         
         if (matchAttempt == null)
-            return MatchingErrors.MatchAttempt.NotFound;
+            return AppErrors.Matching.Attempt.NotFound();
         
         var matchingSession = matchAttempt.MatchingSession;
 
         if (matchingSession == null)
         {
-            return MatchingErrors.Session.NotFound;
+            return AppErrors.Matching.Session.NotFound();
         }
 
         // Use the domain aggregate to handle the match rejection

@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Contracts.GoogleMaps;
+using BenhaScooters.Domain.Common;
 using ErrorOr;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -53,7 +54,7 @@ public class GoogleMapsService : IGoogleMapsService
 
             if (apiResponse is null)
             {
-                return Error.Failure("GoogleMaps.Geocode.NullResponse", "Received null response from Google Maps API");
+                return AppErrors.GoogleMaps.Geocode.NullResponse();
             }
 
             var formattedAddress = apiResponse.Results?.FirstOrDefault()?.FormattedAddress;
@@ -67,12 +68,12 @@ public class GoogleMapsService : IGoogleMapsService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error while calling Google Geocode API");
-            return Error.Failure("GoogleMaps.Geocode.HttpError", $"Failed to call Google Maps API: {ex.Message}");
+            return AppErrors.GoogleMaps.Geocode.HttpError();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while calling Google Geocode API");
-            return Error.Unexpected("GoogleMaps.Geocode.UnexpectedError", ex.Message);
+            return AppErrors.GoogleMaps.Geocode.Unexpected();
         }
     }
 
@@ -114,7 +115,7 @@ public class GoogleMapsService : IGoogleMapsService
 
             if (apiResponse is null)
             {
-                return Error.Failure("GoogleMaps.Autocomplete.NullResponse", "Received null response from Google Maps API");
+                return AppErrors.GoogleMaps.Autocomplete.NullResponse();
             }
 
             var predictions = apiResponse.Predictions?.Select(p => new AutocompletePrediction(
@@ -136,12 +137,12 @@ public class GoogleMapsService : IGoogleMapsService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error while calling Google Autocomplete API");
-            return Error.Failure("GoogleMaps.Autocomplete.HttpError", $"Failed to call Google Maps API: {ex.Message}");
+            return AppErrors.GoogleMaps.Autocomplete.HttpError();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while calling Google Autocomplete API");
-            return Error.Unexpected("GoogleMaps.Autocomplete.UnexpectedError", ex.Message);
+            return AppErrors.GoogleMaps.Autocomplete.Unexpected();
         }
     }
 
@@ -168,7 +169,7 @@ public class GoogleMapsService : IGoogleMapsService
 
             if (apiResponse is null)
             {
-                return Error.Failure("GoogleMaps.PlaceDetails.NullResponse", "Received null response from Google Maps API");
+                return AppErrors.GoogleMaps.PlaceDetails.NullResponse();
             }
 
             PlaceDetailsResult? result = null;
@@ -194,12 +195,12 @@ public class GoogleMapsService : IGoogleMapsService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error while calling Google Place Details API");
-            return Error.Failure("GoogleMaps.PlaceDetails.HttpError", $"Failed to call Google Maps API: {ex.Message}");
+            return AppErrors.GoogleMaps.PlaceDetails.HttpError();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while calling Google Place Details API");
-            return Error.Unexpected("GoogleMaps.PlaceDetails.UnexpectedError", ex.Message);
+            return AppErrors.GoogleMaps.PlaceDetails.Unexpected();
         }
     }
 
@@ -247,7 +248,7 @@ public class GoogleMapsService : IGoogleMapsService
 
             if (apiResponse is null)
             {
-                return Error.Failure("GoogleMaps.Directions.NullResponse", "Received null response from Google Maps API");
+                return AppErrors.GoogleMaps.Directions.NullResponse();
             }
 
             var routes = apiResponse.Routes?.Select(MapRoute).ToList() ?? new List<DirectionRoute>();
@@ -271,12 +272,12 @@ public class GoogleMapsService : IGoogleMapsService
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error while calling Google Directions API");
-            return Error.Failure("GoogleMaps.Directions.HttpError", $"Failed to call Google Maps API: {ex.Message}");
+            return AppErrors.GoogleMaps.Directions.HttpError();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error while calling Google Directions API");
-            return Error.Unexpected("GoogleMaps.Directions.UnexpectedError", ex.Message);
+            return AppErrors.GoogleMaps.Directions.Unexpected();
         }
     }
 

@@ -78,7 +78,7 @@ public class Trip : AggregateRoot
     public ErrorOr<Success> DriverArrived()
     {
         if (Status != TripStatus.Assigned)
-            return TripErrors.Trip.InvalidStatus;
+            return AppErrors.Trip.InvalidStatus();
 
         Status = TripStatus.DriverArrived;
         DriverArrivedAt = DateTime.UtcNow;
@@ -92,7 +92,7 @@ public class Trip : AggregateRoot
     public ErrorOr<Success> StartTrip()
     {
         if (Status != TripStatus.DriverArrived)
-            return TripErrors.Trip.InvalidStatus;
+            return AppErrors.Trip.InvalidStatus();
 
         Status = TripStatus.InProgress;
         StartedAt = DateTime.UtcNow;
@@ -106,7 +106,7 @@ public class Trip : AggregateRoot
     public ErrorOr<Success> CompleteTrip()
     {
         if (Status != TripStatus.InProgress)
-            return TripErrors.Trip.InvalidStatus;
+            return AppErrors.Trip.InvalidStatus();
 
         Status = TripStatus.Completed;
         CompletedAt = DateTime.UtcNow;
@@ -120,7 +120,7 @@ public class Trip : AggregateRoot
     {
         // Can only cancel if trip hasn't started yet
         if (Status == TripStatus.InProgress || Status == TripStatus.Completed || Status == TripStatus.Cancelled)
-            return TripErrors.Trip.CannotCancel;
+            return AppErrors.Trip.CannotCancel();
 
         Status = TripStatus.Cancelled;
         CompletedAt = DateTime.UtcNow;
@@ -137,7 +137,7 @@ public class Trip : AggregateRoot
     public ErrorOr<Success> ForceCancel(string cancellationReason)
     {
         if (Status == TripStatus.Completed || Status == TripStatus.Cancelled)
-            return TripErrors.Trip.CannotCancel;
+            return AppErrors.Trip.CannotCancel();
 
         Status = TripStatus.Cancelled;
         CompletedAt = DateTime.UtcNow;
@@ -154,10 +154,10 @@ public class Trip : AggregateRoot
             throw new ArgumentNullException(nameof(payment), "Trip payment cannot be null");
 
         if (Status != TripStatus.Completed)
-            return TripErrors.Trip.InvalidStatus;
+            return AppErrors.Trip.InvalidStatus();
 
         if (TripPayment != null)
-            return TripErrors.Trip.PaymentAlreadySet;
+            return AppErrors.Trip.PaymentAlreadySet();
         
         TripPayment = payment;
         return Result.Success;

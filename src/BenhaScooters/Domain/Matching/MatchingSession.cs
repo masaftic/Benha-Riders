@@ -88,19 +88,13 @@ public class MatchingSession : AggregateRoot
     public static ErrorOr<MatchingSession> Create(TripRequestId tripRequestId, int numberOfRounds, List<int> offersPerRound)
     {
         if (numberOfRounds <= 0)
-            return Error.Validation(
-                code: "MatchingSession.InvalidNumberOfRounds",
-                description: "Number of rounds must be greater than zero");
+            return AppErrors.Matching.Session.InvalidNumberOfRounds();
 
         if (offersPerRound.Count != numberOfRounds)
-            return Error.Validation(
-                code: "MatchingSession.InvalidOffersPerRound",
-                description: "Offers per round count must match number of rounds");
+            return AppErrors.Matching.Session.InvalidOffersPerRoundCount();
 
         if (offersPerRound.Any(o => o <= 0))
-            return Error.Validation(
-                code: "MatchingSession.InvalidOffersPerRoundValue",
-                description: "All offers per round values must be greater than zero");
+            return AppErrors.Matching.Session.InvalidOffersPerRoundValue();
 
         var session = new MatchingSession(tripRequestId, numberOfRounds, offersPerRound);
         return session;
@@ -133,7 +127,7 @@ public class MatchingSession : AggregateRoot
     public ErrorOr<Success> Complete()
     {
         if (Status != MatchingSessionStatus.Active)
-            return MatchingErrors.Session.NotActive;
+            return AppErrors.Matching.Session.NotActive();
 
         Status = MatchingSessionStatus.Completed;
         CompletedAt = DateTime.UtcNow;
@@ -143,7 +137,7 @@ public class MatchingSession : AggregateRoot
     public ErrorOr<Success> Cancel(bool isCanceledByUser, string reason)
     {
         if (Status != MatchingSessionStatus.Active)
-            return MatchingErrors.Session.NotActive;
+            return AppErrors.Matching.Session.NotActive();
 
         Status = MatchingSessionStatus.Cancelled;
         CompletedAt = DateTime.UtcNow;
@@ -169,10 +163,10 @@ public class MatchingSession : AggregateRoot
         decimal driverScore)
     {
         if (Status != MatchingSessionStatus.Active)
-            return MatchingErrors.Session.NotActive;
+            return AppErrors.Matching.Session.NotActive();
 
         if (IsExpired)
-            return MatchingErrors.Session.Expired;
+            return AppErrors.Matching.Session.Expired();
 
         var matchAttempt = new DriverMatchAttempt(
             driverId,
@@ -199,10 +193,10 @@ public class MatchingSession : AggregateRoot
     public ErrorOr<RoundTransitionResult> TryTransitionToNextRound()
     {
         if (Status != MatchingSessionStatus.Active)
-            return MatchingErrors.Session.NotActive;
+            return AppErrors.Matching.Session.NotActive();
 
         if (IsExpired)
-            return MatchingErrors.Session.Expired;
+            return AppErrors.Matching.Session.Expired();
         
         var isLastRound = IsLastRound();
 
@@ -224,17 +218,17 @@ public class MatchingSession : AggregateRoot
     public ErrorOr<Success> AcceptMatch(UserId driverId)
     {
         if (Status != MatchingSessionStatus.Active)
-            return MatchingErrors.Session.NotActive;
+            return AppErrors.Matching.Session.NotActive();
 
         if (IsExpired)
-            return MatchingErrors.Session.Expired;
+            return AppErrors.Matching.Session.Expired();
 
         // Find the pending match attempt for this driver
         var matchAttempt = _matchAttempts.FirstOrDefault(ma =>
             ma.DriverUserId == driverId && ma.Status == MatchAttemptStatus.Pending);
 
         if (matchAttempt == null)
-            return MatchingErrors.MatchAttempt.NotFound;
+            return AppErrors.Matching.Attempt.NotFound();
 
         // Accept the match attempt
         matchAttempt.Accept();
@@ -265,14 +259,14 @@ public class MatchingSession : AggregateRoot
     public ErrorOr<Success> RejectMatch(UserId driverId, string? reason = null)
     {
         if (Status != MatchingSessionStatus.Active)
-            return MatchingErrors.Session.NotActive;
+            return AppErrors.Matching.Session.NotActive();
 
         // Find the pending match attempt for this driver
         var matchAttempt = _matchAttempts.FirstOrDefault(ma =>
             ma.DriverUserId == driverId && ma.Status == MatchAttemptStatus.Pending);
 
         if (matchAttempt == null)
-            return MatchingErrors.MatchAttempt.NotFound;
+            return AppErrors.Matching.Attempt.NotFound();
 
         // Reject the match attempt
         matchAttempt.Reject(reason);
@@ -292,6 +286,4 @@ public class MatchingSession : AggregateRoot
     public bool IsActive => Status == MatchingSessionStatus.Active && !IsExpired;
     public TimeSpan? Duration => CompletedAt.HasValue ? CompletedAt.Value - CreatedAt : null;
 }
-
-
 

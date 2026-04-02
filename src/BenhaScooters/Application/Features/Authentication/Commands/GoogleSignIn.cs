@@ -62,7 +62,7 @@ public class GoogleSignInCommandHandler : IRequestHandler<GoogleSignInCommand, E
         }
         catch (InvalidJwtException)
         {
-            return UserErrors.InvalidGoogleIdToken;
+            return AppErrors.User.InvalidGoogleIdToken();
         }
     }
 
@@ -133,4 +133,3 @@ public class GoogleSignInCommandHandler : IRequestHandler<GoogleSignInCommand, E
         return new AuthenticationResponse("success", new AuthenticationSuccess(authenticatedResponse.AccessToken, authenticatedResponse.RefreshToken, authenticatedResponse.ExpiresAt));
     }
 }
-

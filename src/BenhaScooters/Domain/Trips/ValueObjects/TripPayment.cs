@@ -34,17 +34,17 @@ public class TripPayment : ValueObject
     {
         if (Status != PaymentStatus.Pending)
         {
-            return Error.Conflict("PAYMENT_ALREADY_PAID", "Payment has already been marked as paid.");
+            return AppErrors.Payment.AlreadyPaid();
         }
 
         if (paidAmount <= 0)
         {
-            return Error.Validation("INVALID_PAID_AMOUNT", "Paid amount must be greater than zero.");
+            return AppErrors.Payment.InvalidPaidAmount();
         }
 
         if (paidAmount < Amount)
         {
-            return Error.Validation("INSUFFICIENT_PAYMENT", "Paid amount is less than the total amount.");
+            return AppErrors.Payment.InsufficientAmount();
         }
 
         PaidAmount = paidAmount;

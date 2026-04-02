@@ -1,126 +1,106 @@
-using ErrorOr;
-
 namespace BenhaScooters.Domain.Common;
 
-public static class TripErrors
+public static partial class AppErrors
 {
     public static class TripRequest
     {
-        public static readonly Error NotFound = Error.NotFound(
-            "TRIP_REQUEST_NOTFOUND",
-            "طلب الرحلة غير موجود");
+        public static AppError NotFound() => NewNotFound(
+            "TRIP_REQUEST_NOT_FOUND",
+            "Trip request was not found.");
 
-        public static readonly Error AlreadyCancelled = Error.Conflict(
-            "TRIP_REQUEST_ALREADY_CANCELLED",
-            "طلب الرحلة ملغي بالفعل");
-
-        public static readonly Error AlreadyMatched = Error.Conflict(
+        public static AppError AlreadyMatched() => NewConflict(
             "TRIP_REQUEST_ALREADY_MATCHED",
-            "الرحلة بدأت بالفعل ولا يمكن إلغاؤها");
+            "Trip request has already been matched.");
 
-        public static readonly Error NotPending = Error.Conflict(
+        public static AppError NotPending() => NewConflict(
             "TRIP_REQUEST_NOT_PENDING",
-            "طلب الرحلة لم يعد متاحاً");
+            "Trip request is no longer pending.");
 
-        public static readonly Error Expired = Error.Conflict(
+        public static AppError Expired() => NewConflict(
             "TRIP_REQUEST_EXPIRED",
-            "انتهت صلاحية طلب الرحلة");
+            "Trip request has expired.");
 
-        public static readonly Error InvalidCoordinates = Error.Validation(
-            "TRIP_REQUEST_INVALID_COORDINATES",
-            "إحداثيات نقطة الانطلاق أو الوصول غير صحيحة");
-        
-        public static readonly Error Forbidden = Error.Forbidden(
+        public static AppError Forbidden() => NewForbidden(
             "TRIP_REQUEST_FORBIDDEN",
-            "غير مصرح لك بتأكيد طلب الرحلة هذا");
-        
-        public static readonly Error AlreadyConfirmed = Error.Conflict(
+            "You are not allowed to confirm this trip request.");
+
+        public static AppError AlreadyConfirmed() => NewConflict(
             "TRIP_REQUEST_ALREADY_CONFIRMED",
-            "تم تأكيد طلب الرحلة بالفعل");
+            "Trip request has already been confirmed.");
     }
 
     public static class Trip
     {
-        public static readonly Error NotFound = Error.NotFound(
+        public static AppError NotFound() => NewNotFound(
             "TRIP_NOT_FOUND",
-            "الرحلة غير موجودة أو أنت لست السائق المخصص");
+            "Trip was not found.");
 
-        public static readonly Error RiderNotFound = Error.NotFound(
-            "TRIP_RIDER_NOT_FOUND",
-            "الرحلة غير موجودة لهذا الراكب");
-
-        public static readonly Error NotInProgress = Error.Conflict(
-            "TRIP_NOT_IN_PROGRESS",
-            "يمكن تحديث موقع GPS فقط للرحلات قيد التنفيذ");
-
-        public static readonly Error CannotStart = Error.Conflict(
-            "TRIP_CANNOT_START",
-            "لا يمكن بدء الرحلة في الحالة الحالية");
-
-        public static readonly Error CannotComplete = Error.Conflict(
-            "TRIP_CANNOT_COMPLETE",
-            "لا يمكن إنهاء الرحلة في الحالة الحالية");
-
-        public static readonly Error DriverNotArrived = Error.Conflict(
-            "TRIP_DRIVER_NOT_ARRIVED",
-            "يجب على السائق الوصول إلى نقطة الانطلاق أولاً");
-
-        public static readonly Error InvalidGpsCoordinates = Error.Validation(
-            "TRIP_INVALID_GPS_COORDINATES",
-            "إحداثيات GPS المقدمة غير صحيحة");
-
-        public static readonly Error InvalidStatus = Error.Conflict(
+        public static AppError InvalidStatus() => NewConflict(
             "TRIP_INVALID_STATUS",
-            "لا يمكن تنفيذ هذه العملية مع حالة الرحلة الحالية");
+            "This action is not allowed for the trip in its current status.");
 
-        public static readonly Error PaymentAlreadySet = Error.Conflict(
+        public static AppError PaymentAlreadySet() => NewConflict(
             "TRIP_PAYMENT_ALREADY_SET",
-            "تم تحديد طريقة الدفع للرحلة بالفعل");
-        
-        public static readonly Error PaymentNotSet = Error.Conflict(
+            "Payment has already been set for this trip.");
+
+        public static AppError PaymentNotSet() => NewConflict(
             "TRIP_PAYMENT_NOT_SET",
-            "لم يتم تحديد طريقة الدفع للرحلة بعد");
-        
-        public static readonly Error CannotCancel = Error.Conflict(
+            "Payment has not been set for this trip.");
+
+        public static AppError CannotCancel() => NewConflict(
             "TRIP_CANNOT_CANCEL",
-            "لا يمكن إلغاء الرحلة بعد بدئها أو إذا كانت ملغاة أو مكتملة بالفعل");
-    }
-
-    public static class Driver
-    {
-        public static readonly Error NotAvailable = Error.Conflict(
-            "DRIVER_NOT_AVAILABLE",
-            "السائق غير متاح للرحلات");
-
-        public static readonly Error AlreadyOnTrip = Error.Conflict(
-            "DRIVER_ALREADY_ON_TRIP",
-            "السائق في رحلة بالفعل");
-
-        public static readonly Error NotOnline = Error.Conflict(
-            "DRIVER_NOT_ONLINE",
-            "يجب أن يكون السائق متصلاً لرؤية الرحلات المتاحة");
+            "This trip can no longer be cancelled.");
     }
 
     public static class Rider
     {
-        public static readonly Error ProfileNotFound = Error.NotFound(
-            "RIDER_PROFILE_NOT_FOUND",
-            "ملف الراكب غير موجود");
-
-        public static readonly Error HasActiveTripRequest = Error.Conflict(
+        public static AppError HasActiveTripRequest() => NewConflict(
             "RIDER_HAS_ACTIVE_TRIP_REQUEST",
-            "الراكب لديه طلب رحلة نشط بالفعل");
-        
-        public static readonly Error HasActiveTrip = Error.Conflict(
-            "RIDER_HAS_ACTIVE_TRIP",
-            "الراكب في رحلة نشطة بالفعل");
-    }
+            "You already have an active trip request.");
 
+        public static AppError HasActiveTrip() => NewConflict(
+            "RIDER_HAS_ACTIVE_TRIP",
+            "You already have an active trip.");
+    }
 
     public static class ServiceArea
     {
-        public static readonly Error LocationNotCovered = Error.Conflict(
+        public static AppError LocationNotCovered() => NewConflict(
             "SERVICE_AREA_LOCATION_NOT_COVERED",
-            "موقع نقطة الانطلاق أو الوصول خارج منطقة الخدمة");
+            "The pickup or dropoff location is outside the supported service area.");
+    }
+
+    public static class Payment
+    {
+        public static AppError AlreadyPaid() => NewConflict(
+            "PAYMENT_ALREADY_PAID",
+            "The payment has already been marked as paid.");
+
+        public static AppError InvalidPaidAmount() => NewValidation(
+            "INVALID_PAID_AMOUNT",
+            "Paid amount must be greater than zero.");
+
+        public static AppError InsufficientAmount() => NewValidation(
+            "INSUFFICIENT_PAYMENT",
+            "Paid amount is less than the required amount.");
+    }
+
+    public static class Rating
+    {
+        public static AppError InvalidValue() => NewValidation(
+            "INVALID_RATING",
+            "Rating must be between 1 and 5.");
+
+        public static AppError TripNotCompleted() => NewValidation(
+            "TRIP_NOT_COMPLETED",
+            "You can rate the driver only after the trip is completed.");
+
+        public static AppError AlreadySubmitted() => NewConflict(
+            "ALREADY_RATED",
+            "You have already rated this trip.");
+
+        public static AppError NotYourTrip() => NewForbidden(
+            "NOT_YOUR_TRIP",
+            "You cannot rate a trip that you were not part of.");
     }
 }

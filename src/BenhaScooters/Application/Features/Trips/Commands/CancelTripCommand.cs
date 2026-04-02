@@ -34,13 +34,13 @@ public class CancelTripCommandHandler : IRequestHandler<CancelTripCommand, Error
 
         if (trip == null)
         {
-            return TripErrors.Trip.NotFound;
+            return AppErrors.Trip.NotFound();
         }
 
         // Verify the user is either the driver or rider
         if (trip.DriverId != request.UserId && trip.RiderId != request.UserId)
         {
-            return TripErrors.Trip.NotFound;
+            return AppErrors.Trip.NotFound();
         }
 
         var cancelResult = trip.CancelTrip(request.UserId, request.CancellationReason);

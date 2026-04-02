@@ -29,20 +29,20 @@ public class RateDriverCommandHandler : IRequestHandler<RateDriverCommand, Error
             .FirstOrDefaultAsync(t => t.Id == request.TripId, cancellationToken);
 
         if (trip == null)
-            return TripErrors.Trip.NotFound;
+            return AppErrors.Trip.NotFound();
 
         if (trip.RiderId != request.RiderId)
-            return RatingErrors.NotYourTrip;
+            return AppErrors.Rating.NotYourTrip();
 
         if (trip.Status != TripStatus.Completed)
-            return RatingErrors.TripNotCompleted;
+            return AppErrors.Rating.TripNotCompleted();
 
         // Check if already rated
         var alreadyRated = await _dbContext.DriverRatings
             .AnyAsync(r => r.TripId == request.TripId && r.RiderId == request.RiderId, cancellationToken);
 
         if (alreadyRated)
-            return RatingErrors.AlreadyRated;
+            return AppErrors.Rating.AlreadySubmitted();
 
         var ratingResult = DriverRating.Create(trip.Id, request.RiderId, trip.DriverId, request.Rating, request.Comment);
         if (ratingResult.IsError)

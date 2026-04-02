@@ -61,7 +61,7 @@ public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<
 
         if (driverProfile == null)
         {
-            return DriverErrors.Profile.NotFound;
+            return AppErrors.Driver.Profile.NotFound();
         }
 
         var vehicleInfo = new DriverVehicleInfo(

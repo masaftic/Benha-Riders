@@ -74,7 +74,7 @@ public class OtpRateLimiter : IOtpRateLimiter
             {
                 var retryAfter = (int)Math.Ceiling(requiredCooldown - elapsed);
                 _logger.LogWarning("OTP cooldown active for user {UserId}. Retry after {Seconds}s", userId, retryAfter);
-                return UserErrors.OtpRateLimitExceeded(retryAfter);
+                return AppErrors.User.OtpRateLimitExceeded(retryAfter);
             }
         }
 
@@ -84,7 +84,7 @@ public class OtpRateLimiter : IOtpRateLimiter
         {
             _logger.LogWarning("User {UserId} exceeded hourly OTP limit ({Count}/{Max})",
                 userId, userHourlyCount, _options.MaxRequestsPerUserPerHour);
-            return UserErrors.OtpRateLimitExceeded(GetSecondsUntilNextHour());
+            return AppErrors.User.OtpRateLimitExceeded(GetSecondsUntilNextHour());
         }
 
         // 3. Check per-user daily limit
@@ -93,7 +93,7 @@ public class OtpRateLimiter : IOtpRateLimiter
         {
             _logger.LogWarning("User {UserId} exceeded daily OTP limit ({Count}/{Max})",
                 userId, userDailyCount, _options.MaxRequestsPerUserPerDay);
-            return UserErrors.OtpDailyLimitExceeded;
+            return AppErrors.User.OtpDailyLimitExceeded();
         }
 
         // 4. Check per-phone hourly/daily limits
@@ -101,14 +101,14 @@ public class OtpRateLimiter : IOtpRateLimiter
         if (phoneHourlyCount >= _options.MaxRequestsPerPhonePerHour)
         {
             _logger.LogWarning("Phone {Phone} exceeded hourly OTP limit", phoneNumber);
-            return UserErrors.OtpRateLimitExceeded(GetSecondsUntilNextHour());
+            return AppErrors.User.OtpRateLimitExceeded(GetSecondsUntilNextHour());
         }
 
         var phoneDailyCount = GetOrInitCounter(PhoneDailyPrefix + phoneNumber, TimeSpan.FromDays(1));
         if (phoneDailyCount >= _options.MaxRequestsPerPhonePerDay)
         {
             _logger.LogWarning("Phone {Phone} exceeded daily OTP limit", phoneNumber);
-            return UserErrors.OtpDailyLimitExceeded;
+            return AppErrors.User.OtpDailyLimitExceeded();
         }
 
         // 5. Check per-IP limits (if IP available)
@@ -119,14 +119,14 @@ public class OtpRateLimiter : IOtpRateLimiter
             {
                 _logger.LogWarning("IP {Ip} exceeded hourly OTP limit ({Count}/{Max})",
                     ipAddress, ipHourlyCount, _options.MaxRequestsPerIpPerHour);
-                return UserErrors.OtpRateLimitExceeded(GetSecondsUntilNextHour());
+                return AppErrors.User.OtpRateLimitExceeded(GetSecondsUntilNextHour());
             }
 
             var ipDailyCount = GetOrInitCounter(IpDailyPrefix + ipAddress, TimeSpan.FromDays(1));
             if (ipDailyCount >= _options.MaxRequestsPerIpPerDay)
             {
                 _logger.LogWarning("IP {Ip} exceeded daily OTP limit", ipAddress);
-                return UserErrors.OtpDailyLimitExceeded;
+                return AppErrors.User.OtpDailyLimitExceeded();
             }
         }
 
@@ -147,7 +147,7 @@ public class OtpRateLimiter : IOtpRateLimiter
                 var retryAfter = (int)Math.Ceiling((lockExpiry - DateTime.UtcNow).TotalSeconds);
                 _logger.LogWarning("User {UserId} is in verification lockout. Retry after {Seconds}s",
                     userId, retryAfter);
-                return Task.FromResult<ErrorOr<Success>>(UserErrors.OtpVerificationLocked(retryAfter));
+                return Task.FromResult<ErrorOr<Success>>(AppErrors.User.OtpVerificationLocked(retryAfter));
             }
             else
             {
@@ -165,7 +165,7 @@ public class OtpRateLimiter : IOtpRateLimiter
             _cache.Set(lockKey, lockoutExpiry, TimeSpan.FromSeconds(_options.VerificationLockoutSeconds));
             _logger.LogWarning("User {UserId} locked out due to {Count} failed verification attempts",
                 userId, failCount);
-            return Task.FromResult<ErrorOr<Success>>(UserErrors.OtpVerificationLocked(_options.VerificationLockoutSeconds));
+            return Task.FromResult<ErrorOr<Success>>(AppErrors.User.OtpVerificationLocked(_options.VerificationLockoutSeconds));
         }
 
         return Task.FromResult<ErrorOr<Success>>(Result.Success);

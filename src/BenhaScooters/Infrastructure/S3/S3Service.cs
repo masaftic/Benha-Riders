@@ -1,3 +1,4 @@
+using BenhaScooters.Domain.Common;
 using Amazon.S3;
 using Microsoft.Extensions.Options;
 
@@ -30,13 +31,13 @@ public class S3Service : IS3Service
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
         if (!allowedExtensions.Contains(extension))
-            return Error.Validation("INVALID_FILE_TYPE", $"File type '{extension}' is not allowed. Allowed types are: {string.Join(", ", allowedExtensions)}.");
+            return AppErrors.Storage.InvalidFileType(extension, allowedExtensions);
         
         if (extension == ".jpeg") extension = ".jpg"; // Normalize .jpeg to .jpg for consistency
 
         var maxFileSize = 10 * 1024 * 1024; // 10MB
         if (file.Length > maxFileSize)
-            return Error.Validation("INVALID_FILE_SIZE", $"File size exceeds maximum allowed size of {maxFileSize / (1024 * 1024)}MB.");
+            return AppErrors.Storage.InvalidFileSize(maxFileSize);
 
         string key;
         if (useKeyPrefixAsFullUrl)
@@ -64,7 +65,7 @@ public class S3Service : IS3Service
         var response = await _s3Client.PutObjectAsync(request, cancellationToken);
 
         if (response.HttpStatusCode != System.Net.HttpStatusCode.OK)
-            return Error.Failure("FILE_UPLOAD_FAILED", "Failed to upload file to S3.");
+            return AppErrors.Storage.UploadFailed();
 
         return key;
     }

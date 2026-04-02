@@ -17,12 +17,12 @@ public class ConfirmTripRequestCommandHandler(AppDbContext db) : IRequestHandler
 
         if (tripRequest is null)
         {
-            return TripErrors.TripRequest.NotFound;
+            return AppErrors.TripRequest.NotFound();
         }
 
         if (tripRequest.RiderId != request.RiderId)
         {
-            return TripErrors.TripRequest.Forbidden;
+            return AppErrors.TripRequest.Forbidden();
         }
 
         var result = tripRequest.Confirm();

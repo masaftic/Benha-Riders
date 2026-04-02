@@ -69,12 +69,12 @@ public class DriverMatchingService : IDriverMatchingService
 
             if (matchingSession == null)
             {
-                return MatchingErrors.Session.NotFound;
+                return AppErrors.Matching.Session.NotFound();
             }
 
             if (!matchingSession.IsActive)
             {
-                return MatchingErrors.Session.NotActive;
+                return AppErrors.Matching.Session.NotActive();
             }
 
             var tripRequest = matchingSession.TripRequest;

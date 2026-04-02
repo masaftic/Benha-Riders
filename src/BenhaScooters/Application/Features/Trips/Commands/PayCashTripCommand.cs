@@ -30,12 +30,12 @@ public class PayCashForTripCommandHandler : IRequestHandler<PayCashForTripComman
 
         if (trip == null)
         {
-            return TripErrors.Trip.NotFound;
+            return AppErrors.Trip.NotFound();
         }
 
         if (trip.TripPayment == null)
         {
-            return TripErrors.Trip.PaymentNotSet;
+            return AppErrors.Trip.PaymentNotSet();
         }
 
         var result = trip.TripPayment.MarkAsPaid(request.PaidAmount);

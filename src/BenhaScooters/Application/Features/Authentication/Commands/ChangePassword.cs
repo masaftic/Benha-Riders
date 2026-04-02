@@ -49,12 +49,12 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
 
         if (user is null)
         {
-            return UserErrors.UserNotFound;
+            return AppErrors.User.NotFound();
         }
 
         if (!_passwordHasher.Verify(user.PasswordHash, request.CurrentPassword))
         {
-            return UserErrors.IncorrectCurrentPassword;
+            return AppErrors.User.IncorrectCurrentPassword();
         }
 
         user.ChangePassword(_passwordHasher.Hash(request.NewPassword));

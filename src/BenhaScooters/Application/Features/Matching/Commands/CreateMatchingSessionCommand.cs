@@ -40,12 +40,12 @@ public class CreateMatchingSessionCommandHandler(AppDbContext db, IOptions<Match
 
         if (tripRequest == null)
         {
-            return TripErrors.TripRequest.NotFound;
+            return AppErrors.TripRequest.NotFound();
         }
 
         if (!tripRequest.CanBeAssigned)
         {
-            return TripErrors.TripRequest.NotPending;
+            return AppErrors.TripRequest.NotPending();
         }
 
         // Check if matching session already exists for this trip request

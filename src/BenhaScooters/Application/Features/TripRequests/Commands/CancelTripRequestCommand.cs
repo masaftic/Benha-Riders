@@ -56,7 +56,7 @@ public class CancelTripRequestCommandHandler(AppDbContext db) : IRequestHandler<
 
             if (tripRequest == null)
             {
-                return TripErrors.TripRequest.NotFound;
+                return AppErrors.TripRequest.NotFound();
             }
 
 

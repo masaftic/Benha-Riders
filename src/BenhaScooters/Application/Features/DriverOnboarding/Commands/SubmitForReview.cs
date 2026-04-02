@@ -19,7 +19,7 @@ public class SubmitForReviewCommandHandler(AppDbContext db) : IRequestHandler<Su
             .FirstOrDefaultAsync(cancellationToken);
         
         if (driver is null)
-            return DriverErrors.DriverNotFound;
+            return AppErrors.Driver.NotFound();
         
         var result = driver.SubmitForReview();
         if (result.IsError)

@@ -19,15 +19,22 @@ public class BaseApiController : ControllerBase
         // Store error codes for potential middleware use
         HttpContext.Items["ErrorCodes"] = errors.Select(e => e.Code).ToList();
 
+        var extensions = new Dictionary<string, object?>
+        {
+            { "code", firstError.Code }
+        };
+
+        if (firstError.Metadata is { Count: > 0 } metadata)
+        {
+            extensions["metadata"] = metadata;
+        }
+
         return Problem(
             statusCode: statusCode,
             title: firstError.Type.ToString(),
             detail: firstError.Description,
             instance: HttpContext.Request.Path,
-            extensions: new Dictionary<string, object?>
-            {
-                { "code", firstError.Code }
-            }
+            extensions: extensions
         );
     }
 

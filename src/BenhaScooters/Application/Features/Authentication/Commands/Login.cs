@@ -49,7 +49,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ErrorOr<Authent
 
         if (user is null || user.PasswordHash is null || !_passwordHasher.Verify(user.PasswordHash, request.Password))
         {
-            return UserErrors.InvalidCredentials;
+            return AppErrors.User.InvalidCredentials();
         }
 
         // Load or create profiles based on app

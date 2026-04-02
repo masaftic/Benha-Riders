@@ -32,7 +32,7 @@ public class CompleteTripCommandHandler(AppDbContext db) : IRequestHandler<Compl
 
         if (trip == null)
         {
-            return TripErrors.Trip.NotFound;
+            return AppErrors.Trip.NotFound();
         }
         
         // Complete the trip

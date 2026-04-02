@@ -95,10 +95,10 @@ public class TripRequest : AggregateRoot
     public ErrorOr<Success> Confirm()
     {
         if (Status != TripRequestStatus.NotConfirmed)
-            return TripErrors.TripRequest.AlreadyConfirmed;
+            return AppErrors.TripRequest.AlreadyConfirmed();
 
         if (IsExpired)
-            return TripErrors.TripRequest.Expired;
+            return AppErrors.TripRequest.Expired();
 
         Status = TripRequestStatus.Pending;
         ConfirmedAt = DateTime.UtcNow;
@@ -114,10 +114,10 @@ public class TripRequest : AggregateRoot
     public ErrorOr<Success> MarkAsMatched(UserId driverId)
     {
         if (Status != TripRequestStatus.Pending)
-            return TripErrors.TripRequest.NotPending;
+            return AppErrors.TripRequest.NotPending();
 
         if (IsExpired)
-            return TripErrors.TripRequest.Expired;
+            return AppErrors.TripRequest.Expired();
 
         MatchedDriverId = driverId;
         MatchedAt = DateTime.UtcNow;
@@ -130,7 +130,7 @@ public class TripRequest : AggregateRoot
     {
         if (Status == TripRequestStatus.Matched)
         {
-            return TripErrors.TripRequest.AlreadyMatched;
+            return AppErrors.TripRequest.AlreadyMatched();
         }
 
         Status = TripRequestStatus.Cancelled;

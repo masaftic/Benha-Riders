@@ -91,7 +91,7 @@ public class DriverProfile
     public ErrorOr<Success> UpdatePersonalInfo(DriverPersonalInfo personalInfo)
     {
         if (OnboardingStatus == DriverOnboardingStatus.Approved)
-            return DriverErrors.Profile.CannotModifyApprovedProfile;
+            return AppErrors.Driver.Profile.CannotModifyApprovedProfile();
 
         PersonalInfo = personalInfo;
         return Result.Success;
@@ -100,7 +100,7 @@ public class DriverProfile
     public ErrorOr<Success> UpdateVehicle(DriverVehicleInfo vehicle)
     {
         if (OnboardingStatus == DriverOnboardingStatus.Approved)
-            return DriverErrors.Profile.CannotModifyApprovedProfile;
+            return AppErrors.Driver.Profile.CannotModifyApprovedProfile();
 
         Vehicle = vehicle;
         return Result.Success;
@@ -109,7 +109,7 @@ public class DriverProfile
     public ErrorOr<Success> AddDocument(DocumentType type, string imageUrl, DateOnly? expiryDate = null)
     {
         if (OnboardingStatus == DriverOnboardingStatus.Approved)
-            return DriverErrors.Profile.CannotModifyApprovedProfile;
+            return AppErrors.Driver.Profile.CannotModifyApprovedProfile();
 
         // Remove existing document of same type
         var existing = _documents.FirstOrDefault(d => d.Type == type);
@@ -123,11 +123,11 @@ public class DriverProfile
     public ErrorOr<string> RemoveDocument(DocumentType type)
     {
         if (OnboardingStatus == DriverOnboardingStatus.Approved)
-            return DriverErrors.Profile.CannotModifyApprovedProfile;
+            return AppErrors.Driver.Profile.CannotModifyApprovedProfile();
 
         var document = _documents.FirstOrDefault(d => d.Type == type);
         if (document == null)
-            return DriverErrors.Document.NotFound;
+            return AppErrors.Driver.Document.NotFound();
 
         var imageUrl = document.ImageUrl;
         _documents.Remove(document);
@@ -138,18 +138,18 @@ public class DriverProfile
     {
         if (OnboardingStatus != DriverOnboardingStatus.Incomplete && 
             OnboardingStatus != DriverOnboardingStatus.Rejected)
-            return DriverErrors.Profile.InvalidStatusTransition;
+            return AppErrors.Driver.Profile.InvalidStatusTransition();
 
         if (PersonalInfo == null)
-            return DriverErrors.Profile.PersonalInfoRequired;
+            return AppErrors.Driver.Profile.PersonalInfoRequired();
 
         if (Vehicle == null)
-            return DriverErrors.Profile.VehicleInfoRequired;
+            return AppErrors.Driver.Profile.VehicleInfoRequired();
 
         var requiredDocs = GetRequiredDocumentTypes();
         var uploadedTypes = _documents.Select(d => d.Type).ToHashSet();
         if (!requiredDocs.All(uploadedTypes.Contains))
-            return DriverErrors.Profile.DocumentsRequired;
+            return AppErrors.Driver.Profile.DocumentsRequired();
 
         OnboardingStatus = DriverOnboardingStatus.UnderReview;
         RejectionReason = null;
@@ -159,7 +159,7 @@ public class DriverProfile
     public ErrorOr<Success> Approve(UserId adminId)
     {
         if (OnboardingStatus != DriverOnboardingStatus.UnderReview)
-            return DriverErrors.Profile.InvalidStatusTransition;
+            return AppErrors.Driver.Profile.InvalidStatusTransition();
 
         OnboardingStatus = DriverOnboardingStatus.Approved;
         ApprovedAt = DateTime.UtcNow;
@@ -171,10 +171,10 @@ public class DriverProfile
     public ErrorOr<Success> Reject(string reason)
     {
         if (string.IsNullOrWhiteSpace(reason))
-            return DriverErrors.Profile.RejectionReasonRequired;
+            return AppErrors.Driver.Profile.RejectionReasonRequired();
 
         if (OnboardingStatus != DriverOnboardingStatus.UnderReview)
-            return DriverErrors.Profile.InvalidStatusTransition;
+            return AppErrors.Driver.Profile.InvalidStatusTransition();
 
         OnboardingStatus = DriverOnboardingStatus.Rejected;
         RejectionReason = reason;
@@ -184,10 +184,10 @@ public class DriverProfile
     public ErrorOr<Success> Suspend(string reason)
     {
         if (string.IsNullOrWhiteSpace(reason))
-            return DriverErrors.Profile.SuspensionReasonRequired;
+            return AppErrors.Driver.Profile.SuspensionReasonRequired();
 
         if (OnboardingStatus != DriverOnboardingStatus.Approved)
-            return DriverErrors.Profile.InvalidStatusTransition;
+            return AppErrors.Driver.Profile.InvalidStatusTransition();
 
         OnboardingStatus = DriverOnboardingStatus.Suspended;
         RejectionReason = reason;  // Reuse for suspension reason
@@ -197,7 +197,7 @@ public class DriverProfile
     public ErrorOr<Success> Reinstate()
     {
         if (OnboardingStatus != DriverOnboardingStatus.Suspended)
-            return DriverErrors.Profile.InvalidStatusTransition;
+            return AppErrors.Driver.Profile.InvalidStatusTransition();
 
         OnboardingStatus = DriverOnboardingStatus.Approved;
         RejectionReason = null;

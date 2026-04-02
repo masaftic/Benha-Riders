@@ -64,7 +64,7 @@ public class VerifySmsCodeCommandHandler : IRequestHandler<VerifySmsCodeCommand,
 
         if (user is null)
         {
-            return UserErrors.UserNotFound;
+            return AppErrors.User.NotFound();
         }
 
         user.VerifyPhoneNumber(user.PhoneNumber);
@@ -87,4 +87,3 @@ public class VerifySmsCodeCommandHandler : IRequestHandler<VerifySmsCodeCommand,
         return new AuthenticationResponse("success", result);
     }
 }
-

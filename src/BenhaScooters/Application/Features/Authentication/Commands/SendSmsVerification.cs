@@ -36,12 +36,12 @@ public class SendSmsVerificationCommandHandler : IRequestHandler<SendSmsVerifica
 
         if (user is null)
         {
-            return UserErrors.UserNotFound;
+            return AppErrors.User.NotFound();
         }
 
         if (user.PhoneNumberVerified)
         {
-            return UserErrors.PhoneAlreadyVerified;
+            return AppErrors.User.PhoneAlreadyVerified();
         }
 
         // Delegate all security checks to OtpSecurityService

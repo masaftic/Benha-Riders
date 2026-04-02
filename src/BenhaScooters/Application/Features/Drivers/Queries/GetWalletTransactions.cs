@@ -49,7 +49,7 @@ public class GetWalletTransactionsQueryHandler
             .FirstOrDefaultAsync(w => w.DriverUserId == request.DriverId, cancellationToken);
 
         if (wallet is null)
-            return WalletErrors.NotFound;
+            return AppErrors.Driver.Wallet.NotFound();
 
         var query = _db.Set<WalletTransaction>()
             .AsNoTracking()

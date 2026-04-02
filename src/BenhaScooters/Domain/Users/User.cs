@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using BenhaScooters.Domain.Common;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Riders;
 using BenhaScooters.Shared.Validation;
@@ -118,7 +119,7 @@ public class User
     public ErrorOr<Success> AddRole(UserRole role)
     {
         if (_roles.Any(r => r.Name == role.Name))
-            return Error.Conflict("USER_ALREADY_HAS_ROLE", $"User already has the role {role.Name}.");
+            return AppErrors.User.AlreadyHasRole();
 
         _roles.Add(role);
         return Result.Success;
@@ -207,5 +208,3 @@ public class User
         RiderProfile = new RiderProfile(this, Name);
     }
 }
-
-

@@ -1,3 +1,4 @@
+using BenhaScooters.Domain.Common;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Users;
 using ErrorOr;
@@ -21,7 +22,7 @@ public class RegisterDeviceTokenCommandHandler : IRequestHandler<RegisterDeviceT
     {
         var platform = request.Platform.ToLowerInvariant();
         if (platform is not ("android" or "ios"))
-            return Error.Validation("INVALID_PLATFORM", "Platform must be 'android' or 'ios'.");
+            return AppErrors.User.InvalidDevicePlatform();
 
         // Check if user already has a token for this platform
         var existing = await _dbContext.UserDeviceTokens

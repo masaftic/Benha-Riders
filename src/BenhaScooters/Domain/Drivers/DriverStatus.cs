@@ -55,7 +55,7 @@ public class DriverStatus
             return Result.Success;
 
         if (Status == DriverAvailabilityStatus.OnTrip)
-            return DriverErrors.Status.CannotGoOnlineWhileOnTrip;
+            return AppErrors.Driver.Status.CannotGoOnlineWhileOnTrip();
 
         Status = DriverAvailabilityStatus.Online;
         LastStatusChange = DateTime.UtcNow;
@@ -69,7 +69,7 @@ public class DriverStatus
             return Result.Success;
 
         if (Status == DriverAvailabilityStatus.OnTrip)
-            return DriverErrors.Status.CannotGoOfflineWhileOnTrip;
+            return AppErrors.Driver.Status.CannotGoOfflineWhileOnTrip();
 
         Status = DriverAvailabilityStatus.Offline;
         LastStatusChange = DateTime.UtcNow;
@@ -80,7 +80,7 @@ public class DriverStatus
     public ErrorOr<Success> StartTrip(TripId tripId)
     {
         if (Status == DriverAvailabilityStatus.OnTrip)
-            return DriverErrors.Status.AlreadyOnTrip;
+            return AppErrors.Driver.Status.AlreadyOnTrip();
 
         Status = DriverAvailabilityStatus.OnTrip;
         CurrentTripId = tripId;
@@ -91,7 +91,7 @@ public class DriverStatus
     public ErrorOr<Success> CompleteTrip()
     {
         if (Status != DriverAvailabilityStatus.OnTrip)
-            return DriverErrors.Status.NotOnTrip;
+            return AppErrors.Driver.Status.NotOnTrip();
 
         Status = DriverAvailabilityStatus.Online;
         CurrentTripId = null;

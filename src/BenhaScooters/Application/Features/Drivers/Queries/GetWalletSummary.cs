@@ -54,7 +54,7 @@ public class GetWalletSummaryQueryHandler : IRequestHandler<GetWalletSummaryQuer
             .FirstOrDefaultAsync(w => w.DriverUserId == request.DriverId, cancellationToken);
 
         if (wallet is null)
-            return WalletErrors.NotFound;
+            return AppErrors.Driver.Wallet.NotFound();
 
         var transactions = wallet.Transactions;
 

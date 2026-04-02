@@ -48,7 +48,7 @@ public class SubmitTopUpRequestCommandHandler
             .FirstOrDefaultAsync(w => w.DriverUserId == request.DriverId, cancellationToken);
 
         if (wallet is null)
-            return WalletErrors.NotFound;
+            return AppErrors.Driver.Wallet.NotFound();
 
         var hasPending = await _db.WalletTopUpRequests
             .AnyAsync(r => r.DriverUserId == request.DriverId && r.Status == TopUpRequestStatus.Pending, cancellationToken);

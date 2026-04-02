@@ -38,7 +38,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, ErrorOr<Logou
 
         if (user is null)
         {
-            return UserErrors.UserNotFound;
+            return AppErrors.User.NotFound();
         }
 
         if (!string.IsNullOrEmpty(request.RefreshToken))

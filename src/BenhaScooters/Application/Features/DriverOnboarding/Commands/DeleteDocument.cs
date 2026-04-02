@@ -32,7 +32,7 @@ public class DeleteDocumentCommandHandler : IRequestHandler<DeleteDocumentComman
 
         if (driverProfile == null)
         {
-            return DriverErrors.Profile.NotFound;
+            return AppErrors.Driver.Profile.NotFound();
         }
 
         var result = driverProfile.RemoveDocument(request.DocumentType);

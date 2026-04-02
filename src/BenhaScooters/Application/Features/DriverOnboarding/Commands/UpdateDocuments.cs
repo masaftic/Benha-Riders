@@ -42,7 +42,7 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
 
         if (driverProfile == null)
         {
-            return DriverErrors.Profile.NotFound;
+            return AppErrors.Driver.Profile.NotFound();
         }
 
         try
@@ -72,9 +72,9 @@ public class UpdateDocumentsCommandHandler : IRequestHandler<UpdateDocumentsComm
                 "Documents uploaded successfully.",
                 driverProfile.OnboardingStatus);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return DriverErrors.UploadError(ex.Message);
+            return AppErrors.Driver.UploadFailed();
         }
     }
 }

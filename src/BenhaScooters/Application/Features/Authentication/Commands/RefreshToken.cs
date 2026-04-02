@@ -44,16 +44,17 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, E
 
         if (refreshToken is null || !refreshToken.IsActive)
         {
-            return UserErrors.InvalidRefreshToken;
+            return AppErrors.User.InvalidRefreshToken();
         }
 
         var user = await _db.Users
             .Include(u => u.RefreshTokens)
+            .Include(u => u.Roles)
             .FirstOrDefaultAsync(u => u.Id == refreshToken.UserId, cancellationToken);
 
         if (user is null)
         {
-            return UserErrors.UserNotFound;
+            return AppErrors.User.NotFound();
         }
 
         // Load or create profiles based on app

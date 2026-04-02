@@ -38,7 +38,7 @@ public class GetOnboardingStatusQueryHandler : IRequestHandler<GetOnboardingStat
 
         if (driverProfile == null)
         {
-            return DriverErrors.Profile.NotFound;
+            return AppErrors.Driver.Profile.NotFound();
         }
 
         var progress = CalculateProgress(driverProfile);

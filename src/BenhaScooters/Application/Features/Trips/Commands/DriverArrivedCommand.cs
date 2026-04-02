@@ -29,7 +29,7 @@ public class DriverArrivedCommandHandler(AppDbContext db) : IRequestHandler<Driv
 
         if (trip == null)
         {
-            return TripErrors.Trip.NotFound;
+            return AppErrors.Trip.NotFound();
         }
 
         // Mark driver as arrived

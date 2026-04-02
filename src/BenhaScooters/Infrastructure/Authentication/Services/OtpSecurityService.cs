@@ -73,7 +73,7 @@ public class OtpSecurityService : IOtpSecurityService
                 "OTP request BLOCKED due to fraud. UserId={UserId}, Phone={Phone}, IP={Ip}, Score={Score}",
                 userId, phoneStr, ipAddress, fraudResult.Score);
 
-            return UserErrors.OtpFraudSuspected;
+            return AppErrors.User.OtpFraudSuspected();
         }
 
         // ─── 2. Rate Limiting ────────────────────────────────────────
@@ -158,7 +158,7 @@ public class OtpSecurityService : IOtpSecurityService
             await LogEventAsync(userId, "", ipAddress, OtpEventType.CodeFailed,
                 JsonSerializer.Serialize(new { Reason = "No active code found" }), ct);
             await _db.SaveChangesAsync(ct);
-            return UserErrors.InvalidVerificationCode;
+            return AppErrors.User.InvalidVerificationCode();
         }
 
         // ─── 3. Check if Code is Locked ──────────────────────────────
@@ -167,7 +167,7 @@ public class OtpSecurityService : IOtpSecurityService
             await LogEventAsync(userId, verificationCode.PhoneNumber, ipAddress, OtpEventType.CodeFailed,
                 JsonSerializer.Serialize(new { Reason = "Code is locked" }), ct);
             await _db.SaveChangesAsync(ct);
-            return UserErrors.OtpCodeLocked;
+            return AppErrors.User.OtpCodeLocked();
         }
 
         // ─── 4. Constant-Time Code Verification ─────────────────────
@@ -195,12 +195,12 @@ public class OtpSecurityService : IOtpSecurityService
             {
                 _logger.LogWarning("OTP code locked for UserId={UserId} after {Attempts} failed attempts",
                     userId, verificationCode.FailedAttempts);
-                return UserErrors.OtpCodeLocked;
+                return AppErrors.User.OtpCodeLocked();
             }
 
             _logger.LogInformation("OTP verification failed for UserId={UserId}. {Remaining} attempts remaining",
                 userId, verificationCode.RemainingAttempts);
-            return UserErrors.InvalidVerificationCode;
+            return AppErrors.User.InvalidVerificationCode();
         }
 
         // ─── 5. Mark as Used ─────────────────────────────────────────

@@ -57,12 +57,12 @@ public class GetDriverMatchOffersQueryHandler(AppDbContext db)
 
         if (driverStatus == null)
         {
-            return DriverErrors.DriverNotFound;
+            return AppErrors.Driver.NotFound();
         }
 
         if (driverStatus.Status != DriverAvailabilityStatus.Online)
         {
-            return TripErrors.Driver.NotOnline;
+            return AppErrors.Driver.NotOnline();
         }
 
         // Get pending match offers for this driver

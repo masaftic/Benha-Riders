@@ -59,7 +59,7 @@ public class WalletTopUpRequest
     public ErrorOr<Success> Approve(UserId reviewedBy, string? note = null)
     {
         if (Status != TopUpRequestStatus.Pending)
-            return WalletErrors.TopUpRequestAlreadyReviewed;
+            return AppErrors.Driver.Wallet.TopUpRequestAlreadyReviewed();
 
         Status = TopUpRequestStatus.Approved;
         ReviewedByUserId = reviewedBy;
@@ -71,10 +71,10 @@ public class WalletTopUpRequest
     public ErrorOr<Success> Reject(UserId reviewedBy, string reason)
     {
         if (Status != TopUpRequestStatus.Pending)
-            return WalletErrors.TopUpRequestAlreadyReviewed;
+            return AppErrors.Driver.Wallet.TopUpRequestAlreadyReviewed();
 
         if (string.IsNullOrWhiteSpace(reason))
-            return WalletErrors.RejectionReasonRequired;
+            return AppErrors.Driver.Wallet.RejectionReasonRequired();
 
         Status = TopUpRequestStatus.Rejected;
         ReviewedByUserId = reviewedBy;

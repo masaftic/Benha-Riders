@@ -69,10 +69,10 @@ public class SetDriverAvailabilityCommandHandler : IRequestHandler<SetDriverAvai
                     break;
 
                 case DriverAvailabilityStatus.OnTrip:
-                    return Error.Validation("INVALID_STATUS_TRANSITION", "Cannot manually set status to OnTrip. This status is set automatically when a trip starts.");
+                    return AppErrors.Driver.Status.ManualOnTripTransitionNotAllowed();
 
                 default:
-                    return Error.Validation("INVALID_STATUS", "Invalid status transition");
+                    return AppErrors.Driver.Status.InvalidAvailabilityStatus();
             }
 
             if (result.IsError) return result.Errors;
@@ -84,9 +84,9 @@ public class SetDriverAvailabilityCommandHandler : IRequestHandler<SetDriverAvai
                 driverStatus.LastStatusChange,
                 message);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
-            return Error.Validation("INVALID_OPERATION", ex.Message);
+            return AppErrors.Driver.Status.InvalidOperation();
         }
     }
 }

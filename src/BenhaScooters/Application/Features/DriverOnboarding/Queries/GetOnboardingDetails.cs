@@ -41,7 +41,7 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
 
         if (driverProfile == null)
         {
-            return DriverErrors.Profile.NotFound;
+            return AppErrors.Driver.Profile.NotFound();
         }
 
         var personalInfo = driverProfile.PersonalInfo != null ? new PersonalInfoDto(

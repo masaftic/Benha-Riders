@@ -66,14 +66,14 @@ public class AcceptMatchCommandHandler(
         if (wallet is null)
         {
             logger.LogWarning("Wallet not found for driver {DriverId} when accepting match", request.DriverId);
-            return WalletErrors.NotFound;
+            return AppErrors.Driver.Wallet.NotFound();
         }
 
         if (!wallet.CanAcceptMatch(debtLimit))
         {
             logger.LogWarning("Driver {DriverId} cannot accept match due to debt limit exceeded. Balance: {Balance}, Limit: {Limit}",
                 request.DriverId, wallet.Balance, debtLimit);
-            return WalletErrors.DebtLimitExceeded;
+            return AppErrors.Driver.Wallet.DebtLimitExceeded();
         }
 
         // Locate the driver match attempt being accepted
@@ -88,14 +88,14 @@ public class AcceptMatchCommandHandler(
         {
             logger.LogWarning("Match attempt {MatchAttemptId} not found or does not belong to driver {DriverId}",
                 request.DriverMatchAttemptId, request.DriverId);
-            return MatchingErrors.MatchAttempt.NotFound;
+            return AppErrors.Matching.Attempt.NotFound();
         }
 
         if (matchAttempt.Status != MatchAttemptStatus.Pending)
         {
             logger.LogWarning("Match attempt {MatchAttemptId} for driver {DriverId} is not pending (status: {Status})",
                 request.DriverMatchAttemptId, request.DriverId, matchAttempt.Status);
-            return MatchingErrors.MatchAttempt.NotFound;
+            return AppErrors.Matching.Attempt.InvalidStatus();
         }
 
         var matchingSession = matchAttempt.MatchingSession;
@@ -104,7 +104,7 @@ public class AcceptMatchCommandHandler(
         {
             logger.LogWarning("No matching session found for match attempt {MatchAttemptId}",
                 request.DriverMatchAttemptId);
-            return MatchingErrors.Session.NotFound;
+            return AppErrors.Matching.Session.NotFound();
         }
 
         var tripRequest = matchingSession.TripRequest;
@@ -113,7 +113,7 @@ public class AcceptMatchCommandHandler(
         {
             logger.LogWarning("Driver {DriverId} attempted to accept match for trip request {TripRequestId} where they are the rider",
                 request.DriverId, tripRequest.Id);
-            return MatchingErrors.MatchAttempt.CannotAcceptYourOwnRequest;
+            return AppErrors.Matching.Attempt.CannotAcceptOwnRequest();
         }
 
         var acceptResult = matchingSession.AcceptMatch(request.DriverId);
@@ -131,7 +131,7 @@ public class AcceptMatchCommandHandler(
         if (driverStatus is null)
         {
             logger.LogWarning("Driver status not found for driver {DriverId} when accepting match", request.DriverId);
-            return DriverErrors.DriverNotFound;
+            return AppErrors.Driver.NotFound();
         }
 
 

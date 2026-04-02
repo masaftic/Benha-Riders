@@ -75,7 +75,7 @@ public class DriverWallet : AggregateRoot
     public ErrorOr<Success> ChargeCommission(decimal amount, TripId tripId, string description)
     {
         if (amount <= 0)
-            return WalletErrors.InvalidAmount;
+            return AppErrors.Driver.Wallet.InvalidAmount();
 
         Balance -= amount;
         UpdatedAt = DateTime.UtcNow;
@@ -102,7 +102,7 @@ public class DriverWallet : AggregateRoot
     public ErrorOr<Success> RecordSettlement(decimal amount, string reference)
     {
         if (amount <= 0)
-            return WalletErrors.InvalidAmount;
+            return AppErrors.Driver.Wallet.InvalidAmount();
 
         Balance += amount;
         UpdatedAt = DateTime.UtcNow;
@@ -129,10 +129,10 @@ public class DriverWallet : AggregateRoot
     public ErrorOr<Success> ApplyAdjustment(decimal amount, string reason)
     {
         if (amount == 0)
-            return WalletErrors.InvalidAmount;
+            return AppErrors.Driver.Wallet.InvalidAmount();
 
         if (string.IsNullOrWhiteSpace(reason))
-            return WalletErrors.AdjustmentReasonRequired;
+            return AppErrors.Driver.Wallet.AdjustmentReasonRequired();
 
         Balance += amount;
         UpdatedAt = DateTime.UtcNow;
@@ -160,10 +160,10 @@ public class DriverWallet : AggregateRoot
     public ErrorOr<WalletTopUpRequest> CreateTopUpRequest(decimal amount, string receiptUrl, bool hasPendingRequest)
     {
         if (amount <= 0)
-            return WalletErrors.InvalidAmount;
+            return AppErrors.Driver.Wallet.InvalidAmount();
 
         if (hasPendingRequest)
-            return WalletErrors.PendingTopUpExists;
+            return AppErrors.Driver.Wallet.PendingTopUpExists();
 
         return new WalletTopUpRequest(Id, DriverUserId, amount, receiptUrl);
     }
@@ -174,7 +174,7 @@ public class DriverWallet : AggregateRoot
     public ErrorOr<Success> RefundCommission(decimal amount, TripId tripId, string reason)
     {
         if (amount <= 0)
-            return WalletErrors.InvalidAmount;
+            return AppErrors.Driver.Wallet.InvalidAmount();
 
         Balance += amount;
         UpdatedAt = DateTime.UtcNow;

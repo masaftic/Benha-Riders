@@ -1,3 +1,4 @@
+using BenhaScooters.Domain.Common;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.StaticFiles;
 
@@ -24,13 +25,13 @@ public class LocalS3Service : IS3Service
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
         if (!allowedExtensions.Contains(extension))
-            return Error.Validation("INVALID_FILE_TYPE", $"File type '{extension}' is not allowed.");
+            return AppErrors.Storage.InvalidFileType(extension, allowedExtensions);
 
         if (extension == ".jpeg") extension = ".jpg";
 
         var maxFileSize = 10 * 1024 * 1024;
         if (file.Length > maxFileSize)
-            return Error.Validation("INVALID_FILE_SIZE", $"File size exceeds maximum allowed size of {maxFileSize / (1024 * 1024)}MB.");
+            return AppErrors.Storage.InvalidFileSize(maxFileSize);
 
         string key;
         if (useKeyPrefixAsFullUrl)

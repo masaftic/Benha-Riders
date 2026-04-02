@@ -1,100 +1,81 @@
-using ErrorOr;
+using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Domain.Common;
 
-public static class UserErrors
+public static partial class AppErrors
 {
-    public static Error EmailAlreadyExists => Error.Conflict(
-        "USER_EMAIL_ALREADY_EXISTS", 
-        "البريد الإلكتروني مستخدم بالفعل.");
+    public static class User
+    {
+        public static AppError AlreadyExists(Email email) => NewConflict(
+            "USER_ALREADY_EXISTS",
+            $"A user with email '{email}' already exists.",
+            ("email", email.ToString()));
 
-    public static Error PhoneAlreadyExists => Error.Conflict(
-        "USER_PHONE_ALREADY_EXISTS", 
-        "رقم الهاتف مستخدم بالفعل.");
+        public static AppError PhoneAlreadyExists(PhoneNumber phoneNumber) => NewConflict(
+            "USER_PHONE_ALREADY_EXISTS",
+            $"A user with phone number '{phoneNumber}' already exists.",
+            ("phoneNumber", phoneNumber.ToString()));
 
-    public static Error InvalidCredentials => Error.Validation(
-        "INVALID_CREDENTIALS", 
-        "رقم الهاتف أو كلمة المرور غير صحيحة.");
+        public static AppError InvalidCredentials() => NewValidation(
+            "INVALID_CREDENTIALS",
+            "The provided credentials are invalid.");
 
-    public static Error UserNotFound => Error.NotFound(
-        "USER_NOT_FOUND", 
-        "المستخدم غير موجود.");
+        public static AppError NotFound() => NewNotFound(
+            "USER_NOT_FOUND",
+            "User was not found.");
 
-    public static Error PhoneAlreadyVerified => Error.Validation(
-        "PHONE_ALREADY_VERIFIED", 
-        "رقم الهاتف تم التحقق منه بالفعل.");
+        public static AppError PhoneAlreadyVerified() => NewValidation(
+            "PHONE_ALREADY_VERIFIED",
+            "Phone number is already verified.");
 
-    public static Error InvalidVerificationCode => Error.Validation(
-        "INVALID_VERIFICATION_CODE", 
-        "رمز التحقق غير صحيح.");
+        public static AppError InvalidVerificationCode() => NewValidation(
+            "INVALID_VERIFICATION_CODE",
+            "The verification code is invalid.");
 
-    public static Error VerificationCodeExpired => Error.Validation(
-        "VERIFICATION_CODE_EXPIRED", 
-        "انتهت صلاحية رمز التحقق.");
+        public static AppError OtpRateLimitExceeded(int retryAfterSeconds) => NewCustom(
+            429,
+            "OTP_RATE_LIMIT_EXCEEDED",
+            "OTP request rate limit exceeded.",
+            ("retryAfterSeconds", retryAfterSeconds));
 
-    public static Error VerificationCodeAlreadyUsed => Error.Validation(
-        "VERIFICATION_CODE_ALREADY_USED", 
-        "تم استخدام رمز التحقق بالفعل.");
+        public static AppError OtpDailyLimitExceeded() => NewCustom(
+            429,
+            "OTP_DAILY_LIMIT_EXCEEDED",
+            "OTP daily limit exceeded.");
 
-    public static Error TooManyVerificationRequests => Error.Validation(
-        "TOO_MANY_VERIFICATION_REQUESTS", 
-        "يرجى الانتظار قبل طلب رمز تحقق آخر.",
-        metadata: new Dictionary<string, object>
-        {
-            {"Detail", "يمكنك طلب رمز تحقق جديد بعد دقيقة واحدة."}
-        });
+        public static AppError OtpCodeLocked() => NewValidation(
+            "OTP_CODE_LOCKED",
+            "The verification code is locked due to too many failed attempts.");
 
-    public static Error OtpRateLimitExceeded(int retryAfterSeconds) => Error.Custom(
-        429,
-        "OTP_RATE_LIMIT_EXCEEDED",
-        "لقد تجاوزت الحد المسموح لطلبات رمز التحقق.",
-        metadata: new Dictionary<string, object>
-        {
-            { "RetryAfterSeconds", retryAfterSeconds },
-            { "Detail", $"يرجى المحاولة مرة أخرى بعد {retryAfterSeconds} ثانية." }
-        });
+        public static AppError OtpVerificationLocked(int retryAfterSeconds) => NewCustom(
+            429,
+            "OTP_VERIFICATION_LOCKED",
+            "OTP verification is temporarily locked.",
+            ("retryAfterSeconds", retryAfterSeconds));
 
-    public static Error OtpDailyLimitExceeded => Error.Custom(
-        429,
-        "OTP_DAILY_LIMIT_EXCEEDED",
-        "لقد تجاوزت الحد اليومي لطلبات رمز التحقق. حاول مرة أخرى غدًا.");
+        public static AppError OtpFraudSuspected() => NewCustom(
+            403,
+            "OTP_FRAUD_SUSPECTED",
+            "Suspicious OTP activity was detected.");
 
-    public static Error OtpCodeLocked => Error.Validation(
-        "OTP_CODE_LOCKED",
-        "تم قفل رمز التحقق بسبب عدد كبير من المحاولات الفاشلة. يرجى طلب رمز جديد.");
+        public static AppError IncorrectCurrentPassword() => NewValidation(
+            "INCORRECT_CURRENT_PASSWORD",
+            "The current password is incorrect.");
 
-    public static Error OtpVerificationLocked(int retryAfterSeconds) => Error.Custom(
-        429,
-        "OTP_VERIFICATION_LOCKED",
-        "تم قفل التحقق مؤقتًا بسبب محاولات فاشلة متعددة.",
-        metadata: new Dictionary<string, object>
-        {
-            { "RetryAfterSeconds", retryAfterSeconds },
-            { "Detail", $"يرجى المحاولة مرة أخرى بعد {retryAfterSeconds} ثانية." }
-        });
+        public static AppError InvalidRefreshToken() => NewUnauthorized(
+            "INVALID_REFRESH_TOKEN",
+            "The refresh token is invalid or expired.");
 
-    public static Error OtpFraudSuspected => Error.Custom(
-        403,
-        "OTP_FRAUD_SUSPECTED",
-        "تم اكتشاف نشاط مريب. تم تعليق التحقق مؤقتًا.");
+        public static AppError InvalidGoogleIdToken() => NewValidation(
+            "INVALID_GOOGLE_ID_TOKEN",
+            "The Google ID token is invalid.");
 
-    public static Error IncorrectCurrentPassword => Error.Validation(
-        "INCORRECT_CURRENT_PASSWORD", 
-        "كلمة المرور الحالية غير صحيحة.");
+        public static AppError AlreadyHasRole() => NewConflict(
+            "USER_ALREADY_HAS_ROLE",
+            "User already has this role.");
 
-    public static Error InvalidRefreshToken => Error.Unauthorized(
-        "INVALID_REFRESH_TOKEN", 
-        "رمز التحديث غير صحيح أو منتهي الصلاحية.");
-
-    public static Error PhoneNumberNotVerified => Error.Forbidden(
-        "PHONE_NUMBER_NOT_VERIFIED", 
-        "يجب التحقق من رقم الهاتف قبل اختيار الدور.");
-
-    public static Error RoleAlreadyAssigned => Error.Conflict(
-        "ROLE_ALREADY_ASSIGNED", 
-        "المستخدم لديه دور مخصص بالفعل.");
-
-    public static Error InvalidGoogleIdToken => Error.Validation(
-        "INVALID_GOOGLE_ID_TOKEN", 
-        "رمز Google ID غير صالح.");
+        public static AppError InvalidDevicePlatform() => NewValidation(
+            "INVALID_PLATFORM",
+            "Platform must be either 'android' or 'ios'.");
+    }
 }

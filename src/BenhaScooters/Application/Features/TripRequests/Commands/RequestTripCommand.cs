@@ -60,7 +60,7 @@ public class RequestTripCommandHandler(
 
         if (hasActiveRequest)
         {
-            return TripErrors.Rider.HasActiveTripRequest;
+            return AppErrors.Rider.HasActiveTripRequest();
         }
 
         // check if rider has active trip
@@ -70,7 +70,7 @@ public class RequestTripCommandHandler(
 
         if (hasActiveTrip)
         {
-            return TripErrors.Rider.HasActiveTrip;
+            return AppErrors.Rider.HasActiveTrip();
         }
 
         
@@ -79,7 +79,7 @@ public class RequestTripCommandHandler(
             request.DropoffCoordinate, 
             cancellationToken: cancellationToken))
         {
-            return TripErrors.ServiceArea.LocationNotCovered;
+            return AppErrors.ServiceArea.LocationNotCovered();
         }
 
 

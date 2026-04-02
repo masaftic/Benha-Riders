@@ -50,7 +50,7 @@ public class StartTripCommandHandler(
 
         if (trip == null)
         {
-            return TripErrors.Trip.NotFound;
+            return AppErrors.Trip.NotFound();
         }
 
         // Start the trip

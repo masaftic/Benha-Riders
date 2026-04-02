@@ -39,7 +39,7 @@ public class BanDriverCommandHandler(AppDbContext db) : IRequestHandler<BanDrive
 
         if (driverProfile == null)
         {
-            return AdminErrors.DriverNotFound;
+            return AppErrors.Admin.DriverNotFound();
         }
 
         var rejectResult = driverProfile.Suspend(request.Reason);

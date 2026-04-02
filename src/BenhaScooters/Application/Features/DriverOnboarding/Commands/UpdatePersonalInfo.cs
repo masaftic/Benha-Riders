@@ -56,7 +56,7 @@ public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler
 
         if (driverProfile == null)
         {
-            return DriverErrors.DriverNotFound;
+            return AppErrors.Driver.NotFound();
         }
 
         var personalInfo = new DriverPersonalInfo(

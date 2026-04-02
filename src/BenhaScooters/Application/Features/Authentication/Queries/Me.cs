@@ -50,7 +50,7 @@ public class MeQueryHandler : IRequestHandler<MeQuery, ErrorOr<MeResponse>>
 
         if (user is null)
         {
-            return UserErrors.UserNotFound;
+            return AppErrors.User.NotFound();
         }
 
         string? profileImage = null;

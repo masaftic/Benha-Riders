@@ -68,7 +68,7 @@ public class GetTripStatusQueryHandler(AppDbContext db) : IRequestHandler<GetTri
 
         if (tripStatusInfo == null)
         {
-            return TripErrors.TripRequest.NotFound;
+            return AppErrors.TripRequest.NotFound();
         }
 
         return new GetTripStatusResult(

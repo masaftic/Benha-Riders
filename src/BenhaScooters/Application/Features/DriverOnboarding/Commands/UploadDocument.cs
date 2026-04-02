@@ -35,7 +35,7 @@ public class UploadDocumentHandler : IRequestHandler<UploadDocumentCommand, Erro
 
         if (driverProfile == null)
         {
-            return DriverErrors.Profile.NotFound;
+            return AppErrors.Driver.Profile.NotFound();
         }
 
         var uploadResult = await _s3Service.UploadFileAsync(request.File, $"drivers/{driverProfile.UserId}/documents/{request.DocumentType.ToKebabCase()}", useKeyPrefixAsFullUrl: true, cancellationToken);

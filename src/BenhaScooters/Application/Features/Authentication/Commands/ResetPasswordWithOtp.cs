@@ -67,7 +67,7 @@ public class ResetPasswordWithOtpCommandHandler : IRequestHandler<ResetPasswordW
 
         if (user is null)
         {
-            return UserErrors.UserNotFound;
+            return AppErrors.User.NotFound();
         }
 
         // Verify OTP code

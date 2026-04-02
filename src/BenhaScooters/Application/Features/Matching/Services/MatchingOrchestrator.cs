@@ -40,7 +40,7 @@ public class MatchingOrchestrator(
             logger.LogInformation(
                 "No active matching session found for trip request {TripRequestId} when handling post-outcome",
                 tripRequestId);
-            return MatchingErrors.Session.NotFound;
+            return AppErrors.Matching.Session.NotFound();
         }
 
         // Check if anyone has accepted the match

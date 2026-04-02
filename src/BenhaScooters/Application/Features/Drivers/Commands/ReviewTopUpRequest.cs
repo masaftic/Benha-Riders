@@ -41,7 +41,7 @@ public class ReviewTopUpRequestCommandHandler
             .FirstOrDefaultAsync(r => r.Id == request.RequestId, cancellationToken);
 
         if (topUp is null)
-            return WalletErrors.TopUpRequestNotFound;
+            return AppErrors.Driver.Wallet.TopUpRequestNotFound();
 
         if (request.Approve)
         {
@@ -54,7 +54,7 @@ public class ReviewTopUpRequestCommandHandler
                 .FirstOrDefaultAsync(w => w.Id == topUp.WalletId, cancellationToken);
 
             if (wallet is null)
-                return WalletErrors.NotFound;
+                return AppErrors.Driver.Wallet.NotFound();
 
             var settlementResult = wallet.RecordSettlement(topUp.Amount, $"TopUp #{topUp.Id}");
             if (settlementResult.IsError)

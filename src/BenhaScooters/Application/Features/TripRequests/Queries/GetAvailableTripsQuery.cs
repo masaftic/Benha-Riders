@@ -41,7 +41,7 @@ public class GetAvailableTripsQueryHandler(AppDbContext db) : IRequestHandler<Ge
 
         if (driverStatus == null || driverStatus.Status != DriverAvailabilityStatus.Online)
         {
-            return TripErrors.Driver.NotOnline;
+            return AppErrors.Driver.NotOnline();
         }
 
         // Get available trip requests (pending status, not expired)

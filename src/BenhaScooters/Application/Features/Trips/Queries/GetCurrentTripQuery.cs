@@ -87,7 +87,7 @@ public class GetCurrentTripQueryHandler : IRequestHandler<GetCurrentTripQuery, E
 
         if (tripResult is null)
         {
-            return TripErrors.Trip.NotFound;
+            return AppErrors.Trip.NotFound();
         }
 
         var driverPhotoUrl = tripResult.DriverPhotoUrl != null

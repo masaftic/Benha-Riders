@@ -48,13 +48,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<A
         var normalizedEmail = req.Email;
         if (await _db.Users.AnyAsync(x => x.Email == normalizedEmail, ct))
         {
-            return UserErrors.EmailAlreadyExists;
+            return AppErrors.User.AlreadyExists(req.Email);
         }
 
         var normalizedPhone = req.PhoneNumber;
         if (await _db.Users.AnyAsync(x => x.PhoneNumber == normalizedPhone, ct))
         {
-            return UserErrors.PhoneAlreadyExists;
+            return AppErrors.User.PhoneAlreadyExists(req.PhoneNumber);
         }
 
         var user = new User(

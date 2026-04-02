@@ -42,7 +42,7 @@ public class ApproveDriverCommandHandler : IRequestHandler<ApproveDriverCommand,
 
         if (driverProfile == null)
         {
-            return AdminErrors.DriverNotFound;
+            return AppErrors.Admin.DriverNotFound();
         }
 
         // Admin approves the driver profile

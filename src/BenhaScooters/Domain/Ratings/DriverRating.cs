@@ -27,7 +27,7 @@ public class DriverRating
     public static ErrorOr<DriverRating> Create(TripId tripId, UserId riderId, UserId driverId, int rating, string? comment)
     {
         if (rating < 1 || rating > 5)
-            return Error.Validation("INVALID_RATING", "Rating must be between 1 and 5.");
+            return AppErrors.Rating.InvalidValue();
 
         return new DriverRating
         {
@@ -39,11 +39,4 @@ public class DriverRating
             CreatedAt = DateTime.UtcNow
         };
     }
-}
-
-public static class RatingErrors
-{
-    public static readonly Error TripNotCompleted = Error.Validation("TRIP_NOT_COMPLETED", "يمكنك تقييم السائق فقط بعد اكتمال الرحلة.");
-    public static readonly Error AlreadyRated = Error.Conflict("ALREADY_RATED", "لقد قمت بتقييم هذه الرحلة بالفعل.");
-    public static readonly Error NotYourTrip = Error.Forbidden("NOT_YOUR_TRIP", "لا يمكنك تقييم رحلة لم تكن جزءًا منها.");
 }

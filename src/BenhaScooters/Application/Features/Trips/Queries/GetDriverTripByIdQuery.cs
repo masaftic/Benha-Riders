@@ -64,7 +64,7 @@ public class GetDriverTripByIdQueryHandler : IRequestHandler<GetDriverTripByIdQu
 
         if (tripResult is null)
         {
-            return TripErrors.Trip.NotFound;
+            return AppErrors.Trip.NotFound();
         }
 
         return new GetDriverTripByIdResult(
