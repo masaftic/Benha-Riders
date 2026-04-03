@@ -7,9 +7,9 @@ namespace BenhaScooters.Application.Features.Matching.EventHandlers;
 
 public class TripMatchRejectedEventHandler(
     IMatchingOrchestrator orchestrator,
-    ILogger<TripMatchRejectedEventHandler> logger) : INotificationHandler<TripMatchRejectedEvent>
+    ILogger<TripMatchRejectedEventHandler> logger) : INotificationHandler<MatchAttemptRejectedEvent>
 {
-    public async Task Handle(TripMatchRejectedEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(MatchAttemptRejectedEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("Handling trip match rejection for trip request {TripRequestId} from driver {DriverId}",
             notification.TripRequestId, notification.DriverId);

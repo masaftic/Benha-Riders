@@ -10,9 +10,9 @@ namespace BenhaScooters.Application.Features.Matching.EventHandlers;
 /// </summary>
 public class TripMatchAcceptedEventHandler(
     ILogger<TripMatchAcceptedEventHandler> logger)
-    : INotificationHandler<TripMatchAcceptedEvent>
+    : INotificationHandler<MatchAttemptAcceptedEvent>
 {
-    public Task Handle(TripMatchAcceptedEvent notification, CancellationToken cancellationToken)
+    public Task Handle(MatchAttemptAcceptedEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation(
             "Trip match accepted for trip request {TripRequestId} by driver {DriverId} at {AcceptedAt}",

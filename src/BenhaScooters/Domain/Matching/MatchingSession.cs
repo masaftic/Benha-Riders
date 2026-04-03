@@ -70,6 +70,8 @@ public class MatchingSession : AggregateRoot
     public IReadOnlyList<int> OffersPerRound { get; private set; } = [];
     public int CurrentRound { get; private set; } = 1;
 
+    public int CurrentOffer => OffersPerRound[CurrentRound - 1];
+
     public MatchingSessionStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
@@ -145,6 +147,11 @@ public class MatchingSession : AggregateRoot
         foreach (var attempt in _matchAttempts.Where(ma => ma.Status == MatchAttemptStatus.Pending))
         {
             attempt.Cancel();
+            RaiseDomainEvent(new MatchAttemptCancelledEvent(
+                attempt.Id,
+                attempt.DriverUserId,
+                Id,
+                DateTime.UtcNow));
         }
 
         RaiseDomainEvent(new MatchingSessionCancelledEvent(
@@ -197,7 +204,7 @@ public class MatchingSession : AggregateRoot
 
         if (IsExpired)
             return AppErrors.Matching.Session.Expired();
-        
+
         var isLastRound = IsLastRound();
 
         if (isLastRound)
@@ -212,7 +219,7 @@ public class MatchingSession : AggregateRoot
     }
 
 
-    
+
 
 
     public ErrorOr<Success> AcceptMatch(UserId driverId)
@@ -238,6 +245,11 @@ public class MatchingSession : AggregateRoot
             ma.Status == MatchAttemptStatus.Pending && ma.DriverUserId != driverId))
         {
             otherAttempt.Cancel();
+            RaiseDomainEvent(new MatchAttemptCancelledEvent(
+                otherAttempt.Id,
+                otherAttempt.DriverUserId,
+                Id,
+                DateTime.UtcNow));
         }
 
         // Complete the session
@@ -246,7 +258,7 @@ public class MatchingSession : AggregateRoot
             return completeResult.Errors;
 
         // Raise domain event for successful match
-        RaiseDomainEvent(new TripMatchAcceptedEvent(
+        RaiseDomainEvent(new MatchAttemptAcceptedEvent(
             TripRequestId,
             driverId,
             matchAttempt.DistanceToPickup,
@@ -272,7 +284,7 @@ public class MatchingSession : AggregateRoot
         matchAttempt.Reject(reason);
 
         // Raise domain event for rejection
-        RaiseDomainEvent(new TripMatchRejectedEvent(
+        RaiseDomainEvent(new MatchAttemptRejectedEvent(
             TripRequestId,
             driverId,
             reason,
@@ -284,6 +296,5 @@ public class MatchingSession : AggregateRoot
     // Calculated properties
     public bool IsExpired => DateTime.UtcNow > ExpiresAt;
     public bool IsActive => Status == MatchingSessionStatus.Active && !IsExpired;
-    public TimeSpan? Duration => CompletedAt.HasValue ? CompletedAt.Value - CreatedAt : null;
 }
 

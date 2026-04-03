@@ -2,6 +2,7 @@ using BenhaScooters.Application.Features.Matching.Commands;
 using BenhaScooters.Application.Features.Matching.Services;
 using BenhaScooters.Domain.TripRequests.Events;
 using BenhaScooters.Domain.Trips.Events;
+using Hangfire;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -15,7 +16,7 @@ public class TripRequestConfirmedEventHandler : INotificationHandler<TripRequest
     private readonly IDriverMatchingService _driverMatchingService;
 
     public TripRequestConfirmedEventHandler(
-        ILogger<TripRequestConfirmedEventHandler> logger, 
+        ILogger<TripRequestConfirmedEventHandler> logger,
         ISender sender,
         IDriverMatchingService driverMatchingService)
     {
@@ -50,18 +51,11 @@ public class TripRequestConfirmedEventHandler : INotificationHandler<TripRequest
                 sessionResult.Value.MatchingSessionId,
                 notification.TripRequestId);
 
-            // Start the actual driver matching process
-            var matchingResult = await _driverMatchingService.ProcessMatchingAsync(
-                sessionResult.Value.MatchingSessionId,
-                cancellationToken);
 
-            if (matchingResult.IsError)
-            {
-                _logger.LogError("Failed to process driver matching for session {MatchingSessionId}: {Errors}",
-                    sessionResult.Value.MatchingSessionId,
-                    string.Join(", ", matchingResult.Errors.Select(e => e.Description)));
-                return;
-            }
+            BackgroundJob.Enqueue<IDriverMatchingService>(
+                ms => ms.ProcessMatchingAsync(
+                    sessionResult.Value.MatchingSessionId, 
+                    cancellationToken));
         }
         catch (Exception ex)
         {

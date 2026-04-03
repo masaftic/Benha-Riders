@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using BenhaScooters.Application.Abstractions;
+using BenhaScooters.Application.Features.Matching.Queries;
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Matching;
 using BenhaScooters.Domain.Users;
@@ -15,23 +16,26 @@ namespace BenhaScooters.Infrastructure.Notifications;
 public class DriverHub : Hub<IDriverNotifications>
 {
     private readonly ILogger<DriverHub> _logger;
-    private readonly AppDbContext _dbContext;
     private readonly ISignalRConnectionTracker _connectionTracker;
+    private readonly IMediator _mediator;
 
-    public DriverHub(ILogger<DriverHub> logger, AppDbContext dbContext, ISignalRConnectionTracker connectionTracker)
+    public DriverHub(ILogger<DriverHub> logger, ISignalRConnectionTracker connectionTracker, IMediator mediator)
     {
         _logger = logger;
-        _dbContext = dbContext;
         _connectionTracker = connectionTracker;
+        _mediator = mediator;
     }
 
     public override async Task OnConnectedAsync()
     {
         var driverId = Context.User?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        if (driverId != null)
+        if (driverId != null && int.TryParse(driverId, out var driverIdValue))
         {
+            var userId = UserId.Create(driverIdValue);
+
             await Groups.AddToGroupAsync(Context.ConnectionId, driverId);
-            await _connectionTracker.RecordHeartbeat(UserId.Create(int.Parse(driverId)));
+            await _connectionTracker.TrackConnectedAsync(userId, Context.ConnectionId);
+            await _connectionTracker.RecordHeartbeat(userId);
             _logger.LogInformation("Driver connected: {DriverId}", driverId);
 
             // Send any pending offers the driver missed while offline
@@ -41,16 +45,17 @@ public class DriverHub : Hub<IDriverNotifications>
         await base.OnConnectedAsync();
     }
 
-    public override Task OnDisconnectedAsync(Exception? exception)
+    public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var driverId = Context.User?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        if (driverId != null)
+        if (driverId != null && int.TryParse(driverId, out var driverIdValue))
         {
-            Groups.RemoveFromGroupAsync(Context.ConnectionId, driverId);
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, driverId);
+            await _connectionTracker.TrackDisconnectedAsync(UserId.Create(driverIdValue), Context.ConnectionId);
             _logger.LogInformation("Driver disconnected: {DriverId}", driverId);
         }
 
-        return base.OnDisconnectedAsync(exception);
+        await base.OnDisconnectedAsync(exception);
     }
 
     public async Task Heartbeat()
@@ -75,16 +80,8 @@ public class DriverHub : Hub<IDriverNotifications>
             var driverId = UserId.Create(driverIdValue);
 
             // Query for pending match attempts for this driver
-            var pendingOffers = await _dbContext.DriverMatchAttempts
-                .Include(dma => dma.MatchingSession)
-                    .ThenInclude(ms => ms.TripRequest)
-                        .ThenInclude(tr => tr.RiderProfile)
-                            .ThenInclude(rp => rp.User)
-                .Where(dma => dma.DriverUserId == driverId
-                    && dma.Status == MatchAttemptStatus.Pending
-                    && dma.MatchingSession.Status == MatchingSessionStatus.Active
-                    && dma.MatchingSession.ExpiresAt > DateTime.UtcNow)
-                .ToListAsync();
+            var pendingOffersResult = await _mediator.Send(new GetDriverMatchOffersQuery(driverId));
+            var pendingOffers = pendingOffersResult.Value.MatchOffers;
 
             if (pendingOffers.Any())
             {
@@ -95,21 +92,20 @@ public class DriverHub : Hub<IDriverNotifications>
 
                 foreach (var offer in pendingOffers)
                 {
-                    var tripRequest = offer.MatchingSession.TripRequest;
                     var notification = new RideRequestOfferNotification(
-                        offer.Id.ToString(),
-                        tripRequest.RiderProfile.PreferredName ?? tripRequest.RiderProfile.User.Name,
-                        tripRequest.PickupLocation.Y,
-                        tripRequest.PickupLocation.X,
-                        tripRequest.DropoffLocation.Y,
-                        tripRequest.DropoffLocation.X,
-                        tripRequest.PickupAddress,
-                        tripRequest.DropoffAddress,
-                        tripRequest.FinalFare.Amount,
-                        tripRequest.FinalFare.Distance.ToKilometers(),
-                        offer.DistanceToPickup.ToKilometers(),
-                        offer.EstimatedArrivalTime.ToMinutes(),
-                        offer.CreatedAt);
+                        offer.DriverMatchAttemptId.ToString(),
+                        offer.RiderName,
+                        offer.PickupLatitude,
+                        offer.PickupLongitude,
+                        offer.DropoffLatitude,
+                        offer.DropoffLongitude,
+                        offer.PickupAddress,
+                        offer.DropoffAddress,
+                        offer.EstimatedFare,
+                        offer.EstimatedDistance,
+                        offer.DistanceToPickup,
+                        offer.EstimatedArrivalTime,
+                        offer.OfferedAt);
 
                     await Clients.Caller.NotifyRideRequestOffer(driverIdString, notification);
                 }

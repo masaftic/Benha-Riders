@@ -5,7 +5,7 @@ using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Domain.Matching.Events;
 
-public record TripMatchRejectedEvent(
+public record MatchAttemptRejectedEvent(
     TripRequestId TripRequestId,
     UserId DriverId,
     string? RejectionReason,

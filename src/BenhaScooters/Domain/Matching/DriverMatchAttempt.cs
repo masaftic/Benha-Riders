@@ -19,7 +19,7 @@ public enum MatchAttemptStatus
     Cancelled = 4
 }
 
-public class DriverMatchAttempt : AggregateRoot
+public class DriverMatchAttempt
 {
     public DriverMatchAttemptId Id { get; private set; }
     public MatchingSessionId MatchingSessionId { get; private set; }
@@ -86,15 +86,5 @@ public class DriverMatchAttempt : AggregateRoot
 
         Status = MatchAttemptStatus.Cancelled;
         RespondedAt = DateTime.UtcNow;
-
-        RaiseDomainEvent(new MatchAttemptCancelledEvent(
-            Id,
-            DriverUserId,
-            MatchingSessionId,
-            DateTime.UtcNow));
     }
-
-    // Calculated properties
-    public bool IsPending => Status == MatchAttemptStatus.Pending;
-    public TimeSpan? ResponseTime => RespondedAt.HasValue ? RespondedAt.Value - CreatedAt : null;
 }

@@ -24,12 +24,12 @@ Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .WriteTo.Console(
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] ({RequestId}) {SourceContext:l} → {Message:lj}{NewLine}{Exception}")
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] ({RequestId}) {Message:lj} [{SourceContext}]{NewLine}{Exception}")
     .WriteTo.File(
         path: "logs/benha-scooters-.log",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 14,
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] ({RequestId}) {SourceContext:l} → {Message:lj}{NewLine}{Exception}")
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] ({RequestId}) {Message:lj} [{SourceContext}]{NewLine}{Exception}")
     .CreateLogger();
 
 try
@@ -45,7 +45,7 @@ try
     {
         var supportedCultures = AppLanguages.SupportedCultures;
 
-        options.DefaultRequestCulture = new RequestCulture(AppLanguages.Arabic);
+        options.DefaultRequestCulture = new RequestCulture(AppLanguages.English);
         options.SupportedCultures = supportedCultures;
         options.SupportedUICultures = supportedCultures;
         options.RequestCultureProviders =

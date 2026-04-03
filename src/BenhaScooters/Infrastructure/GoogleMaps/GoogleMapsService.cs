@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Globalization;
 using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Contracts.GoogleMaps;
 using BenhaScooters.Domain.Common;
@@ -42,7 +43,7 @@ public class GoogleMapsService : IGoogleMapsService
     {
         try
         {
-            var latLng = $"{latitude},{longitude}";
+            var latLng = FormatLatLng(latitude, longitude);
             var url = $"{_options.BaseUrl}/geocode/json?latlng={latLng}&language={language}&key={_options.ApiKey}";
 
             _logger.LogDebug("Calling Google Geocode API for coordinates: {LatLng}", latLng);
@@ -98,7 +99,7 @@ public class GoogleMapsService : IGoogleMapsService
 
             if (latitude.HasValue && longitude.HasValue)
             {
-                url += $"&location={latitude},{longitude}";
+                url += $"&location={FormatLatLng(latitude.Value, longitude.Value)}";
             }
 
             if (!string.IsNullOrEmpty(components))
@@ -215,8 +216,8 @@ public class GoogleMapsService : IGoogleMapsService
         CancellationToken cancellationToken = default)
     {
         // Create cache key based on coordinates (rounded to 5 decimal places for ~1m precision)
-        var cacheKey = $"directions:{Math.Round(originLatitude, 5)}:{Math.Round(originLongitude, 5)}:" +
-                      $"{Math.Round(destinationLatitude, 5)}:{Math.Round(destinationLongitude, 5)}:{language}:{mode}:{alternatives}";
+        var cacheKey = $"directions:{FormatCoordinate(Math.Round(originLatitude, 5))}:{FormatCoordinate(Math.Round(originLongitude, 5))}:" +
+                      $"{FormatCoordinate(Math.Round(destinationLatitude, 5))}:{FormatCoordinate(Math.Round(destinationLongitude, 5))}:{language}:{mode}:{alternatives}";
 
         // Try to get from cache first
         if (_cache.TryGetValue(cacheKey, out DirectionsResponse cachedResult))
@@ -228,20 +229,26 @@ public class GoogleMapsService : IGoogleMapsService
 
         try
         {
-            var origin = $"{originLatitude},{originLongitude}";
-            var destination = $"{destinationLatitude},{destinationLongitude}";
+            var origin = FormatLatLng(originLatitude, originLongitude);
+            var destination = FormatLatLng(destinationLatitude, destinationLongitude);
 
             var url = $"{_options.BaseUrl}/directions/json" +
                       $"?origin={origin}" +
                       $"&destination={destination}" +
                       $"&language={language}" +
                       $"&mode={mode}" +
-                      $"&alternatives={alternatives.ToString().ToLower()}" +
+                      $"&alternatives={alternatives.ToString().ToLowerInvariant()}" +
                       $"&key={_options.ApiKey}";
 
             _logger.LogDebug("Calling Google Directions API from {Origin} to {Destination}", origin, destination);
 
             var response = await _httpClient.GetAsync(url, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadFromJsonAsync<object>(_jsonOptions, cancellationToken);
+                _logger.LogError("Calling Google Directions API Result in error with body {body}", body);
+            }
+
             response.EnsureSuccessStatusCode();
 
             var apiResponse = await response.Content.ReadFromJsonAsync<GoogleDirectionsApiResponse>(_jsonOptions, cancellationToken);
@@ -319,5 +326,15 @@ public class GoogleMapsService : IGoogleMapsService
             new LatLng(step.StartLocation?.Lat ?? 0, step.StartLocation?.Lng ?? 0),
             step.TravelMode
         );
+    }
+
+    private static string FormatLatLng(double latitude, double longitude)
+    {
+        return $"{FormatCoordinate(latitude)},{FormatCoordinate(longitude)}";
+    }
+
+    private static string FormatCoordinate(double value)
+    {
+        return value.ToString(CultureInfo.InvariantCulture);
     }
 }

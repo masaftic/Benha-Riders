@@ -14,17 +14,20 @@ public class DriverMatchOfferCreatedEventHandler : INotificationHandler<DriverMa
 {
     private readonly IHubContext<DriverHub, IDriverNotifications> _hub;
     private readonly IPushNotificationService _pushNotification;
+    private readonly ISignalRConnectionTracker _connectionTracker;
     private readonly AppDbContext _dbContext;
     private readonly ILogger<DriverMatchOfferCreatedEventHandler> _logger;
 
     public DriverMatchOfferCreatedEventHandler(
         IHubContext<DriverHub, IDriverNotifications> hub,
         IPushNotificationService pushNotification,
+        ISignalRConnectionTracker connectionTracker,
         AppDbContext dbContext,
         ILogger<DriverMatchOfferCreatedEventHandler> logger)
     {
         _hub = hub;
         _pushNotification = pushNotification;
+        _connectionTracker = connectionTracker;
         _dbContext = dbContext;
         _logger = logger;
     }
@@ -43,11 +46,13 @@ public class DriverMatchOfferCreatedEventHandler : INotificationHandler<DriverMa
             return;
         }
 
-        var isActivelyConnected = driverInfo.LastHeartbeat.HasValue
+        var hasRecentHeartbeat = driverInfo.LastHeartbeat.HasValue
             && (DateTime.UtcNow - driverInfo.LastHeartbeat.Value) < SignalRConnectionTracker.HeartbeatTimeout;
+        var hasActiveSignalRConnection = await _connectionTracker.HasActiveConnectionAsync(e.DriverId);
 
-        // Skip if driver is offline AND not actively connected
-        if (driverInfo.Status != DriverAvailabilityStatus.Online && !isActivelyConnected)
+        // Keep the heartbeat-based eligibility check for other flows, but
+        // use the live SignalR connection state to choose SignalR vs FCM delivery.
+        if (driverInfo.Status != DriverAvailabilityStatus.Online && !hasRecentHeartbeat)
         {
             _logger.LogInformation(
                 "Driver {DriverId} is not online and has no recent heartbeat, skipping notification for match attempt {MatchAttemptId}",
@@ -72,15 +77,16 @@ public class DriverMatchOfferCreatedEventHandler : INotificationHandler<DriverMa
             e.EstimatedArrival.ToMinutes(),
             e.OfferedAt);
 
+        if (hasActiveSignalRConnection)
+        {
+            await _hub.Clients.Groups(driverIdString)
+                .NotifyRideRequestOffer(driverIdString, notification);
 
-        await _hub.Clients.Groups(driverIdString)
-            .NotifyRideRequestOffer(driverIdString, notification);
-
-        _logger.LogInformation(
-            "Sent ride offer to driver {DriverId} for match attempt {MatchAttemptId} via SignalR",
-            e.DriverId, e.MatchAttemptId);
-        
-        if (!isActivelyConnected)
+            _logger.LogInformation(
+                "Sent ride offer to driver {DriverId} for match attempt {MatchAttemptId} via SignalR",
+                e.DriverId, e.MatchAttemptId);
+        }
+        else
         {
             await _pushNotification.SendToUserAsync(
                 e.DriverId,
@@ -102,7 +108,7 @@ public class DriverMatchOfferCreatedEventHandler : INotificationHandler<DriverMa
                 cancellationToken);
 
             _logger.LogInformation(
-                "Sent ride offer to driver {DriverId} for match attempt {MatchAttemptId} via FCM",
+                "Sent ride offer to driver {DriverId} for match attempt {MatchAttemptId} via FCM because no active SignalR connection was found",
                 e.DriverId, e.MatchAttemptId);
         }
     }

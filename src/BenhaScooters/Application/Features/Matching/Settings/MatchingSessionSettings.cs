@@ -19,11 +19,6 @@ public class MatchingSessionOptions
     [Range(10, 300)]
     public int RoundTimeoutSeconds { get; set; }
 
-    /// <summary>
-    /// How long to wait after the last round before cancelling the session if no one accepted
-    /// </summary>
-    [Range(10, 600)]
-    public int FinalRoundWaitSeconds { get; set; }
 
     [Range(1, 10)]
     public int NumberOfRounds { get; set; }
@@ -42,5 +37,4 @@ public class MatchingSessionOptions
     public TimeSpan EmptyRoundTimeout => TimeSpan.FromSeconds(EmptyRoundTimeoutSeconds);
     public TimeSpan MinimumSessionDuration => TimeSpan.FromSeconds(MinimumSessionDurationSeconds);
     public TimeSpan RoundTimeout => TimeSpan.FromSeconds(RoundTimeoutSeconds);
-    public TimeSpan FinalRoundWait => TimeSpan.FromSeconds(FinalRoundWaitSeconds);
 }

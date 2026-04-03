@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using BenhaScooters.Presentation.Swagger;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.OpenApi.Models;
@@ -85,6 +86,8 @@ public static class DependencyInjection
                 }
             });
 
+            // add accept language header
+            options.OperationFilter<AcceptLanguageHeaderParameter>();
         });
 
         services.AddOpenApi();

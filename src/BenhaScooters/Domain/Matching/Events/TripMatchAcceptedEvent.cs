@@ -5,7 +5,7 @@ using BenhaScooters.Domain.Users;
 
 namespace BenhaScooters.Domain.Matching.Events;
 
-public record TripMatchAcceptedEvent(
+public record MatchAttemptAcceptedEvent(
     TripRequestId TripRequestId,
     UserId DriverId,
     double DistanceToPickup,

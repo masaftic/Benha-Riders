@@ -84,8 +84,8 @@ public class DriverMatchingService : IDriverMatchingService
 
             var rankedDrivers = await _driverRanking.FindTopNDriversAsync(
                 tripRequest.PickupLocation,
-                matchingSession.OffersPerRound[matchingSession.CurrentRound - 1],
-                roundNumber: matchingSession.CurrentRound - 1,
+                matchingSession.CurrentOffer,
+                roundNumber: matchingSession.CurrentRound,
                 excludedDrivers: matchingSession.GetRejectedOrPendingDrivers(),
                 cancellationToken: cancellationToken);
 
@@ -94,11 +94,12 @@ public class DriverMatchingService : IDriverMatchingService
                 _logger.LogInformation("No available drivers found for matching session {MatchingSessionId} in round {CurrentRound}",
                     matchingSessionId, matchingSession.CurrentRound);
 
-                BackgroundJob.Schedule<IMatchingOrchestrator>(
+                await Task.Delay(1000, cancellationToken); // wait 1 second to resolve any race conditions on mobile app
+
+                BackgroundJob.Enqueue<IMatchingOrchestrator>(
                     orchestrator => orchestrator.HandlePostOutcomeAsync(
                         tripRequest.Id,
-                        cancellationToken),
-                    _settings.RoundTimeout);
+                        cancellationToken));
 
                 return Result.Success;
             }
@@ -171,72 +172,57 @@ public class DriverMatchingService : IDriverMatchingService
 
     public async Task HandleRoundTimeoutAsync(MatchingSessionId matchingSessionId, CancellationToken cancellationToken = default)
     {
-        using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var matchingSession = await _dbContext.MatchingSessions
+            .Include(ms => ms.MatchAttempts)
+            .FirstOrDefaultAsync(ms => ms.Id == matchingSessionId, cancellationToken);
 
-        try
+        if (matchingSession == null)
         {
-            var matchingSession = await _dbContext.MatchingSessions
-                .Include(ms => ms.MatchAttempts)
-                .FirstOrDefaultAsync(ms => ms.Id == matchingSessionId, cancellationToken);
-
-            if (matchingSession == null)
-            {
-                _logger.LogInformation("Matching session {MatchingSessionId} not found, skipping round timeout",
-                    matchingSessionId);
-                return;
-            }
-
-            if (!matchingSession.IsActive)
-            {
-                // If the session expired by time but was never formally cancelled, cancel it now
-                if (matchingSession.IsExpired && matchingSession.Status == MatchingSessionStatus.Active)
-                {
-                    _logger.LogInformation("Matching session {MatchingSessionId} has expired, cancelling",
-                        matchingSessionId);
-                    matchingSession.Cancel(false, "انتهت مهلة جلسة المطابقة");
-                    await _dbContext.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
-                }
-                else
-                {
-                    _logger.LogInformation("Matching session {MatchingSessionId} is not active, skipping round timeout",
-                        matchingSessionId);
-                }
-                return;
-            }
-
-            _logger.LogInformation("Handling round timeout for session {MatchingSessionId} in round {CurrentRound}",
-                matchingSessionId, matchingSession.CurrentRound);
-
-            // Check if anyone has accepted
-            var hasAcceptedMatch = matchingSession.MatchAttempts.Any(ma => ma.Status == MatchAttemptStatus.Accepted);
-            if (hasAcceptedMatch)
-            {
-                _logger.LogInformation("Match already accepted for session {MatchingSessionId}, no action needed",
-                    matchingSessionId);
-                return;
-            }
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-
-            // Let the orchestrator decide whether to advance to next round or cancel
-            var timeoutDelay = matchingSession.IsLastRound()
-                ? _settings.RoundTimeout
-                : TimeSpan.Zero; // Immediately advance if not last round
-
-            BackgroundJob.Schedule<IMatchingOrchestrator>(
-                orchestrator => orchestrator.HandlePostOutcomeAsync(
-                    matchingSession.TripRequestId,
-                    cancellationToken),
-                timeoutDelay);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error handling round timeout for session {MatchingSessionId}",
+            _logger.LogInformation("Matching session {MatchingSessionId} not found, skipping round timeout",
                 matchingSessionId);
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
+            return;
         }
+
+        if (!matchingSession.IsActive)
+        {
+            // If the session expired by time but was never formally cancelled, cancel it now
+            if (matchingSession.IsExpired && matchingSession.Status == MatchingSessionStatus.Active)
+            {
+                _logger.LogInformation("Matching session {MatchingSessionId} has expired, cancelling",
+                    matchingSessionId);
+
+                matchingSession.Cancel(false, "انتهت مهلة جلسة المطابقة");
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                _logger.LogInformation("Matching session {MatchingSessionId} is not active, skipping round timeout",
+                    matchingSessionId);
+            }
+            return;
+        }
+
+        _logger.LogInformation("Handling round timeout for session {MatchingSessionId} in round {CurrentRound}",
+            matchingSessionId, matchingSession.CurrentRound);
+
+        // Check if anyone has accepted
+        var hasAcceptedMatch = matchingSession.MatchAttempts.Any(ma => ma.Status == MatchAttemptStatus.Accepted);
+        if (hasAcceptedMatch)
+        {
+            _logger.LogInformation("Match already accepted for session {MatchingSessionId}, no action needed",
+                matchingSessionId);
+            return;
+        }
+
+        // Let the orchestrator decide whether to advance to next round or cancel
+        var timeoutDelay = matchingSession.IsLastRound()
+            ? _settings.RoundTimeout
+            : TimeSpan.Zero; // Immediately advance if not last round
+
+        BackgroundJob.Schedule<IMatchingOrchestrator>(
+            orchestrator => orchestrator.HandlePostOutcomeAsync(
+                matchingSession.TripRequestId,
+                cancellationToken),
+            _settings.RoundTimeout);
     }
 }
