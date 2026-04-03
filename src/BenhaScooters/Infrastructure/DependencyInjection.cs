@@ -163,6 +163,8 @@ public static class DependencyInjection
             services.AddScoped<IPushNotificationService, NoOpPushNotificationService>();
         }
 
+        services.AddScoped<ILocalizedPushNotificationService, LocalizedPushNotificationService>();
+
         var jwtOptions = new JwtOptions();
         configuration.Bind(JwtOptions.SectionName, jwtOptions);
 

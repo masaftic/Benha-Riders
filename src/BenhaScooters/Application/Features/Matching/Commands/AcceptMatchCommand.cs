@@ -50,7 +50,7 @@ public class AcceptMatchCommandHandler(
     IHubContext<RiderHub, IRiderNotifications> riderHub,
     IS3Service s3Service,
     IGeoService geoService,
-    IPushNotificationService pushNotificationService,
+    ILocalizedPushNotificationService pushNotificationService,
     ILogger<AcceptMatchCommandHandler> logger) : IRequestHandler<AcceptMatchCommand, ErrorOr<AcceptMatchResult>>
 {
     public async Task<ErrorOr<AcceptMatchResult>> Handle(AcceptMatchCommand request, CancellationToken cancellationToken)
@@ -231,16 +231,12 @@ public class AcceptMatchCommandHandler(
             logger.LogInformation("Notified rider {RiderId} about trip assignment {TripId}",
                 tripRequest.RiderId, trip.Id);
 
-            await pushNotificationService.SendToUserAsync(tripRequest.RiderId,
-                "تم تعيين سائق لرحلتك", 
-                $"تم تعيين سائق لرحلتك. اسم السائق: {driverInfo.Name}, رقم المركبة: {driverInfo.VehicleLicensePlate}.", 
-                new Dictionary<string, string>
-                {
-                    ["type"] = "trip_assigned",
-                    ["tripId"] = trip.Id.ToString(),
-                    ["driverName"] = driverInfo.Name,
-                    ["vehicleLicensePlate"] = driverInfo.VehicleLicensePlate,
-                }, cancellationToken);
+            await pushNotificationService.NotifyTripAssignedToRiderAsync(
+                tripRequest.RiderId,
+                trip.Id.ToString(),
+                driverInfo.Name,
+                driverInfo.VehicleLicensePlate,
+                cancellationToken);
         }
 
         return new AcceptMatchResult(trip.Id, trip.AssignedAt);

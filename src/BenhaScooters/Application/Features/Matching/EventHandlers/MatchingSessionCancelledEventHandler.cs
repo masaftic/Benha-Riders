@@ -12,12 +12,12 @@ public class MatchingSessionCancelledEventHandler : INotificationHandler<Matchin
 {
     private readonly ILogger<MatchingSessionCancelledEventHandler> _logger;
     private readonly IHubContext<RiderHub, IRiderNotifications> _hub;
-    private readonly IPushNotificationService _pushNotification;
+    private readonly ILocalizedPushNotificationService _pushNotification;
     private readonly ISignalRConnectionTracker _connectionTracker;
     private readonly AppDbContext _db;
 
     public MatchingSessionCancelledEventHandler(
-        ILogger<MatchingSessionCancelledEventHandler> logger, AppDbContext db, IHubContext<RiderHub, IRiderNotifications> hub, IPushNotificationService pushNotification, ISignalRConnectionTracker connectionTracker)
+        ILogger<MatchingSessionCancelledEventHandler> logger, AppDbContext db, IHubContext<RiderHub, IRiderNotifications> hub, ILocalizedPushNotificationService pushNotification, ISignalRConnectionTracker connectionTracker)
     {
         _logger = logger;
         _db = db;
@@ -59,14 +59,10 @@ public class MatchingSessionCancelledEventHandler : INotificationHandler<Matchin
             _logger.LogInformation("Notified rider {RiderId} about cancellation of trip request {TripRequestId} via SignalR",
                 tripRequest.RiderId, tripRequest.Id);
 
-            await _pushNotification.SendToUserAsync(tripRequest.RiderId,
-                "طلب الرحلة ملغاة", 
-                $"تم إلغاء طلب الرحلة الخاص بك. لم يتم العثور على سائقين، يرجى المحاولة لاحقًا.", 
-                new Dictionary<string, string>
-                {
-                    ["type"] = "trip_request_canceled",
-                    ["tripRequestId"] = tripRequest.Id.ToString(),
-                }, cancellationToken);
+            await _pushNotification.NotifyTripRequestCanceledAsync(
+                tripRequest.RiderId,
+                tripRequest.Id.ToString(),
+                cancellationToken);
         }
 
         await _db.SaveChangesAsync(cancellationToken);

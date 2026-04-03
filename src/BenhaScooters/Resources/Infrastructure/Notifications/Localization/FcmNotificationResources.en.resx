@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
+  </resheader>
+  <data name="DriverApproved_Title" xml:space="preserve">
+    <value>You are approved</value>
+  </data>
+  <data name="DriverApproved_Body" xml:space="preserve">
+    <value>You are approved, start accepting trips now!!</value>
+  </data>
+  <data name="TripAssigned_Title" xml:space="preserve">
+    <value>A driver has been assigned to your trip</value>
+  </data>
+  <data name="TripAssigned_Body" xml:space="preserve">
+    <value>A driver has been assigned to your trip. Driver name: {0}, vehicle plate: {1}.</value>
+  </data>
+  <data name="TripRequestCanceled_Title" xml:space="preserve">
+    <value>Trip request canceled</value>
+  </data>
+  <data name="TripRequestCanceled_Body" xml:space="preserve">
+    <value>Your trip request was canceled. No drivers were found, please try again later.</value>
+  </data>
+  <data name="RideRequestOffer_Title" xml:space="preserve">
+    <value>New trip request</value>
+  </data>
+  <data name="RideRequestOffer_Body" xml:space="preserve">
+    <value>You have a trip request from {0} - {1} EGP</value>
+  </data>
+  <data name="DriverArrived_Title" xml:space="preserve">
+    <value>Driver has arrived</value>
+  </data>
+  <data name="DriverArrived_Body" xml:space="preserve">
+    <value>The driver has arrived at the pickup location. Head to them now!</value>
+  </data>
+  <data name="TripCancelledToRider_Title" xml:space="preserve">
+    <value>Trip canceled</value>
+  </data>
+  <data name="TripCancelledToRider_Body" xml:space="preserve">
+    <value>Your trip was canceled. You can search for another trip.</value>
+  </data>
+  <data name="TripCancelledToDriver_Title" xml:space="preserve">
+    <value>Trip canceled</value>
+  </data>
+  <data name="TripCancelledToDriver_Body" xml:space="preserve">
+    <value>The rider canceled the trip. You can search for another trip.</value>
+  </data>
+  <data name="Common_UnknownPickupLocation" xml:space="preserve">
+    <value>Unknown pickup location</value>
+  </data>
+  <data name="Common_UnknownDropoffLocation" xml:space="preserve">
+    <value>Unknown dropoff location</value>
+  </data>
+</root>

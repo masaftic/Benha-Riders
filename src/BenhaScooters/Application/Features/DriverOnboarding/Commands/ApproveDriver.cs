@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Abstractions;
 using BenhaScooters.Data;
 using BenhaScooters.Domain;
 using BenhaScooters.Domain.Common;
@@ -26,10 +27,12 @@ public class ApproveDriverCommandValidator : AbstractValidator<ApproveDriverComm
 public class ApproveDriverCommandHandler : IRequestHandler<ApproveDriverCommand, ErrorOr<Success>>
 {
     private readonly AppDbContext _db;
+    private readonly ILocalizedPushNotificationService _pushNotificationService;
 
-    public ApproveDriverCommandHandler(AppDbContext db)
+    public ApproveDriverCommandHandler(AppDbContext db, ILocalizedPushNotificationService pushNotificationService)
     {
         _db = db;
+        _pushNotificationService = pushNotificationService;
     }
 
     public async Task<ErrorOr<Success>> Handle(ApproveDriverCommand request, CancellationToken cancellationToken)
@@ -80,6 +83,7 @@ public class ApproveDriverCommandHandler : IRequestHandler<ApproveDriverCommand,
         }
 
         await _db.SaveChangesAsync(cancellationToken);
+        await _pushNotificationService.NotifyDriverApprovedAsync(userId, cancellationToken);
 
         return Result.Success;
     }

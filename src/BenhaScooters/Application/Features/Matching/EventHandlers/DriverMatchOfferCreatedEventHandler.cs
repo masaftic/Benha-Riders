@@ -13,14 +13,14 @@ namespace BenhaScooters.Application.Features.Matching.EventHandlers;
 public class DriverMatchOfferCreatedEventHandler : INotificationHandler<DriverMatchOfferCreatedEvent>
 {
     private readonly IHubContext<DriverHub, IDriverNotifications> _hub;
-    private readonly IPushNotificationService _pushNotification;
+    private readonly ILocalizedPushNotificationService _pushNotification;
     private readonly ISignalRConnectionTracker _connectionTracker;
     private readonly AppDbContext _dbContext;
     private readonly ILogger<DriverMatchOfferCreatedEventHandler> _logger;
 
     public DriverMatchOfferCreatedEventHandler(
         IHubContext<DriverHub, IDriverNotifications> hub,
-        IPushNotificationService pushNotification,
+        ILocalizedPushNotificationService pushNotification,
         ISignalRConnectionTracker connectionTracker,
         AppDbContext dbContext,
         ILogger<DriverMatchOfferCreatedEventHandler> logger)
@@ -84,23 +84,17 @@ public class DriverMatchOfferCreatedEventHandler : INotificationHandler<DriverMa
         }
         else if (driverInfo.Status == DriverAvailabilityStatus.Online)
         {
-            await _pushNotification.SendToUserAsync(
+            await _pushNotification.NotifyRideRequestOfferToDriverAsync(
                 e.DriverId,
-                "طلب رحلة جديد",
-                $"لديك طلب رحلة من {e.RiderName} - {e.EstimatedFare:F0} جنيه",
-                new Dictionary<string, string>
-                {
-                    ["type"] = "ride_request_offer",
-                    ["matchAttemptId"] = e.MatchAttemptId.ToString(),
-                    ["riderName"] = e.RiderName,
-                    ["pickupLocation"] = $"{e.Pickup.Latitude},{e.Pickup.Longitude}",
-                    ["dropoffLocation"] = $"{e.Dropoff.Latitude},{e.Dropoff.Longitude}",
-                    ["pickupAddress"] = e.PickupAddress ?? "Unknown pickup location",
-                    ["dropoffAddress"] = e.DropoffAddress ?? "Unknown dropoff location",
-                    ["fare"] = e.EstimatedFare.ToString(),
-                    ["distanceToPickup"] = e.DistanceToPickup.ToKilometers().ToString(),
-                    ["estimatedArrival"] = e.EstimatedArrival.ToMinutes().ToString(),
-                },
+                e.MatchAttemptId.ToString(),
+                e.RiderName,
+                e.EstimatedFare,
+                $"{e.Pickup.Latitude},{e.Pickup.Longitude}",
+                $"{e.Dropoff.Latitude},{e.Dropoff.Longitude}",
+                e.PickupAddress,
+                e.DropoffAddress,
+                e.DistanceToPickup.ToKilometers(),
+                e.EstimatedArrival.ToMinutes(),
                 cancellationToken);
 
             _logger.LogInformation(
