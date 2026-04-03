@@ -25,7 +25,6 @@ public record PersonalInfoDto(
 public record VehicleInfoDto(
     VehicleType VehicleType,
     string Brand,
-    string Model,
     string Color,
     string LicensePlate,
     int Year,

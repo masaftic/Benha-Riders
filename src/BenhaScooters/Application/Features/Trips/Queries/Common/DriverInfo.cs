@@ -10,7 +10,6 @@ public record DriverInfo(
     string Name, 
     PhoneNumber PhoneNumber,
     string? PhotoUrl,
-    string VehicleModel,
     string VehicleBrand,
     string VehicleColor, 
     LicensePlate VehicleLicensePlate,

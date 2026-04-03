@@ -55,11 +55,6 @@ public class DriverProfileConfiguration : IEntityTypeConfiguration<DriverProfile
                 .HasMaxLength(50)
                 .IsRequired();
 
-            vehicle.Property(v => v.Model)
-                .HasColumnName("Vehicle_Model")
-                .HasMaxLength(50)
-                .IsRequired();
-
             vehicle.Property(v => v.Color)
                 .HasColumnName("Vehicle_Color")
                 .HasMaxLength(30)

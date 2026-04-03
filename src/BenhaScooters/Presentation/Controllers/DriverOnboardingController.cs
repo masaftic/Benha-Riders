@@ -103,7 +103,6 @@ public class DriverOnboardingController : BaseApiController
             driverId,
             request.VehicleType,
             request.VehicleBrand,
-            request.VehicleModel,
             request.VehicleColor,
             request.LicensePlate,
             request.VehicleYear);

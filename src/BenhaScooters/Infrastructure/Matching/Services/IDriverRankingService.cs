@@ -32,16 +32,24 @@ public class DriverRankingService : IDriverRankingService
 {
     private readonly AppDbContext _dbContext;
     private readonly IGeoService _geoService;
+    private readonly ISignalRConnectionTracker _connectionTracker;
     private readonly ILogger<DriverRankingService> _logger;
     private readonly DriverRankingOptions _options;
+
     private const double DistanceWeight = 0.7; // 70% weight for distance
     private const double RatingWeight = 0.3;   // 30% weight for rating
-    private const decimal DefaultRating = 4.0m; // Default rating for new drivers
+    
 
-    public DriverRankingService(AppDbContext dbContext, IGeoService geoService, IOptions<DriverRankingOptions> options, ILogger<DriverRankingService> logger)
+    public DriverRankingService(
+        AppDbContext dbContext,
+        IGeoService geoService,
+        ISignalRConnectionTracker connectionTracker,
+        IOptions<DriverRankingOptions> options,
+        ILogger<DriverRankingService> logger)
     {
         _dbContext = dbContext;
         _geoService = geoService;
+        _connectionTracker = connectionTracker;
         _options = options.Value;
         _logger = logger;
     }
@@ -62,7 +70,6 @@ public class DriverRankingService : IDriverRankingService
         _logger.LogInformation("Finding top {Count} drivers within {SearchRadius} meters for round {RoundNumber}. Excluded drivers: {ExcludedDrivers}. Pickup location: {PickupLocation}",
             count, searchRadius, roundNumber, excludedUserIds != null ? string.Join(", ", excludedUserIds) : "None", pickupLocation);
 
-        // Use PostGIS ST_DWithin for efficient spatial filtering (3km base radius + progressive expansion)
         var heartbeatCutoff = DateTime.UtcNow - SignalRConnectionTracker.HeartbeatTimeout;
 
         var availableDrivers = await (
@@ -71,19 +78,30 @@ public class DriverRankingService : IDriverRankingService
             join stats in _dbContext.DriverStats on ds.UserId equals stats.UserId
             where (excludedUserIds == null || !excludedUserIds.Contains(ds.UserId))
                 && dl.Location.IsWithinDistance(pickupLocation, searchRadius) // PostGIS spatial index optimization
+                // Broad candidate set from persisted state; refined with live SignalR state below.
                 && ds.Status != DriverAvailabilityStatus.OnTrip
-                // Include: Status.Online (wants offers even if app closed) OR active heartbeat (app open, even if Status.Offline)
                 && (ds.Status == DriverAvailabilityStatus.Online || ds.LastHeartbeat > heartbeatCutoff)
             select new
             {
                 ds.UserId,
+                ds.Status,
                 CurrentLocation = dl.Location,
                 stats.AverageRating
             })
             .ToListAsync(cancellationToken);
 
+        var eligibleDrivers = new List<(UserId UserId, Point CurrentLocation, decimal AverageRating)>(availableDrivers.Count);
+        foreach (var driver in availableDrivers)
+        {
+            if (driver.Status == DriverAvailabilityStatus.Online
+                || await _connectionTracker.HasActiveConnectionAsync(driver.UserId))
+            {
+                eligibleDrivers.Add((driver.UserId, driver.CurrentLocation, driver.AverageRating));
+            }
+        }
+
         // Calculate actual distances using GeoService for accurate ranking
-        var candidatesWithDistance = availableDrivers
+        var candidatesWithDistance = eligibleDrivers
             .Select(driver =>
             {
                 var distance = _geoService.CalculateDistance(driver.CurrentLocation, pickupLocation);
@@ -129,6 +147,4 @@ public class DriverRankingService : IDriverRankingService
         return (decimal)finalScore;
     }
 }
-
-
 

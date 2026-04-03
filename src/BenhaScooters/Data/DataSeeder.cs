@@ -59,7 +59,6 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender
                 var vehicleInfo = new DriverVehicleInfo(
                     VehicleType.Scooter,
                     "Brand",
-                    "Model",
                     "Color",
                     LicensePlate.Create("ABC1234"),
                     2020);
@@ -104,7 +103,6 @@ public class DataSeeder(AppDbContext db, IPasswordHasher passwordHasher, ISender
                 var vehicleInfo = new DriverVehicleInfo(
                     VehicleType.Scooter,
                     "Brand",
-                    "Model",
                     "Color",
                     LicensePlate.Create("ABC1235"),
                     2020);

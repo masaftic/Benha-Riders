@@ -204,7 +204,6 @@ public class AcceptMatchCommandHandler(
                 driverProfile.PersonalInfo?.FullName ?? "Driver",
                 driverProfile.User.PhoneNumber!,
                 fullDriverPhotoUrl,
-                driverProfile.Vehicle?.Model ?? "Unknown",
                 driverProfile.Vehicle?.Brand ?? "Unknown",
                 driverProfile.Vehicle?.Color ?? "Unknown",
                 driverProfile.Vehicle?.LicensePlate ?? LicensePlate.Create("UNKNOWN"),

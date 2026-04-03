@@ -8,7 +8,9 @@ namespace BenhaScooters.Infrastructure.Notifications;
 
 public class SignalRConnectionTracker(IServiceScopeFactory scopeFactory) : ISignalRConnectionTracker
 {
-    public static readonly TimeSpan HeartbeatTimeout = TimeSpan.FromSeconds(30);
+    public static readonly TimeSpan HeartbeatTimeout = TimeSpan.FromSeconds(45);
+    
+
     private readonly ConcurrentDictionary<UserId, ConcurrentDictionary<string, byte>> _connectionsByUser = new();
 
     public Task TrackConnectedAsync(UserId userId, string connectionId)

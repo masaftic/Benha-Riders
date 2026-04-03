@@ -297,4 +297,7 @@
   <date name="USER_ACCOUNT_DELETE_PENDING_REQUEST" xml:space="preserve">
     <value>لا يمكنك حذف حسابك بينما لديك طلب رحلة قيد الانتظار.</value>
   </date>
+  <date name="LICENSE_PLATE_ALREADY_EXISTS" xml:space="preserve">
+    <value>رقم اللوحة هذا مسجل بالفعل مع مركبة أخرى.</value>
+  </date>
 </root>

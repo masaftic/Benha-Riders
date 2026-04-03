@@ -56,7 +56,6 @@ public class GetPendingApplicationsQueryHandler : IRequestHandler<GetPendingAppl
             var vehicleInfo = driverProfile.Vehicle is not null ? new VehicleInfoDto(
                 driverProfile.Vehicle.VehicleType,
                 driverProfile.Vehicle.Brand,
-                driverProfile.Vehicle.Model,
                 driverProfile.Vehicle.Color,
                 driverProfile.Vehicle.LicensePlate,
                 driverProfile.Vehicle.Year,

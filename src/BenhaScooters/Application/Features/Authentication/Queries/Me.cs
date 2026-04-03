@@ -74,7 +74,6 @@ public class MeQueryHandler : IRequestHandler<MeQuery, ErrorOr<MeResponse>>
                 user.DriverProfile.PersonalInfo.FullName,
                 user.PhoneNumber,
                 profileImage,
-                user.DriverProfile.Vehicle.Model,
                 user.DriverProfile.Vehicle.Brand,
                 user.DriverProfile.Vehicle.Color,
                 user.DriverProfile.Vehicle.LicensePlate,

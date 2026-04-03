@@ -52,7 +52,6 @@ public class GetOnboardingDetailsQueryHandler : IRequestHandler<GetOnboardingDet
         var vehicleInfo = driverProfile.Vehicle != null ? new VehicleInfoDto(
             driverProfile.Vehicle.VehicleType,
             driverProfile.Vehicle.Brand,
-            driverProfile.Vehicle.Model,
             driverProfile.Vehicle.Color,
             driverProfile.Vehicle.LicensePlate,
             driverProfile.Vehicle.Year,

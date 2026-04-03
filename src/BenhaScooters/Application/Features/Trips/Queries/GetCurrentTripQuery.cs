@@ -82,7 +82,6 @@ public class GetCurrentTripQueryHandler : IRequestHandler<GetCurrentTripQuery, E
                     .FirstOrDefault(),
                 DriverVehicleBrand = t.DriverProfile.Vehicle!.Brand,
                 DriverVehicleColor = t.DriverProfile.Vehicle!.Color,
-                DriverVehicleModel = t.DriverProfile.Vehicle!.Model,
                 DriverVehicleLicensePlate = t.DriverProfile.Vehicle!.LicensePlate
             })
             .OrderByDescending(t => t.AssignedAt)
@@ -146,7 +145,6 @@ public class GetCurrentTripQueryHandler : IRequestHandler<GetCurrentTripQuery, E
                 tripResult.DriverName,
                 tripResult.DriverPhoneNumber!,
                 driverPhotoUrl,
-                tripResult.DriverVehicleModel,
                 tripResult.DriverVehicleBrand,
                 tripResult.DriverVehicleColor,
                 tripResult.DriverVehicleLicensePlate,

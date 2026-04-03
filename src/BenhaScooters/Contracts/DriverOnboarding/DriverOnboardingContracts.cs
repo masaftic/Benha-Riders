@@ -10,7 +10,6 @@ public record UpdatePersonalInfoRequest(
 public record UpdateVehicleInfoRequest(
     VehicleType VehicleType,
     string VehicleBrand,
-    string VehicleModel,
     string VehicleColor,
     string LicensePlate,
     int VehicleYear);

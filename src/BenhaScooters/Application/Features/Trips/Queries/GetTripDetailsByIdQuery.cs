@@ -78,7 +78,6 @@ public class GetTripDetailsByIdQueryHandler : IRequestHandler<GetTripDetailsById
                     .FirstOrDefault(),
                 DriverVehicleBrand = t.DriverProfile.Vehicle!.Brand,
                 DriverVehicleColor = t.DriverProfile.Vehicle!.Color,
-                DriverVehicleModel = t.DriverProfile.Vehicle!.Model,
                 DriverVehicleLicensePlate = t.DriverProfile.Vehicle!.LicensePlate,
                 Rating = _db.DriverRatings
                     .Where(r => r.TripId == t.Id)
@@ -129,7 +128,6 @@ public class GetTripDetailsByIdQueryHandler : IRequestHandler<GetTripDetailsById
                 tripResult.DriverName,
                 tripResult.DriverPhoneNumber!,
                 driverPhotoUrl,
-                tripResult.DriverVehicleModel,
                 tripResult.DriverVehicleBrand,
                 tripResult.DriverVehicleColor,
                 tripResult.DriverVehicleLicensePlate,

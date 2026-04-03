@@ -1,3 +1,4 @@
+using BenhaScooters.Application.Features.DriverOnboarding.Commands;
 using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Domain.Common;
@@ -20,6 +21,10 @@ public static partial class AppErrors
 
         public static class Profile
         {
+            public static AppError LicensePlateAlreadyExists() => NewConflict(
+                "LICENSE_PLATE_ALREADY_EXISTS",
+                "This license plate is already registered with another vehicle."); 
+
             public static AppError CannotModifyApprovedProfile() => NewConflict(
                 "CANNOT_MODIFY_APPROVED_PROFILE",
                 "Approved driver profiles cannot be modified.");

@@ -95,7 +95,6 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
                     .FirstOrDefault(),
                 DriverVehicleBrand = t.DriverProfile.Vehicle!.Brand,
                 DriverVehicleColor = t.DriverProfile.Vehicle!.Color,
-                DriverVehicleModel = t.DriverProfile.Vehicle!.Model,
                 DriverVehicleLicensePlate = t.DriverProfile.Vehicle!.LicensePlate
             })
             .OrderByDescending(t => t.AssignedAt)
@@ -138,7 +137,6 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
                     tripResult.DriverName,
                     tripResult.DriverPhoneNumber!,
                     driverPhotoUrl,
-                    tripResult.DriverVehicleModel,
                     tripResult.DriverVehicleBrand,
                     tripResult.DriverVehicleColor,
                     tripResult.DriverVehicleLicensePlate,
@@ -186,8 +184,8 @@ public class GetRiderStatusQueryHandler : IRequestHandler<GetRiderStatusQuery, E
                 tripRequestResult.PickupAddress ?? "Unknown pickup location",
                 tripRequestResult.DropoffAddress ?? "Unknown dropoff location",
                 tripRequestResult.FinalFare.Amount,
-                tripRequestResult.FinalFare.Distance, // TODO: Future - Update DTO to use Distance value object
-                tripRequestResult.FinalFare.Time, // TODO: Future - Update DTO to use Duration value object
+                tripRequestResult.FinalFare.Distance,
+                tripRequestResult.FinalFare.Time,
                 tripRequestResult.RequestedAt,
                 tripRequestResult.ExpiresAt,
                 tripRequestResult.ConfirmedAt,

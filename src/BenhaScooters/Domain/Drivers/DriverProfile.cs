@@ -220,7 +220,6 @@ public class DriverProfile
         Vehicle = new DriverVehicleInfo(
             Vehicle?.VehicleType ?? VehicleType.Scooter,
             "Deleted",
-            "Vehicle",
             "Hidden",
             LicensePlate.Create("DELETED"),
             DateTime.UtcNow.Year);

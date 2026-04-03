@@ -42,14 +42,6 @@ public class UpdateVehicleInfoRequestValidator : AbstractValidator<UpdateVehicle
             .MaximumLength(50)
             .WithMessage("ماركة المركبة لا يمكن أن تتجاوز 50 حرف.");
 
-        RuleFor(x => x.VehicleModel)
-            .NotEmpty()
-            .WithMessage("موديل المركبة مطلوب.")
-            .MinimumLength(1)
-            .WithMessage("موديل المركبة يجب أن يكون على الأقل حرف واحد.")
-            .MaximumLength(50)
-            .WithMessage("موديل المركبة لا يمكن أن يتجاوز 50 حرف.");
-
         RuleFor(x => x.VehicleColor)
             .NotEmpty()
             .WithMessage("لون المركبة مطلوب.")

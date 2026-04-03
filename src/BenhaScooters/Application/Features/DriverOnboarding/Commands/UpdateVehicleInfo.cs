@@ -17,34 +17,11 @@ public record UpdateVehicleInfoCommand(
     UserId DriverId,
     VehicleType VehicleType,
     string VehicleBrand,
-    string VehicleModel,
     string VehicleColor,
     string LicensePlate,
     int VehicleYear) : IRequest<ErrorOr<UpdateVehicleInfoResponse>>;
 
-public class UpdateVehicleInfoCommandValidator : AbstractValidator<UpdateVehicleInfoCommand>
-{
-    private readonly AppDbContext _db;
 
-    public UpdateVehicleInfoCommandValidator(AppDbContext db)
-    {
-        _db = db;
-        
-        // Only business logic validations here
-        RuleFor(x => x.LicensePlate)
-            .MustAsync(BeUniqueLicensePlate)
-            .WithMessage("رقم لوحة الترخيص هذا مسجل مع مركبة أخرى.")
-            .When(x => !string.IsNullOrEmpty(x.LicensePlate));
-    }
-
-    private async Task<bool> BeUniqueLicensePlate(UpdateVehicleInfoCommand command, string licensePlate, CancellationToken cancellationToken)
-    {
-        var userId = command.DriverId;
-        return !await _db.DriverProfiles
-            .Where(dp => dp.Vehicle != null && dp.UserId != userId)
-            .AnyAsync(dp => dp.Vehicle!.LicensePlate == LicensePlate.Create(licensePlate), cancellationToken);
-    }
-}
 
 public record UpdateVehicleInfoResponse(string Message, DriverOnboardingStatus NextStep);
 
@@ -64,10 +41,16 @@ public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<
             return AppErrors.Driver.Profile.NotFound();
         }
 
+        if (!await _db.DriverProfiles
+            .Where(dp => dp.Vehicle != null && dp.UserId != userId)
+            .AnyAsync(dp => dp.Vehicle!.LicensePlate == LicensePlate.Create(request.LicensePlate), cancellationToken))
+        {
+            return AppErrors.Driver.Profile.LicensePlateAlreadyExists();
+        }
+
         var vehicleInfo = new DriverVehicleInfo(
             request.VehicleType,
             request.VehicleBrand,
-            request.VehicleModel,
             request.VehicleColor,
             LicensePlate.Create(request.LicensePlate),
             request.VehicleYear);

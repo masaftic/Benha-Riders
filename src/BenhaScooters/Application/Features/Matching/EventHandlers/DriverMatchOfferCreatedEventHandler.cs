@@ -37,7 +37,7 @@ public class DriverMatchOfferCreatedEventHandler : INotificationHandler<DriverMa
         var driverInfo = await _dbContext.DriverStatuses
             .AsNoTracking()
             .Where(ds => ds.UserId == e.DriverId)
-            .Select(ds => new { ds.Status, ds.LastHeartbeat })
+            .Select(ds => new { ds.Status })
             .FirstOrDefaultAsync(cancellationToken);
 
         if (driverInfo is null)
@@ -46,16 +46,12 @@ public class DriverMatchOfferCreatedEventHandler : INotificationHandler<DriverMa
             return;
         }
 
-        var hasRecentHeartbeat = driverInfo.LastHeartbeat.HasValue
-            && (DateTime.UtcNow - driverInfo.LastHeartbeat.Value) < SignalRConnectionTracker.HeartbeatTimeout;
         var hasActiveSignalRConnection = await _connectionTracker.HasActiveConnectionAsync(e.DriverId);
 
-        // Keep the heartbeat-based eligibility check for other flows, but
-        // use the live SignalR connection state to choose SignalR vs FCM delivery.
-        if (driverInfo.Status != DriverAvailabilityStatus.Online && !hasRecentHeartbeat)
+        if (driverInfo.Status != DriverAvailabilityStatus.Online && !hasActiveSignalRConnection)
         {
             _logger.LogInformation(
-                "Driver {DriverId} is not online and has no recent heartbeat, skipping notification for match attempt {MatchAttemptId}",
+                "Driver {DriverId} is offline and has no active SignalR connection, skipping notification for match attempt {MatchAttemptId}",
                 e.DriverId, e.MatchAttemptId);
             return;
         }
@@ -86,7 +82,7 @@ public class DriverMatchOfferCreatedEventHandler : INotificationHandler<DriverMa
                 "Sent ride offer to driver {DriverId} for match attempt {MatchAttemptId} via SignalR",
                 e.DriverId, e.MatchAttemptId);
         }
-        else
+        else if (driverInfo.Status == DriverAvailabilityStatus.Online)
         {
             await _pushNotification.SendToUserAsync(
                 e.DriverId,
