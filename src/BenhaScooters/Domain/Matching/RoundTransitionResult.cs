@@ -8,11 +8,6 @@ public record RoundTransitionResult;
 public record RoundTransitioned : RoundTransitionResult;
 
 /// <summary>
-/// Indicates that no transition occurred (e.g., no conditions met for a round transition).
-/// </summary>
-public record NoTransition : RoundTransitionResult;
-
-/// <summary>
 /// Indicates that the matching session has been completed.
 /// </summary>
 public record MatchingCompleted : RoundTransitionResult;

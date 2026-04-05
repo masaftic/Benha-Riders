@@ -13,46 +13,10 @@ using Thinktecture;
 namespace BenhaScooters.Domain.Matching;
 
 
-/*
-
-n rounds
-Ni round: make Mi offers to drivers
-
-no phases, just rounds
-
-input
-- TripRequestId
-- Number of Rounds
-- Number of Offers for each round
-
-
-state
-- MatchingSessionId
-- TripRequestId
-- CurrentRound
-- CurrentOffers
-- Status (Active, Completed, Cancelled, Expired)
-
-
-algorithm:
-- 
-
-process session
-create Mi offers for round Ni
-
-
-handle timeout
-after sending match offers
-schedule a HandleTimeOut function that looks at the session
-if session is still active and no driver has accepted the match
-then advance to next phase
-- if current round is the last round, cancel the session, raise SessionCanceledEvent
-
-*/
-
 
 [ValueObject<int>]
 public partial struct MatchingSessionId;
+
 
 public enum MatchingSessionStatus
 {
@@ -190,11 +154,6 @@ public class MatchingSession : AggregateRoot
 
 
     public bool IsLastRound() => CurrentRound >= NumberOfRounds;
-    public bool HasPendingAttemptsInCurrentRound()
-    {
-        return _matchAttempts.Any(ma =>
-            ma.MatchingRound == CurrentRound && ma.Status == MatchAttemptStatus.Pending);
-    }
 
 
     public ErrorOr<RoundTransitionResult> TryTransitionToNextRound()
@@ -204,12 +163,13 @@ public class MatchingSession : AggregateRoot
 
         if (IsExpired)
             return AppErrors.Matching.Session.Expired();
+        
+        if (MatchAttempts.Any(ma => ma.Status == MatchAttemptStatus.Accepted))
+            return new MatchingCompleted();
 
-        var isLastRound = IsLastRound();
-
-        if (isLastRound)
+        if (IsLastRound())
         {
-            Cancel(false, "لا يوجد سائقون متاحون في الوقت الحالي، يرجى المحاولة لاحقًا");
+            Cancel(false, "No match found after all rounds completed");
             return new MatchingCanceled();
         }
 
@@ -295,6 +255,5 @@ public class MatchingSession : AggregateRoot
 
     // Calculated properties
     public bool IsExpired => DateTime.UtcNow > ExpiresAt;
-    public bool IsActive => Status == MatchingSessionStatus.Active && !IsExpired;
+    public bool IsActive => Status == MatchingSessionStatus.Active;
 }
-

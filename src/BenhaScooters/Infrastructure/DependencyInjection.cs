@@ -32,6 +32,8 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using BenhaScooters.Data.MapData;
 using System.Security.Claims;
+using BenhaScooters.Application.Workflows;
+using BenhaScooters.Infrastructure.Messaging;
 
 namespace BenhaScooters.Infrastructure;
 
@@ -72,7 +74,10 @@ public static class DependencyInjection
             });
         });
 
-        services.AddHangfireServer();
+        services.AddHangfireServer(c =>
+        {
+            c.SchedulePollingInterval = TimeSpan.FromSeconds(10);
+        });
 
         // Register local filesystem-based S3 replacement
         services.AddScoped<IS3Service, LocalS3Service>();
@@ -94,6 +99,10 @@ public static class DependencyInjection
 
         // Register SignalR connection tracker (singleton to persist across requests)
         services.AddSingleton<ISignalRConnectionTracker, SignalRConnectionTracker>();
+
+
+        services.AddScoped<IMessageScheduler, HangfireMessageScheduler>();
+        services.AddScoped<IMessageDispatcher, MediatorMessageDispatcher>();
 
         // Register background services
         // services.AddHostedService<MatchTimeoutBackgroundService>();

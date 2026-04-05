@@ -63,35 +63,6 @@ public class TripRequest : AggregateRoot
         Status = TripRequestStatus.NotConfirmed;
     }
 
-    /// <summary>
-    /// Call this method after the entity is saved to the database to publish the domain event
-    /// </summary>
-    public DomainEvent CreateTripRequestedEvent()
-    {
-        return new TripRequestedEvent(
-            Id,
-            RiderId,
-            PickupLocation,
-            DropoffLocation,
-            PickupAddress,
-            DropoffAddress,
-            FinalFare,
-            RequestedAt);
-    }
-
-    public DomainEvent CreateTripRequestConfirmedEvent()
-    {
-        return new TripRequestConfirmedEvent(
-            Id,
-            RiderId,
-            PickupLocation,
-            DropoffLocation,
-            PickupAddress,
-            DropoffAddress,
-            FinalFare,
-            DateTime.UtcNow);
-    }
-
     public ErrorOr<Success> Confirm()
     {
         if (Status != TripRequestStatus.NotConfirmed)
@@ -103,7 +74,15 @@ public class TripRequest : AggregateRoot
         Status = TripRequestStatus.Pending;
         ConfirmedAt = DateTime.UtcNow;
 
-        RaiseDomainEvent(CreateTripRequestConfirmedEvent());
+        RaiseDomainEvent(new TripRequestConfirmedEvent(
+            Id,
+            RiderId,
+            PickupLocation,
+            DropoffLocation,
+            PickupAddress,
+            DropoffAddress,
+            FinalFare,
+            DateTime.UtcNow));
 
         return Result.Success;
     }

@@ -40,9 +40,11 @@ public class FareEstimator : IFareEstimator
             var distance = _geoService.CalculateDistance(pickup, dropoff);
             var estimatedDuration = _geoService.EstimateArrivalTime(distance, _options.AverageSpeedKmh);
 
-            decimal amount = _options.BaseFare 
-                + ((decimal)distance.ToKilometers() * _options.PerKmRate) 
-                + ((decimal)estimatedDuration.ToMinutes() * _options.PerMinuteRate);
+            decimal amount = Math.Round(
+                _options.BaseFare
+                + ((decimal)distance.ToKilometers() * _options.PerKmRate)
+                + ((decimal)estimatedDuration.ToMinutes() * _options.PerMinuteRate),
+                MidpointRounding.AwayFromZero);
 
             return FareEstimate.Create(amount, distance, estimatedDuration);
         }
@@ -53,13 +55,15 @@ public class FareEstimator : IFareEstimator
         var actualDurationMinutes = leg.Duration.Value / 60.0; // Convert seconds to minutes
 
         // Calculate actual fare: base fare + (distance multiplier * distance) + (time multiplier * time)
-        decimal actualFare = _options.BaseFare 
-            + ((decimal)actualDistanceKm * _options.PerKmRate) 
-            + ((decimal)actualDurationMinutes * _options.PerMinuteRate);
+        decimal actualFare = Math.Round(
+            _options.BaseFare
+            + ((decimal)actualDistanceKm * _options.PerKmRate)
+            + ((decimal)actualDurationMinutes * _options.PerMinuteRate),
+            MidpointRounding.AwayFromZero);
 
         var fareEstimate = FareEstimate.Create(
-            actualFare, 
-            Distance.FromKilometers(actualDistanceKm), 
+            actualFare,
+            Distance.FromKilometers(actualDistanceKm),
             Duration.FromMinutes(actualDurationMinutes));
 
         return fareEstimate;

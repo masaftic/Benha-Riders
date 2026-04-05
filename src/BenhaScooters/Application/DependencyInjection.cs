@@ -1,7 +1,6 @@
 using System.Reflection;
 using BenhaScooters.Application.Common.Behaviors;
 using BenhaScooters.Application.Common.Settings;
-using BenhaScooters.Application.Features.Matching.Services;
 using BenhaScooters.Application.Features.Matching.Settings;
 using BenhaScooters.Application.Services;
 using BenhaScooters.Domain.Matching;
@@ -17,8 +16,6 @@ public static class DependencyInjection
         {
             config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             config.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>));
-            // config.AddOpenBehavior(typeof(LoggingBehavior<,>));
-            // config.AddOpenBehavior(typeof(PerformanceBehavior<,>));
         });
 
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
@@ -37,8 +34,6 @@ public static class DependencyInjection
 
         // Register application services
         services.AddScoped<IAuthenticationService, AuthenticationService>();
-        services.AddScoped<IDriverMatchingService, DriverMatchingService>();
-        services.AddScoped<IMatchingOrchestrator, MatchingOrchestrator>();
 
         return services;
     }

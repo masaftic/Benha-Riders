@@ -40,18 +40,6 @@ public class RiderHub : Hub<IRiderNotifications>
 
             // Query and send rider status
             var riderId = UserId.Parse(riderIdString, null);
-            var statusResult = await _mediator.Send(new GetRiderStatusQuery(riderId));
-
-            if (statusResult.IsError)
-            {
-                _logger.LogWarning("Failed to get rider status for {RiderId}: {Errors}", riderIdString, statusResult.Errors);
-            }
-            else
-            {
-                await Clients.Caller.ReceiveRiderStatus(statusResult.Value);
-                _logger.LogInformation("Sent rider status to {RiderId}: {Status}", riderIdString, statusResult.Value.Status);
-            }
-
 
             var trip = await _dbContext.Trips
                 .Where(t => t.RiderId == riderId && (t.Status == Domain.Trips.Enums.TripStatus.Assigned || t.Status == Domain.Trips.Enums.TripStatus.DriverArrived))
