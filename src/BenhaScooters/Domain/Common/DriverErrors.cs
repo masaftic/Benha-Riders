@@ -24,6 +24,10 @@ public static partial class AppErrors
             public static AppError LicensePlateAlreadyExists() => NewConflict(
                 "LICENSE_PLATE_ALREADY_EXISTS",
                 "This license plate is already registered with another vehicle."); 
+            
+            public static AppError NationalIdAlreadyExists() => NewConflict(
+                "NATIONAL_ID_ALREADY_EXISTS",
+                "This national ID is already registered with another driver.");
 
             public static AppError CannotModifyApprovedProfile() => NewConflict(
                 "CANNOT_MODIFY_APPROVED_PROFILE",

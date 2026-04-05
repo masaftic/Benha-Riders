@@ -41,7 +41,7 @@ public class UpdateVehicleInfoCommandHandler(AppDbContext db) : IRequestHandler<
             return AppErrors.Driver.Profile.NotFound();
         }
 
-        if (!await _db.DriverProfiles
+        if (await _db.DriverProfiles
             .Where(dp => dp.Vehicle != null && dp.UserId != userId)
             .AnyAsync(dp => dp.Vehicle!.LicensePlate == LicensePlate.Create(request.LicensePlate), cancellationToken))
         {

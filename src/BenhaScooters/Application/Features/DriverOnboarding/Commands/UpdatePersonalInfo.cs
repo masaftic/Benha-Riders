@@ -18,28 +18,6 @@ public record UpdatePersonalInfoCommand(
     string FullName,
     string NationalId) : IRequest<ErrorOr<UpdatePersonalInfoResponse>>;
 
-public class UpdatePersonalInfoCommandValidator : AbstractValidator<UpdatePersonalInfoCommand>
-{
-    private readonly AppDbContext _db;
-
-    public UpdatePersonalInfoCommandValidator(AppDbContext db)
-    {
-        _db = db;
-        
-        RuleFor(x => x.NationalId)
-            .MustAsync(BeUniqueNationalId)
-            .WithMessage("هذا الرقم القومي مسجل مع سائق آخر.")
-            .When(x => !string.IsNullOrEmpty(x.NationalId));
-    }
-
-    private async Task<bool> BeUniqueNationalId(UpdatePersonalInfoCommand command, string nationalId, CancellationToken cancellationToken)
-    {
-        var userId = command.DriverId;
-        return !await _db.DriverProfiles
-            .AnyAsync(x => x.PersonalInfo != null && x.PersonalInfo.NationalId == NationalId.Create(nationalId) && x.UserId != userId, 
-                cancellationToken);
-    }
-}
 
 public record UpdatePersonalInfoResponse(string Message, DriverOnboardingStatus Status);
 
@@ -57,6 +35,13 @@ public class UpdatePersonalInfoCommandHandler(AppDbContext db) : IRequestHandler
         if (driverProfile == null)
         {
             return AppErrors.Driver.NotFound();
+        }
+
+        if (await _db.DriverProfiles
+            .AnyAsync(x => x.PersonalInfo != null && x.PersonalInfo.NationalId == NationalId.Create(request.NationalId) && x.UserId != userId, 
+                cancellationToken))
+        {
+            return AppErrors.Driver.Profile.NationalIdAlreadyExists();
         }
 
         var personalInfo = new DriverPersonalInfo(

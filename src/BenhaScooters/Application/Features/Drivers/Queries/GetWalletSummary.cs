@@ -12,6 +12,14 @@ namespace BenhaScooters.Application.Features.Drivers.Queries;
 
 public record GetWalletSummaryQuery(UserId DriverId) : IRequest<ErrorOr<WalletSummaryResponse>>;
 
+public record ProfitPeriodSummary(
+    DateTime PeriodStartUtc,
+    DateTime PeriodEndUtc,
+    int CompletedTrips,
+    decimal GrossFare,
+    decimal Commission,
+    decimal NetProfit);
+
 public record WalletSummaryResponse(
     decimal Balance,
     decimal Debt,
@@ -22,7 +30,12 @@ public record WalletSummaryResponse(
     int PendingTopUpRequests,
     DateTime? LastTransactionAt,
     decimal DebtLimit,
-    string StatusLabel);
+    string StatusLabel,
+    ProfitPeriodSummary TodayProfit,
+    ProfitPeriodSummary ThisWeekProfit,
+    ProfitPeriodSummary ThisMonthProfit,
+    ProfitPeriodSummary LifetimeProfit,
+    DateTime CalculatedAtUtc);
 
 
 public static class WalletStatusLabels
@@ -57,6 +70,10 @@ public class GetWalletSummaryQueryHandler : IRequestHandler<GetWalletSummaryQuer
             return AppErrors.Driver.Wallet.NotFound();
 
         var transactions = wallet.Transactions;
+        var nowUtc = DateTime.UtcNow;
+        var todayStartUtc = nowUtc.Date;
+        var weekStartUtc = GetStartOfWeekUtc(nowUtc);
+        var monthStartUtc = new DateTime(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
 
         var totalCommissions = transactions
             .Where(t => t.Type == WalletTransactionType.TripCommission)
@@ -72,6 +89,12 @@ public class GetWalletSummaryQueryHandler : IRequestHandler<GetWalletSummaryQuer
 
         var pendingTopUps = await _db.WalletTopUpRequests
             .CountAsync(r => r.DriverUserId == request.DriverId && r.Status == TopUpRequestStatus.Pending, cancellationToken);
+
+        var completedTrips = await DriverProfitSummaryCalculator.GetCompletedTripsAsync(
+            _db.Trips.Where(t => t.DriverId == request.DriverId),
+            cancellationToken);
+
+        var transactionImpactByTrip = DriverProfitSummaryCalculator.GetTransactionImpactByTrip(transactions);
 
         var canAccept = wallet.CanAcceptMatch(_walletOptions.DebtLimitEgp);
 
@@ -93,6 +116,17 @@ public class GetWalletSummaryQueryHandler : IRequestHandler<GetWalletSummaryQuer
             pendingTopUps,
             lastTx?.CreatedAt,
             _walletOptions.DebtLimitEgp,
-            statusLabel);
+            statusLabel,
+            DriverProfitSummaryCalculator.BuildProfitPeriodSummary(completedTrips, transactionImpactByTrip, todayStartUtc, nowUtc),
+            DriverProfitSummaryCalculator.BuildProfitPeriodSummary(completedTrips, transactionImpactByTrip, weekStartUtc, nowUtc),
+            DriverProfitSummaryCalculator.BuildProfitPeriodSummary(completedTrips, transactionImpactByTrip, monthStartUtc, nowUtc),
+            DriverProfitSummaryCalculator.BuildProfitPeriodSummary(completedTrips, transactionImpactByTrip, null, nowUtc),
+            nowUtc);
+    }
+
+    private static DateTime GetStartOfWeekUtc(DateTime utcDateTime)
+    {
+        var daysSinceMonday = ((int)utcDateTime.DayOfWeek + 6) % 7;
+        return utcDateTime.Date.AddDays(-daysSinceMonday);
     }
 }

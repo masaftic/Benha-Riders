@@ -288,16 +288,19 @@
   <data name="MATCH_ATTEMPT_CANNOT_ACCEPT_OWN_REQUEST" xml:space="preserve">
     <value>لا يمكنك قبول طلب رحلتك الخاص.</value>
   </data>
-  <date name="USER_ACCOUNT_DEACTIVATED" xml:space="preserve">
+  <data name="USER_ACCOUNT_DEACTIVATED" xml:space="preserve">
     <value>تم تعطيل هذا الحساب.</value>
-  </date>
-  <date name="USER_ACCOUNT_DELETE_ACTIVE_TRIP" xml:space="preserve">
+  </data>
+  <data name="USER_ACCOUNT_DELETE_ACTIVE_TRIP" xml:space="preserve">
     <value>لا يمكنك حذف حسابك بينما لديك رحلة نشطة.</value>
-  </date>
-  <date name="USER_ACCOUNT_DELETE_PENDING_REQUEST" xml:space="preserve">
+  </data>
+  <data name="USER_ACCOUNT_DELETE_PENDING_REQUEST" xml:space="preserve">
     <value>لا يمكنك حذف حسابك بينما لديك طلب رحلة قيد الانتظار.</value>
-  </date>
-  <date name="LICENSE_PLATE_ALREADY_EXISTS" xml:space="preserve">
+  </data>
+  <data name="LICENSE_PLATE_ALREADY_EXISTS" xml:space="preserve">
     <value>رقم اللوحة هذا مسجل بالفعل مع مركبة أخرى.</value>
-  </date>
+  </data>
+  <data name="NATIONAL_ID_ALREADY_EXISTS" xml:space="preserve">
+    <value>رقم الهوية هذا مسجل بالفعل مع سائق آخر.</value>
+  </data>
 </root>

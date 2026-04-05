@@ -43,11 +43,15 @@ try
     builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
     builder.Services.Configure<RequestLocalizationOptions>(options =>
     {
-        var supportedCultures = AppLanguages.SupportedCultures;
+        CultureInfo[] allLanguages   = AppLanguages.SupportedCultures; // en, ar
+        CultureInfo[] neutralCulture = [CultureInfo.InvariantCulture]; // or CultureInfo.InvariantCulture
 
-        options.DefaultRequestCulture = new RequestCulture(AppLanguages.English);
-        options.SupportedCultures = supportedCultures;
-        options.SupportedUICultures = supportedCultures;
+        // 1. Parsing/Numbers: Only allow English (Language Agnostic)
+        options.SupportedCultures = neutralCulture;
+
+        // 2. Resources/UI: Allow all languages (Localized responses)
+        options.SupportedUICultures = allLanguages;
+
         options.RequestCultureProviders =
         [
             new AuthenticatedUserRequestCultureProvider(),

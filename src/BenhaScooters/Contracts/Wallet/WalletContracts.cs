@@ -9,6 +9,10 @@ public record GetWalletTransactionsParams(
     DateTime? To = null,
     WalletTransactionType? Type = null);
 
+public record GetProfitForPeriodParams(
+    DateTime From,
+    DateTime To);
+
 public record SubmitTopUpRequestRequest(decimal Amount);
 
 public record ReviewTopUpRequestRequest(bool Approve, string? Note);

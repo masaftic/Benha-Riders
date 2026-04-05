@@ -94,12 +94,11 @@ public class DriverMatchingService : IDriverMatchingService
                 _logger.LogInformation("No available drivers found for matching session {MatchingSessionId} in round {CurrentRound}",
                     matchingSessionId, matchingSession.CurrentRound);
 
-                await Task.Delay(1000, cancellationToken); // wait 1 second to resolve any race conditions on mobile app
-
-                BackgroundJob.Enqueue<IMatchingOrchestrator>(
+                BackgroundJob.Schedule<IMatchingOrchestrator>(
                     orchestrator => orchestrator.HandlePostOutcomeAsync(
                         tripRequest.Id,
-                        cancellationToken));
+                        cancellationToken),
+                    TimeSpan.FromSeconds(5)); // Short delay before checking for next steps
 
                 return Result.Success;
             }

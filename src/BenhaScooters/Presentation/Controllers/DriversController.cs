@@ -100,7 +100,7 @@ public class DriversController : BaseApiController
     /// Get wallet summary
     /// </summary>
     /// <remarks>
-    /// Returns the driver's current wallet balance, debt, debt limit status, total commissions charged, total amount paid in, and pending top-up request count.
+    /// Returns the driver's current wallet balance, debt, debt limit status, wallet activity totals, and profit summaries for today, this week, this month, and lifetime.
     /// </remarks>
     [HttpGet("wallet")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -108,6 +108,26 @@ public class DriversController : BaseApiController
     public async Task<IActionResult> GetWalletSummary()
     {
         var query = new GetWalletSummaryQuery(HttpContext.GetDriverId());
+        var result = await _sender.Send(query);
+        return result.Match(Ok, HandleErrors);
+    }
+
+    /// <summary>
+    /// Get driver profit for a selected period
+    /// </summary>
+    /// <remarks>
+    /// Returns the driver's completed trip count, gross fare, commission, and net profit between the selected from/to dates.
+    /// </remarks>
+    [HttpGet("wallet/profit")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProfitForPeriod([FromQuery] GetProfitForPeriodParams p)
+    {
+        var query = new GetProfitForPeriodQuery(
+            HttpContext.GetDriverId(),
+            p.From,
+            p.To);
         var result = await _sender.Send(query);
         return result.Match(Ok, HandleErrors);
     }

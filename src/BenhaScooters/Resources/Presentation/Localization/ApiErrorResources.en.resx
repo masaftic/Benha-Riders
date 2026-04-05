@@ -297,7 +297,10 @@
   <data name="USER_ACCOUNT_DELETE_PENDING_REQUEST" xml:space="preserve">
     <value>You cannot delete your account while you have a pending trip request.</value>
   </data>
-  <date name="LICENSE_PLATE_ALREADY_EXISTS" xml:space="preserve">
+  <data name="LICENSE_PLATE_ALREADY_EXISTS" xml:space="preserve">
     <value>This license plate is already registered with another vehicle.</value>
-  </date>
+  </data>
+  <data name="NATIONAL_ID_ALREADY_EXISTS" xml:space="preserve">
+    <value>This national ID is already registered with another driver.</value>
+  </data>
 </root>
