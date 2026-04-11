@@ -37,8 +37,9 @@ public class Trip : AggregateRoot
     public DateTime? DriverArrivedAt { get; private set; }
     public DateTime? StartedAt { get; private set; }
     public DateTime? CompletedAt { get; private set; }
+    
 
-    // Final fare (locked at trip creation, no recalculation)
+    // Final fare (locked at trip creation)
     public FareEstimate FinalFare { get; private set; } = null!;
 
     public TripPayment? TripPayment { get; private set; } // Payment details
@@ -49,7 +50,7 @@ public class Trip : AggregateRoot
     // Navigation Properties (to profiles, not old aggregates)
     public DriverProfile DriverProfile { get; private set; } = null!;
     public RiderProfile RiderProfile { get; private set; } = null!;
-    public TripRequest? TripRequest { get; private set; } = null!; // TODO: this is optional for now to fix the migration.
+    public TripRequest TripRequest { get; private set; } = null!; 
 
 
     private Trip() { } // For EF Core
@@ -66,6 +67,21 @@ public class Trip : AggregateRoot
         PickupAddress = pickupAddress?.Trim();
         DropoffAddress = dropoffAddress?.Trim();
         FinalFare = finalFare;
+        Status = TripStatus.Assigned;
+        AssignedAt = DateTime.UtcNow;
+    }
+
+    public Trip(UserId driverId, TripRequest tripRequest)
+    {
+        DriverId = driverId;
+        RiderId = tripRequest.RiderId;
+        TripRequest = tripRequest;
+        TripRequestId = tripRequest.Id;
+        PickupLocation = tripRequest.PickupLocation;
+        DropoffLocation = tripRequest.DropoffLocation;
+        PickupAddress = tripRequest.PickupAddress?.Trim();
+        DropoffAddress = tripRequest.DropoffAddress?.Trim();
+        FinalFare = tripRequest.FinalFare;
         Status = TripStatus.Assigned;
         AssignedAt = DateTime.UtcNow;
     }

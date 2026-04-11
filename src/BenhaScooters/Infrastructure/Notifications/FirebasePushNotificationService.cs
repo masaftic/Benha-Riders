@@ -45,16 +45,21 @@ public class FirebasePushNotificationService : IPushNotificationService
                 Priority = Priority.High,
                 Notification = new AndroidNotification
                 {
-                    Sound = "default",
-                    ChannelId = "trip_notifications"
+                    ChannelId = "trip_channel",
+                    Sound = "tripnotification",
+                    DefaultSound = false,
                 }
             },
             Apns = new ApnsConfig
             {
+                Headers = new Dictionary<string, string>
+                {
+                    { "apns-priority", "10" }
+                },
                 Aps = new Aps
                 {
-                    Sound = "default",
-                    ContentAvailable = true
+                    Sound = "tripnotification.mp3",
+                    Badge = 1,
                 }
             }
         };

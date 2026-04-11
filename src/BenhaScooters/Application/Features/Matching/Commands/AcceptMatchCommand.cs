@@ -44,8 +44,8 @@ public class AcceptMatchCommandValidator : AbstractValidator<AcceptMatchCommand>
 }
 
 public class AcceptMatchCommandHandler(
-    AppDbContext db, 
-    IPublisher publisher, 
+    AppDbContext db,
+    IPublisher publisher,
     IOptions<DriverWalletOptions> walletOptions,
     IHubContext<RiderHub, IRiderNotifications> riderHub,
     IS3Service s3Service,
@@ -134,16 +134,7 @@ public class AcceptMatchCommandHandler(
             return AppErrors.Driver.NotFound();
         }
 
-
-        var trip = new Trip(
-            driverStatus.UserId,
-            tripRequest.RiderId,
-            tripRequest.Id,
-            tripRequest.PickupLocation,
-            tripRequest.DropoffLocation,
-            tripRequest.PickupAddress,
-            tripRequest.DropoffAddress,
-            tripRequest.FinalFare);
+        var trip = new Trip(driverStatus.UserId, tripRequest);
 
         db.Trips.Add(trip);
 
