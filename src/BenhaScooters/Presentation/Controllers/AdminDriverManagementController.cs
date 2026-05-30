@@ -7,6 +7,7 @@ using BenhaScooters.Contracts.Wallet;
 using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using BenhaScooters.Domain.Users;
+using BenhaScooters.Presentation.AppVersioning;
 using BenhaScooters.Presentation.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +17,7 @@ namespace BenhaScooters.Presentation.Controllers;
 
 [Route("api/admin/drivers")]
 [Authorize(Roles = "Admin")]
+[BypassVersionCheck]
 public class AdminDriverManagementController : BaseApiController
 {
     private readonly ISender _sender;

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using BenhaScooters.Presentation.AppVersioning;
 using BenhaScooters.Presentation.Swagger;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -56,6 +57,10 @@ public static class DependencyInjection
             });
         });
 
+        services.AddOptions<AppVersionSettings>()
+            .BindConfiguration(AppVersionSettings.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         services.AddSwaggerGen(options =>
         {
@@ -88,6 +93,7 @@ public static class DependencyInjection
 
             // add accept language header
             options.OperationFilter<AcceptLanguageHeaderParameter>();
+            options.OperationFilter<AppVersionHeaderTransformer>();
         });
 
         services.AddOpenApi();

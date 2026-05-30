@@ -15,6 +15,7 @@ using Serilog;
 using Serilog.Context;
 using System.Globalization;
 using BenhaScooters.Shared.Localization;
+using BenhaScooters.Presentation.AppVersioning;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -137,9 +138,12 @@ try
         Cron.Hourly(4));
 
     app.UseHttpsRedirection();
+    app.UseRequestLocalization();
+
+    app.UseAppVersionCheckMiddleware();
+
 
     app.UseAuthentication();
-    app.UseRequestLocalization();
     app.UseAuthorization();
 
     app.MapControllers();

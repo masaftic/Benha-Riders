@@ -303,4 +303,7 @@
   <data name="NATIONAL_ID_ALREADY_EXISTS" xml:space="preserve">
     <value>رقم الهوية هذا مسجل بالفعل مع سائق آخر.</value>
   </data>
+  <data name="APP_UPDATE_REQUIRED" xml:space="preserve">
+    <value>يجب تحديث التطبيق.</value>
+  </data>
 </root>
