@@ -81,10 +81,10 @@ public class GoogleMapsService : IGoogleMapsService
     public async Task<ErrorOr<AutocompleteResponse>> AutocompleteAsync(
         string input,
         string language = "ar",
-        double? latitude = null,
-        double? longitude = null,
+        double? latitude  = 30.4785183, // benha city center as default location for better relevance of results within Egypt
+        double? longitude = 31.1794733,
         string? components = "country:eg",
-        int radius = 50000,
+        int radius = 10_000, // 5km radius to prioritize nearby results
         string types = "geocode|establishment",
         CancellationToken cancellationToken = default)
     {
