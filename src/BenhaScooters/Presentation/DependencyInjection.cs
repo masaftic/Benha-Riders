@@ -94,6 +94,7 @@ public static class DependencyInjection
             // add accept language header
             options.OperationFilter<AcceptLanguageHeaderParameter>();
             options.OperationFilter<AppVersionHeaderTransformer>();
+            options.OperationFilter<AppTypeHeaderTransformer>();
         });
 
         services.AddOpenApi();

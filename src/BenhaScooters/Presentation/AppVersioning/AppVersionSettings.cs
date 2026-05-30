@@ -7,10 +7,22 @@ public class AppVersionSettings
     public const string SectionName = "AppVersioning";
 
     [Required]
-    public required string MinimumVersion { get; set; }
-    [Required]
-    public required string LatestVersion { get; set; }
+    public required Settings Driver { get; set; }
 
-    public AppVersion MinimumAppVersion => AppVersion.Parse(MinimumVersion);
-    public AppVersion LatestAppVersion => AppVersion.Parse(LatestVersion);
+    [Required]
+    public required Settings Rider { get; set; }
+
+    public class Settings
+    {
+
+        [Required]
+        public required string MinimumVersion { get; set; }
+        [Required]
+        public required string LatestVersion { get; set; }
+
+        public bool Ignore { get; set; } = false;
+
+        public AppVersion MinimumAppVersion => AppVersion.Parse(MinimumVersion);
+        public AppVersion LatestAppVersion => AppVersion.Parse(LatestVersion);
+    }
 }

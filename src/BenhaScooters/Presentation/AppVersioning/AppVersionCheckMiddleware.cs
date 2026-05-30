@@ -25,11 +25,41 @@ public class AppVersionCheckMiddleware(
             return;
         }
 
+        if (_settings.Driver.Ignore &&
+            !context.Request.Headers.ContainsKey("X-APP-TYPE"))
+        {
+            await _next(context);
+            return;
+        }
+
+        // Extract the X-APP-TYPE header
+        if (!context.Request.Headers.TryGetValue("X-APP-TYPE", out var clientAppTypeHeader))
+        {
+            context.Response.StatusCode = StatusCodes.Status426UpgradeRequired;
+            await context.Response.WriteAsync($"Upgrade Required. X-APP-TYPE header is missing.");
+            return;
+        }
+
+        if (clientAppTypeHeader != "RiderApp" && clientAppTypeHeader != "DriverApp")
+        {
+            context.Response.StatusCode = StatusCodes.Status426UpgradeRequired;
+            await context.Response.WriteAsync($"Upgrade Required. X-APP-TYPE header is missing.");
+            return;
+        }
+
+        var clientAppVersion = clientAppTypeHeader == "DriverApp" ? _settings.Driver : _settings.Rider;
+
+        if (clientAppVersion.Ignore)
+        {
+            await _next(context);
+            return;
+        }
+
         // Extract the X-APP-VERSION header
         if (!context.Request.Headers.TryGetValue("X-APP-VERSION", out var clientVersionHeader))
         {
             context.Response.StatusCode = StatusCodes.Status426UpgradeRequired;
-            await context.Response.WriteAsync($"Upgrade Required. X-APP-VERSION header is missing. Minimum version is {_settings.MinimumAppVersion}.");
+            await context.Response.WriteAsync($"Upgrade Required. X-APP-VERSION header is missing. Minimum version is {clientAppVersion.MinimumAppVersion}.");
             return;
         }
 
@@ -42,11 +72,11 @@ public class AppVersionCheckMiddleware(
         }
 
         // Perform the comparison
-        if (clientVersion! < _settings.MinimumAppVersion)
+        if (clientVersion! < clientAppVersion.MinimumAppVersion)
         {
             context.Response.StatusCode = StatusCodes.Status426UpgradeRequired;
-            context.Response.Headers.Append("Upgrade", $"AppVersion {_settings.MinimumAppVersion}"); // RFC 9110 standard compliance
-            
+            context.Response.Headers.Append("Upgrade", $"AppVersion {clientAppVersion.MinimumAppVersion}"); // RFC 9110 standard compliance
+
             var problemDetails = new ProblemDetails
             {
                 Extensions = new Dictionary<string, object?>
@@ -78,7 +108,7 @@ public static class AppVersionCheckMiddlewareExtensions
     {
         return builder.UseWhen(
             context => !context.Request.Path.StartsWithSegments("/swagger"),
-            appBuilder => 
+            appBuilder =>
             {
                 appBuilder.UseMiddleware<AppVersionCheckMiddleware>();
             }
