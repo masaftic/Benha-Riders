@@ -50,7 +50,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, PublishDomainE
     public DbSet<UserDeviceToken> UserDeviceTokens => Set<UserDeviceToken>();
 
     // Ratings
-    public DbSet<DriverRating> DriverRatings => Set<DriverRating>();
+    public DbSet<TripRating> TripRatings => Set<TripRating>();
+    public DbSet<DriverRatingDismissal> DriverRatingDismissals => Set<DriverRatingDismissal>();
 
 
     // Service Area

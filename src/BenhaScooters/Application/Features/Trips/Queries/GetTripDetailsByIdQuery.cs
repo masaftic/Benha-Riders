@@ -79,9 +79,9 @@ public class GetTripDetailsByIdQueryHandler : IRequestHandler<GetTripDetailsById
                 DriverVehicleBrand = t.DriverProfile.Vehicle!.Brand,
                 DriverVehicleColor = t.DriverProfile.Vehicle!.Color,
                 DriverVehicleLicensePlate = t.DriverProfile.Vehicle!.LicensePlate,
-                Rating = _db.DriverRatings
+                Rating = _db.TripRatings
                     .Where(r => r.TripId == t.Id)
-                    .Select(r => new { r.Rating, r.Comment })
+                    .Select(r => new { Rating = r.DriverRating, Comment = r.DriverComment })
                     .FirstOrDefault()
             })
             .FirstOrDefaultAsync(cancellationToken);

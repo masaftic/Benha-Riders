@@ -166,4 +166,22 @@ public class TripsController : BaseApiController
 
         return result.Match(Ok, HandleErrors);
     }
+
+    /// <summary>
+    /// Rate the rider after a completed trip (driver only)
+    /// </summary>
+    [HttpPost("{tripId}/rate-rider")]
+    [Authorize(Policy = PolicyConstants.ApprovedDriverPolicy)]
+    [ProducesResponseType<RateRiderResult>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RateRider([FromRoute] TripId tripId, [FromBody] RateRiderRequest request)
+    {
+        var command = new RateRiderCommand(tripId, HttpContext.GetDriverId(), request.Rating, request.Comment);
+        var result = await _sender.Send(command);
+
+        return result.Match(Ok, HandleErrors);
+    }
 }

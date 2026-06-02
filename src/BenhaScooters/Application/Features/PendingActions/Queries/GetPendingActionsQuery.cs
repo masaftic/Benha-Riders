@@ -54,7 +54,8 @@ public class GetPendingActionsQueryHandler(AppDbContext db, IS3Service s3Service
                         && t.Status == TripStatus.Completed
                         && t.CompletedAt.HasValue
                         && t.CompletedAt.Value >= cutoff
-                        && !db.DriverRatings.Any(r => r.TripId == t.Id && r.RiderId == request.UserId))
+                        && !db.TripRatings.Any(r => r.TripId == t.Id && r.DriverRating.HasValue)
+                        && !db.DriverRatingDismissals.Any(d => d.TripId == t.Id && d.RiderId == request.UserId))
             .OrderByDescending(t => t.CompletedAt)
             .Select(t => new PendingRatingProjection(
                 t.Id,

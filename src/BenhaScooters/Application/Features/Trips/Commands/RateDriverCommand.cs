@@ -1,6 +1,5 @@
 using BenhaScooters.Data;
 using BenhaScooters.Domain.Common;
-using BenhaScooters.Domain.Ratings;
 using BenhaScooters.Domain.Trips;
 using BenhaScooters.Domain.Trips.Enums;
 using BenhaScooters.Domain.Users;
@@ -37,18 +36,18 @@ public class RateDriverCommandHandler : IRequestHandler<RateDriverCommand, Error
         if (trip.Status != TripStatus.Completed)
             return AppErrors.Rating.TripNotCompleted();
 
-        // Check if already rated
-        var alreadyRated = await _dbContext.DriverRatings
-            .AnyAsync(r => r.TripId == request.TripId && r.RiderId == request.RiderId, cancellationToken);
+        var tripRating = await _dbContext.TripRatings
+            .FirstOrDefaultAsync(r => r.TripId == request.TripId, cancellationToken);
 
-        if (alreadyRated)
-            return AppErrors.Rating.AlreadySubmitted();
+        if (tripRating is null)
+        {
+            tripRating = new TripRating(trip.Id, trip.DriverId, trip.RiderId);
+            _dbContext.TripRatings.Add(tripRating);
+        }
 
-        var ratingResult = DriverRating.Create(trip.Id, request.RiderId, trip.DriverId, request.Rating, request.Comment);
+        var ratingResult = tripRating.SetDriverRating(request.Rating, request.Comment);
         if (ratingResult.IsError)
             return ratingResult.Errors;
-
-        _dbContext.DriverRatings.Add(ratingResult.Value);
 
         // Update driver stats with new rating
         var driverStats = await _dbContext.DriverStats
@@ -58,6 +57,6 @@ public class RateDriverCommandHandler : IRequestHandler<RateDriverCommand, Error
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new RateDriverResult(ratingResult.Value.Id, driverStats?.AverageRating ?? request.Rating);
+        return new RateDriverResult(tripRating.Id, driverStats?.AverageRating ?? request.Rating);
     }
 }
