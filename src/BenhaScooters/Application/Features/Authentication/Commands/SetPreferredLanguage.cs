@@ -6,6 +6,7 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BenhaScooters.Application.Features.Authentication.Commands;
 
@@ -24,10 +25,12 @@ public class SetPreferredLanguageCommandValidator : AbstractValidator<SetPreferr
 public class SetPreferredLanguageCommandHandler : IRequestHandler<SetPreferredLanguageCommand, ErrorOr<Success>>
 {
     private readonly AppDbContext _db;
+    private readonly IMemoryCache _cache;
 
-    public SetPreferredLanguageCommandHandler(AppDbContext db)
+    public SetPreferredLanguageCommandHandler(AppDbContext db, IMemoryCache cache)
     {
         _db = db;
+        _cache = cache;
     }
 
     public async Task<ErrorOr<Success>> Handle(SetPreferredLanguageCommand request, CancellationToken cancellationToken)
@@ -41,6 +44,9 @@ public class SetPreferredLanguageCommandHandler : IRequestHandler<SetPreferredLa
 
         user.SetPreferredLanguage(request.Language);
         await _db.SaveChangesAsync(cancellationToken);
+
+
+        _cache.Remove($"PreferredLanguage-{user.Id}");
 
         return Result.Success;
     }

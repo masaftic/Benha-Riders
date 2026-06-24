@@ -4,6 +4,7 @@ using BenhaScooters.Domain.Users;
 using BenhaScooters.Shared.Localization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BenhaScooters.Infrastructure.Localization;
 
@@ -24,14 +25,22 @@ public sealed class AuthenticatedUserRequestCultureProvider : RequestCultureProv
 
         try
         {
+            var memoryCache = httpContext.RequestServices.GetRequiredService<IMemoryCache>();
             var dbContext = httpContext.RequestServices.GetRequiredService<AppDbContext>();
+            
             var userId = UserId.Create(parsedUserId);
 
-            var preferredLanguage = await dbContext.Users
-                .AsNoTracking()
-                .Where(user => user.Id == userId)
-                .Select(user => user.PreferredLanguage)
-                .FirstOrDefaultAsync(httpContext.RequestAborted);
+            var preferredLanguage = await memoryCache.GetOrCreateAsync(
+                $"PreferredLanguage-{userId}",
+                async entry => 
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
+                    return await dbContext.Users
+                        .AsNoTracking()
+                        .Where(user => user.Id == userId)
+                        .Select(user => user.PreferredLanguage)
+                        .FirstOrDefaultAsync(httpContext.RequestAborted);
+                });
 
             var normalizedLanguage = AppLanguages.Normalize(preferredLanguage);
             return normalizedLanguage is null

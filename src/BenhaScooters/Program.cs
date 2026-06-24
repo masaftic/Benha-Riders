@@ -138,13 +138,13 @@ try
         Cron.Hourly(4));
 
     app.UseHttpsRedirection();
-    app.UseRequestLocalization();
 
     app.UseAppVersionCheckMiddleware();
 
-
     app.UseAuthentication();
     app.UseAuthorization();
+
+    app.UseRequestLocalization();
 
     app.MapControllers();
 
