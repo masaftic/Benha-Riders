@@ -31,7 +31,6 @@ using BenhaScooters.Infrastructure.Notifications;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using BenhaScooters.Data.MapData;
-using System.Security.Claims;
 using BenhaScooters.Application.Workflows;
 using BenhaScooters.Infrastructure.Messaging;
 
@@ -210,26 +209,6 @@ public static class DependencyInjection
                             context.Token = context.Request.Query["access_token"];
                         }
                         return Task.CompletedTask;
-                    },
-                    OnTokenValidated = async context =>
-                    {
-                        var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier);
-                        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var userIdValue))
-                        {
-                            context.Fail("Invalid user identifier.");
-                            return;
-                        }
-
-                        var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
-                        var isActive = await dbContext.Users
-                            .Where(u => u.Id == UserId.Create(userIdValue))
-                            .Select(u => u.IsActive)
-                            .FirstOrDefaultAsync(context.HttpContext.RequestAborted);
-
-                        if (!isActive)
-                        {
-                            context.Fail("User account is deactivated.");
-                        }
                     }
                 };
             });

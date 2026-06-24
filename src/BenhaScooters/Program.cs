@@ -155,9 +155,6 @@ try
     app.MapHub<DriverHub>("/hubs/driver");
     app.MapHub<RiderHub>("/hubs/rider");
 
-    // SPA fallback - serve index.html from browser subdirectory for client-side routing
-    app.MapFallbackToFile("browser/index.html");
-
     app.Run();
 }
 catch (Exception ex)

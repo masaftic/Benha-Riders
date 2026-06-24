@@ -45,6 +45,7 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
     public async Task<ErrorOr<ChangePasswordResponse>> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
     {
         var user = await _db.Users
+            .Include(u => u.RefreshTokens)
             .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
 
         if (user is null)
@@ -52,7 +53,7 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
             return AppErrors.User.NotFound();
         }
 
-        if (!_passwordHasher.Verify(user.PasswordHash, request.CurrentPassword))
+        if (!_passwordHasher.Verify(user.PasswordHash ?? "#", request.CurrentPassword))
         {
             return AppErrors.User.IncorrectCurrentPassword();
         }

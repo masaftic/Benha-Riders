@@ -63,6 +63,7 @@ public class ResetPasswordWithOtpCommandHandler : IRequestHandler<ResetPasswordW
     {
         // Find user by phone number
         var user = await _db.Users
+            .Include(u => u.RefreshTokens)
             .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber, cancellationToken);
 
         if (user is null)
