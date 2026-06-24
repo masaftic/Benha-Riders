@@ -5,6 +5,7 @@ obj
 .env
 *.csv
 node_modules
-publish-output
 *.log
+publish-output
 wwwroot
+src/BenhaScooters/uploads
