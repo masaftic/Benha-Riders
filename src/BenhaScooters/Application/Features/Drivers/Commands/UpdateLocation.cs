@@ -151,7 +151,7 @@ public class UpdateLocationCommandHandler : IRequestHandler<UpdateLocationComman
                 Timestamp: DateTime.UtcNow,
                 EstimatedArrivalMinutes: estimatedArrivalMinutes);
 
-            var riderIdString = riderId.ToString();
+            var riderIdString = riderId.ToString()!;
             await _riderHub.Clients.Group(riderIdString)
                 .NotifyDriverLocationUpdate(riderIdString, locationUpdate);
             

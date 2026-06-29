@@ -52,7 +52,7 @@ public class RiderHub : Hub<IRiderNotifications>
                 var location = await _dbContext.DriverLocations
                     .Where(dl => dl.UserId == driverId)
                     .Select(dl => dl.Location)
-                    .FirstOrDefaultAsync();
+                    .FirstAsync();
                 
                 var distance = _geoService.CalculateDistance(location, trip.PickupLocation);
                 var arrivalDuration = _geoService.EstimateArrivalTime(distance);

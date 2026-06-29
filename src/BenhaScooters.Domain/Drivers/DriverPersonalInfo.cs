@@ -10,7 +10,7 @@ namespace BenhaScooters.Domain.Drivers;
 public class DriverPersonalInfo : ValueObject
 {
     public string FullName { get; private set; } = null!;
-    public NationalId NationalId { get; private set; }
+    public NationalId NationalId { get; private set; } = null!;
 
     private DriverPersonalInfo() { } // For EF Core
 
