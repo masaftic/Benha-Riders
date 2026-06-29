@@ -1,4 +1,3 @@
-using BenhaScooters.Application.Features.DriverOnboarding.Commands;
 using BenhaScooters.Domain.Drivers;
 
 namespace BenhaScooters.Domain.Common;

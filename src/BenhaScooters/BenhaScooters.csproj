@@ -48,6 +48,11 @@
     <Folder Include="Application\Features\Authentication\Queries\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../BenhaScooters.Domain/BenhaScooters.Domain.csproj" />
+    <ProjectReference Include="../BenhaScooters.Shared/BenhaScooters.Shared.csproj" />
+  </ItemGroup>
+
 
   <!-- Copy JSON data files to output directory -->
   <ItemGroup>

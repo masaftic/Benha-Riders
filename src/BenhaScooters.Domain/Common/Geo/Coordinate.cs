@@ -4,7 +4,7 @@ using Thinktecture;
 namespace BenhaScooters.Domain.Common.Geo;
 
 
-class GeoConstants 
+public class GeoConstants 
 {
     public const int SRID_WGS84 = 4326;
 }
