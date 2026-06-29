@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="4.0.4.2" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.100" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="ErrorOr" Version="2.0.1" />
     <PackageReference Include="FirebaseAdmin" Version="3.1.0" />
@@ -20,13 +20,12 @@
     <PackageReference Include="Hangfire.PostgreSql" Version="1.20.12" />
     <PackageReference Include="MediatR" Version="12.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" />
-    <!-- <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" /> -->
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.11" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="9.0.2" />
-    <PackageReference Include="Riok.Mapperly" Version="4.2.1" />
+    
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="9.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.3" />
@@ -49,6 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../BenhaScooters.Contracts/BenhaScooters.Contracts.csproj" />
     <ProjectReference Include="../BenhaScooters.Domain/BenhaScooters.Domain.csproj" />
     <ProjectReference Include="../BenhaScooters.Shared/BenhaScooters.Shared.csproj" />
   </ItemGroup>

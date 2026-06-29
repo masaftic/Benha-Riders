@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenhaScooters.Domain", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenhaScooters.Shared", "src\BenhaScooters.Shared\BenhaScooters.Shared.csproj", "{3EDB637B-DAC4-481D-8870-FC35E5DA44D9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenhaScooters.Contracts", "src\BenhaScooters.Contracts\BenhaScooters.Contracts.csproj", "{87960B68-1EBE-4555-86AF-41926F705725}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,18 @@ Global
 		{3EDB637B-DAC4-481D-8870-FC35E5DA44D9}.Release|x64.Build.0 = Release|Any CPU
 		{3EDB637B-DAC4-481D-8870-FC35E5DA44D9}.Release|x86.ActiveCfg = Release|Any CPU
 		{3EDB637B-DAC4-481D-8870-FC35E5DA44D9}.Release|x86.Build.0 = Release|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Debug|x64.Build.0 = Debug|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Debug|x86.Build.0 = Debug|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Release|x64.ActiveCfg = Release|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Release|x64.Build.0 = Release|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Release|x86.ActiveCfg = Release|Any CPU
+		{87960B68-1EBE-4555-86AF-41926F705725}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +111,7 @@ Global
 		{F98CFFB3-EE72-4342-82E8-389F825AE6F4} = {B58A25DB-ED90-4228-A784-0A0B1CB345A3}
 		{F4F93D56-4D4D-40C7-83DB-51AF65E312DB} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{3EDB637B-DAC4-481D-8870-FC35E5DA44D9} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{87960B68-1EBE-4555-86AF-41926F705725} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FD11575D-D1D8-482B-BF2C-78E60C19CADA}

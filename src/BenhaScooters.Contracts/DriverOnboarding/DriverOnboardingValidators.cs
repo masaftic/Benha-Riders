@@ -3,6 +3,7 @@ using BenhaScooters.Domain.Drivers;
 using BenhaScooters.Domain.Drivers.Enums;
 using BenhaScooters.Domain.Drivers.ValueObjects;
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
 
 namespace BenhaScooters.Contracts.DriverOnboarding;
 
