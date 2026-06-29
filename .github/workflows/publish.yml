@@ -1,0 +1,105 @@
+name: Publish
+
+on:
+  workflow_run:
+    workflows:
+      - Tests
+    types:
+      - completed
+    branches:
+      - main
+
+env:
+  PROJECT_PATH: src/BenhaScooters/BenhaScooters.csproj
+  CONFIGURATION: Release
+  OUTPUT_DIR: publish-output
+  DOTNET_VERSION: 9.0.x
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore "${{ env.PROJECT_PATH }}"
+
+      - name: Publish application
+        run: |
+          dotnet publish "${{ env.PROJECT_PATH }}" \
+            --configuration "${{ env.CONFIGURATION }}" \
+            --output "${{ env.OUTPUT_DIR }}" \
+            /p:PublishProfile=Release
+
+      - name: Install lftp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lftp
+
+      - name: Deploy via FTP
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
+          DEPLOY_MODE: force
+        run: |
+          set -euo pipefail
+
+          case "$DEPLOY_MODE" in
+            mirror-delete)
+              MIRROR_OPTIONS="--reverse --delete --verbose --parallel=10"
+              ;;
+            only-newer)
+              MIRROR_OPTIONS="--reverse --only-newer --verbose --parallel=10"
+              ;;
+            force)
+              MIRROR_OPTIONS="--reverse --verbose --parallel=10"
+              ;;
+            *)
+              echo "Unknown deploy mode: $DEPLOY_MODE"
+              exit 1
+              ;;
+          esac
+
+          lftp -c "
+          set ftp:ssl-allow no
+          set ftp:passive-mode on
+          set ftp:use-site-chmod no
+          set mirror:set-permissions no
+          set net:max-retries 3
+          set net:reconnect-interval-base 2
+          set net:timeout 20
+          set net:socket-buffer 65536
+          set ftp:timezone \"\"
+          open -u \"$FTP_USER\",\"$FTP_PASS\" -p \"$FTP_PORT\" \"$FTP_HOST\"
+          lcd \"${{ env.OUTPUT_DIR }}\"
+          cd \"$FTP_REMOTE_DIR\"
+          mirror $MIRROR_OPTIONS
+          bye
+          "
+
+      - name: Verify uploaded DLLs
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
+        run: |
+          lftp -c "
+          set ftp:ssl-allow no
+          open -u \"$FTP_USER\",\"$FTP_PASS\" -p \"$FTP_PORT\" \"$FTP_HOST\"
+          cd \"$FTP_REMOTE_DIR\"
+          cls -1 *.dll
+          bye
+          "
