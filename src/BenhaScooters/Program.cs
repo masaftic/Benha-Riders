@@ -7,7 +7,6 @@ using BenhaScooters.Infrastructure.Localization;
 using BenhaScooters.Infrastructure.Notifications;
 using BenhaScooters.Infrastructure.S3;
 using BenhaScooters.Presentation;
-using BenhaScooters.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +15,7 @@ using Serilog.Context;
 using System.Globalization;
 using BenhaScooters.Shared.Localization;
 using BenhaScooters.Presentation.AppVersioning;
+using BenhaScooters.Infrastructure.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -2,7 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Matching;
 using Microsoft.EntityFrameworkCore;
 
-namespace BenhaScooters.Application.Services;
+namespace BenhaScooters.Infrastructure.BackgroundServices;
 
 /// <summary>
 /// Hangfire job that cleans up old match attempts

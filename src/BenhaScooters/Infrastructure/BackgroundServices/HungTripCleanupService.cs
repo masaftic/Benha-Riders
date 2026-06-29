@@ -2,7 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Trips.Enums;
 using Microsoft.EntityFrameworkCore;
 
-namespace BenhaScooters.Application.Services;
+namespace BenhaScooters.Infrastructure.BackgroundServices;
 
 // TODO: still doesn't solve the problem of trips that are hung because driver forgot to mark them as completed,
 // but at least it will clean up trips that were never completed at all

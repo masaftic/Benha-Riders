@@ -1,7 +1,7 @@
 using BenhaScooters.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace BenhaScooters.Services;
+namespace BenhaScooters.Infrastructure.BackgroundServices;
 
 public class TokenCleanupService
 {

@@ -2,7 +2,7 @@ using BenhaScooters.Data;
 using BenhaScooters.Domain.Drivers;
 using Microsoft.EntityFrameworkCore;
 
-namespace BenhaScooters.Application.Services;
+namespace BenhaScooters.Infrastructure.BackgroundServices;
 
 /// <summary>
 /// Hangfire job that sets drivers with no recent heartbeat to offline
