@@ -40,7 +40,7 @@ public class AdminDriverManagementController : BaseApiController
     public async Task<IActionResult> GetFilteredDrivers([FromQuery] QueryDriversParams queryParams)
     {
         var query = new ListDriversWithFilters(
-            queryParams.OnboardingStatus,
+            queryParams.OnboardingStatus?.ToDomain(),
             queryParams.Page,
             queryParams.PageCount);
 
@@ -119,7 +119,7 @@ public class AdminDriverManagementController : BaseApiController
     public async Task<IActionResult> GetTopUpRequests([FromQuery] GetTopUpRequestsParams p)
     {
         UserId? driverFilter = p.DriverId.HasValue ? UserId.Create(p.DriverId.Value) : null;
-        var query = new GetTopUpRequestsQuery(p.Page, p.PageSize, p.Status, driverFilter);
+        var query = new GetTopUpRequestsQuery(p.Page, p.PageSize, p.Status?.ToDomain(), driverFilter);
         var result = await _sender.Send(query);
         return result.Match(Ok, HandleErrors);
     }

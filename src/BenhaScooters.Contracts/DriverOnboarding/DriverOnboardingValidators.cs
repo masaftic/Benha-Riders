@@ -1,7 +1,5 @@
+using BenhaScooters.Contracts.Common;
 using BenhaScooters.Contracts.DriverOnboarding;
-using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Drivers.Enums;
-using BenhaScooters.Domain.Drivers.ValueObjects;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 
@@ -20,10 +18,7 @@ public class UpdatePersonalInfoRequestValidator : AbstractValidator<UpdatePerson
             .WithMessage("الاسم الكامل لا يمكن أن يتجاوز 100 حرف.");
 
         RuleFor(x => x.NationalId)
-            .NotEmpty()
-            .WithMessage("الرقم القومي مطلوب.")
-            .Matches(@"^[0-9]{14}$")
-            .WithMessage("الرقم القومي يجب أن يكون 14 رقم بالضبط.");
+            .EgyptianNationalId();
     }
 }
 
@@ -65,7 +60,7 @@ public class UpdateVehicleInfoRequestValidator : AbstractValidator<UpdateVehicle
 
 public class UpdateDocumentsRequestValidator : AbstractValidator<UpdateDocumentsRequest>
 {
-    private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png" };
+    private static readonly string[] AllowedExtensions = [".jpg", ".jpeg", ".png"];
     private const long MaxFileSize = 10 * 1024 * 1024; // 10MB
 
     public UpdateDocumentsRequestValidator()

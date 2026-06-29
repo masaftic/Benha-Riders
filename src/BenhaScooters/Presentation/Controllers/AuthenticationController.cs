@@ -2,6 +2,7 @@ using BenhaScooters.Application.Features.Authentication.Commands;
 using BenhaScooters.Application.Features.Authentication.Commands.Common;
 using BenhaScooters.Application.Features.Authentication.Queries;
 using BenhaScooters.Contracts.Authentication;
+using BenhaScooters.Domain.Users;
 using BenhaScooters.Presentation.Endpoints;
 using BenhaScooters.Shared.Security;
 using MediatR;
@@ -41,7 +42,7 @@ public class AuthenticationController : BaseApiController
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var command = new LoginCommand(request.PhoneNumber, request.Password, request.App);
+        var command = new LoginCommand(PhoneNumber.Create(request.PhoneNumber), request.Password, request.App.ToDomain());
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -59,7 +60,12 @@ public class AuthenticationController : BaseApiController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var command = new RegisterCommand(request.Name, request.Email, request.PhoneNumber, request.Password, request.App);
+        var command = new RegisterCommand(
+            request.Name,
+            Email.Create(request.Email),
+            PhoneNumber.Create(request.PhoneNumber),
+            request.Password,
+            request.App.ToDomain());
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -172,7 +178,7 @@ public class AuthenticationController : BaseApiController
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
-        var command = new RefreshTokenCommand(request.RefreshToken, request.App);
+        var command = new RefreshTokenCommand(request.RefreshToken, request.App.ToDomain());
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -193,7 +199,7 @@ public class AuthenticationController : BaseApiController
     {
         var userId = HttpContext.GetCurrentUserId();
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-        var command = new SendSmsVerificationCommand(userId, request.PhoneNumber, ipAddress);
+        var command = new SendSmsVerificationCommand(userId, PhoneNumber.Create(request.PhoneNumber), ipAddress);
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -212,7 +218,7 @@ public class AuthenticationController : BaseApiController
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SignInWithGoogle([FromBody] SignInGoogleRequest request)
     {
-        var command = new GoogleSignInCommand(request.IdToken, request.App);
+        var command = new GoogleSignInCommand(request.IdToken, request.App.ToDomain());
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -233,7 +239,7 @@ public class AuthenticationController : BaseApiController
     {
         var userId = HttpContext.GetCurrentUserId();
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-        var command = new VerifySmsCodeCommand(userId, request.Code, request.App, ipAddress);
+        var command = new VerifySmsCodeCommand(userId, request.Code, request.App.ToDomain(), ipAddress);
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -254,7 +260,7 @@ public class AuthenticationController : BaseApiController
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-        var command = new ForgotPasswordCommand(request.PhoneNumber, ipAddress);
+        var command = new ForgotPasswordCommand(PhoneNumber.Create(request.PhoneNumber), ipAddress);
         var result = await _sender.Send(command);
 
         return result.Match(
@@ -279,7 +285,7 @@ public class AuthenticationController : BaseApiController
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
         var command = new ResetPasswordWithOtpCommand(
-            request.PhoneNumber,
+            PhoneNumber.Create(request.PhoneNumber),
             request.OtpCode,
             request.NewPassword,
             request.ConfirmPassword,

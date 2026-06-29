@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using BenhaScooters.Contracts.Authentication;
 using BenhaScooters.Presentation.AppVersioning;
 using BenhaScooters.Presentation.Swagger;
 using FluentValidation;
@@ -35,6 +36,7 @@ public static class DependencyInjection
         // Add FluentValidation
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining<Program>();
+        services.AddValidatorsFromAssemblyContaining<RegisterRequest>();
 
         services.AddRateLimiter(options =>
         {

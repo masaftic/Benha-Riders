@@ -8,6 +8,7 @@ using BenhaScooters.Shared.Security;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using DomainDocumentType = BenhaScooters.Domain.Drivers.DocumentType;
 
 namespace BenhaScooters.Presentation.Controllers;
 
@@ -101,7 +102,7 @@ public class DriverOnboardingController : BaseApiController
         var driverId = HttpContext.GetDriverId();
         var command = new UpdateVehicleInfoCommand(
             driverId,
-            request.VehicleType,
+            request.VehicleType.ToDomain(),
             request.VehicleBrand,
             request.VehicleColor,
             request.LicensePlate,
@@ -130,13 +131,13 @@ public class DriverOnboardingController : BaseApiController
         var driverId = HttpContext.GetDriverId();
         
         // Build dictionary of document types to files
-        var documents = new Dictionary<DocumentType, IFormFile>();
+        var documents = new Dictionary<DomainDocumentType, IFormFile>();
         if (request.LicenseImage != null)
-            documents[DocumentType.DrivingLicense] = request.LicenseImage;
+            documents[DomainDocumentType.DrivingLicense] = request.LicenseImage;
         if (request.VehicleRegistrationImage != null)
-            documents[DocumentType.VehicleRegistration] = request.VehicleRegistrationImage;
+            documents[DomainDocumentType.VehicleRegistration] = request.VehicleRegistrationImage;
         if (request.DriverImage != null)
-            documents[DocumentType.DriverPhoto] = request.DriverImage;
+            documents[DomainDocumentType.DriverPhoto] = request.DriverImage;
         
         var command = new UpdateDocumentsCommand(driverId, documents);
 
@@ -161,7 +162,7 @@ public class DriverOnboardingController : BaseApiController
     {
         var command = new UploadDocumentCommand(
             HttpContext.GetDriverId(),
-            Enum.Parse<DocumentType>(request.DocumentType),
+            Enum.Parse<DomainDocumentType>(request.DocumentType),
             request.File);
 
         var result = await _sender.Send(command);

@@ -1,5 +1,3 @@
-using BenhaScooters.Domain.Drivers;
-using BenhaScooters.Domain.Drivers.Enums;
 using Microsoft.AspNetCore.Http;
 
 namespace BenhaScooters.Contracts.DriverOnboarding;

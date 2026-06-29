@@ -2,7 +2,6 @@ using BenhaScooters.Application.Features.TripRequests.Commands;
 using BenhaScooters.Application.Features.TripRequests.Queries;
 using BenhaScooters.Application.Features.Trips.Commands;
 using BenhaScooters.Contracts.TripRequests;
-using BenhaScooters.Domain.Common.Geo;
 using BenhaScooters.Domain.TripRequests;
 using BenhaScooters.Infrastructure.Security;
 using BenhaScooters.Presentation.Endpoints;
@@ -36,13 +35,9 @@ public class TripRequestsController : BaseApiController
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RequestTrip([FromBody] RequestTripRequest request)
     {
-        var pickupCoordinate = Domain.Common.Geo.Coordinate.Create(
-            request.PickupLatitude,
-            request.PickupLongitude);
+        var pickupCoordinate = request.PickupLatitude.ToCoordinate(request.PickupLongitude);
         
-        var dropoffCoordinate = Domain.Common.Geo.Coordinate.Create(
-            request.DropoffLatitude,
-            request.DropoffLongitude);
+        var dropoffCoordinate = request.DropoffLatitude.ToCoordinate(request.DropoffLongitude);
 
         var command = new RequestTripCommand(
             HttpContext.GetCurrentUserId(),
@@ -68,7 +63,7 @@ public class TripRequestsController : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CancelTripRequest([FromBody] CancelTripRequestRequest request)
     {
-        var command = new CancelTripRequestCommand(request.TripRequestId, HttpContext.GetCurrentUserId(), request.CancellationReason);
+        var command = new CancelTripRequestCommand(request.TripRequestId.ToTripRequestId(), HttpContext.GetCurrentUserId(), request.CancellationReason);
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);

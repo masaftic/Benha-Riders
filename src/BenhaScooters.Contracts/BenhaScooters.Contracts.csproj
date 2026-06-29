@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../BenhaScooters.Domain/BenhaScooters.Domain.csproj" />
+    <ProjectReference Include="../BenhaScooters.Shared/BenhaScooters.Shared.csproj" />
   </ItemGroup>
 
 </Project>

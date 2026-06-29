@@ -1,5 +1,14 @@
-using BenhaScooters.Domain.Users;
+using BenhaScooters.Contracts.Common;
+using FluentValidation;
 
 namespace BenhaScooters.Contracts.Authentication;
 
-public record SendSmsVerificationRequest(PhoneNumber PhoneNumber);
+public record SendSmsVerificationRequest(string PhoneNumber);
+
+public class SendSmsVerificationRequestValidator : AbstractValidator<SendSmsVerificationRequest>
+{
+    public SendSmsVerificationRequestValidator()
+    {
+        RuleFor(x => x.PhoneNumber).EgyptianPhoneNumber();
+    }
+}

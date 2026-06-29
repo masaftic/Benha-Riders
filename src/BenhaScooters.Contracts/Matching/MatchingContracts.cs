@@ -1,7 +1,5 @@
-using BenhaScooters.Domain.Matching;
-
 namespace BenhaScooters.Contracts.Matching;
 
-public record AcceptMatchRequest(DriverMatchAttemptId DriverMatchAttemptId);
+public record AcceptMatchRequest(int DriverMatchAttemptId);
 
-public record RejectMatchRequest(DriverMatchAttemptId DriverMatchAttemptId, string? Reason = null);
+public record RejectMatchRequest(int DriverMatchAttemptId, string? Reason = null);

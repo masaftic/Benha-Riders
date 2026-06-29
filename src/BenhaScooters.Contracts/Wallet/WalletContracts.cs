@@ -1,5 +1,3 @@
-using BenhaScooters.Domain.Drivers;
-
 namespace BenhaScooters.Contracts.Wallet;
 
 public record GetWalletTransactionsParams(

@@ -54,7 +54,7 @@ public class MatchingController : BaseApiController
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AcceptMatch([FromBody] AcceptMatchRequest request)
     {
-        var command = new AcceptMatchCommand(HttpContext.GetDriverId(), request.DriverMatchAttemptId);
+        var command = new AcceptMatchCommand(HttpContext.GetDriverId(), request.DriverMatchAttemptId.ToDriverMatchAttemptId());
         var result = await _sender.Send(command);
 
         return result.Match(Ok, HandleErrors);
@@ -74,7 +74,7 @@ public class MatchingController : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RejectMatch([FromBody] RejectMatchRequest request)
     {
-        var command = new RejectMatchCommand(HttpContext.GetDriverId(), request.DriverMatchAttemptId, request.Reason);
+        var command = new RejectMatchCommand(HttpContext.GetDriverId(), request.DriverMatchAttemptId.ToDriverMatchAttemptId(), request.Reason);
         var result = await _sender.Send(command);
 
         return result.Match(_ => NoContent(), HandleErrors);

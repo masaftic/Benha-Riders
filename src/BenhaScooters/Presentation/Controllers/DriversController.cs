@@ -149,7 +149,7 @@ public class DriversController : BaseApiController
             p.PageSize,
             p.From,
             p.To,
-            p.Type);
+            p.Type?.ToDomain());
         var result = await _sender.Send(query);
         return result.Match(Ok, HandleErrors);
     }
