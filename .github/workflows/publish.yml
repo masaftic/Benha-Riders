@@ -13,7 +13,7 @@ env:
   PROJECT_PATH: src/BenhaScooters/BenhaScooters.csproj
   CONFIGURATION: Release
   OUTPUT_DIR: publish-output
-  DOTNET_VERSION: 9.0.x
+  DOTNET_VERSION: 10.0.x
 
 jobs:
   publish:

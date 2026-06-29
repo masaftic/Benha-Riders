@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BenhaScooters.Contracts/BenhaScooters.Contracts.csproj" />
+    <Project Path="src/BenhaScooters.Domain/BenhaScooters.Domain.csproj" />
+    <Project Path="src/BenhaScooters.Shared/BenhaScooters.Shared.csproj" />
+    <Project Path="src/BenhaScooters/BenhaScooters.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BenhaScooters.IntegrationTests/BenhaScooters.IntegrationTests.csproj" />
+    <Project Path="tests/BenhaScooters.UnitTests/BenhaScooters.UnitTests.csproj" />
+  </Folder>
+</Solution>

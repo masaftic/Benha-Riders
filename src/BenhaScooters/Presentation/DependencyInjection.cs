@@ -4,7 +4,7 @@ using BenhaScooters.Presentation.AppVersioning;
 using BenhaScooters.Presentation.Swagger;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Thinktecture.AspNetCore.ModelBinding;
 using Thinktecture.Swashbuckle;
 using Thinktecture.Text.Json.Serialization;
@@ -76,28 +76,22 @@ public static class DependencyInjection
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\""
             });
             // Apply the scheme globally to all endpoints marked as requiring auth
-            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            options.AddSecurityRequirement(openApiDocument => new OpenApiSecurityRequirement
             {
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>() // No scopes required
+                    new OpenApiSecuritySchemeReference("Bearer", openApiDocument, null),
+                    [] // No scopes required
                 }
             });
 
-            // add accept language header
-            options.OperationFilter<AcceptLanguageHeaderParameter>();
-            options.OperationFilter<AppVersionHeaderTransformer>();
-            options.OperationFilter<AppTypeHeaderTransformer>();
         });
 
-        services.AddOpenApi();
+        services.AddOpenApi(options =>
+        {
+            options.AddOperationTransformer<AcceptLanguageHeaderParameter>();
+            options.AddOperationTransformer<AppVersionHeaderTransformer>();
+            options.AddOperationTransformer<AppTypeHeaderTransformer>();
+        });
 
         services.AddSignalR(o => o.EnableDetailedErrors = true)
             .AddJsonProtocol(options =>

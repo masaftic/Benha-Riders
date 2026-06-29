@@ -17,13 +17,13 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore Benha-Scooters.slnx
 
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build Benha-Scooters.slnx --no-restore
 
       - name: Run tests
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test Benha-Scooters.slnx --no-build --verbosity normal

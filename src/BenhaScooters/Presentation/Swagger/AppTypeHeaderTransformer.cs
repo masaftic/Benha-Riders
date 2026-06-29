@@ -1,12 +1,12 @@
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi;
 
 namespace BenhaScooters.Presentation.Swagger;
 
-public class AppTypeHeaderTransformer : IOperationFilter
+public class AppTypeHeaderTransformer : IOpenApiOperationTransformer
 {
-    public void Apply(OpenApiOperation operation, OperationFilterContext context)
+    public Task TransformAsync(OpenApiOperation operation, OpenApiOperationTransformerContext context, CancellationToken cancellationToken)
     {
         var parameter = new OpenApiParameter
         {
@@ -16,14 +16,18 @@ public class AppTypeHeaderTransformer : IOperationFilter
             Required = true,
             Schema = new OpenApiSchema
             {
-                Type = "string",
-                Default = new OpenApiString("RiderApp"),
+                Type = JsonSchemaType.String,
+                Default = JsonValue.Create("RiderApp"),
                 Enum = [
-                    new OpenApiString("DriverApp"),
-                    new OpenApiString("RiderApp"),
+                    JsonValue.Create("DriverApp"),
+                    JsonValue.Create("RiderApp"),
                 ]
             }
         };
+        
+        operation.Parameters ??= [];
         operation.Parameters.Add(parameter);
+
+        return Task.CompletedTask;
     }
 }
