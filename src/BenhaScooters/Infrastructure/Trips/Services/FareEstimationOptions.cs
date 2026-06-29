@@ -21,4 +21,8 @@ public class FareEstimationOptions
     [Required]
     [Range(0, double.MaxValue, ErrorMessage = "Per minute rate must be a non-negative value.")]
     public decimal PerMinuteRate { get; set; }
+
+    [Required]
+    [Range(0, double.MaxValue, ErrorMessage = "Minimum fare must be a non-negative value.")]
+    public decimal MinimumFare { get; set; }
 }

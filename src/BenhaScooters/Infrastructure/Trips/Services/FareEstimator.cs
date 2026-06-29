@@ -60,6 +60,8 @@ public class FareEstimator : IFareEstimator
             + ((decimal)actualDistanceKm * _options.PerKmRate)
             + ((decimal)actualDurationMinutes * _options.PerMinuteRate),
             MidpointRounding.AwayFromZero);
+        
+        actualFare = Math.Max(actualFare, _options.MinimumFare); // apply minimum fare
 
         var fareEstimate = FareEstimate.Create(
             actualFare,

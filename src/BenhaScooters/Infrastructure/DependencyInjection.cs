@@ -62,8 +62,12 @@ public static class DependencyInjection
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"), o => o.UseNetTopologySuite()));
+        services.AddDbContext<AppDbContext>((sp, contextBuilder) =>
+        {
+            contextBuilder.UseNpgsql(configuration.GetConnectionString("DefaultConnection"), o => o.UseNetTopologySuite());
+            contextBuilder.AddInterceptors(
+                sp.GetRequiredService<PublishDomainEventsInterceptor>());
+        });
 
         services.AddHangfire(config =>
         {

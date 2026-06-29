@@ -65,7 +65,6 @@ try
     builder.Services.AddApplication(builder.Configuration);
 
 
-
     var app = builder.Build();
 
     app.UseCors();
@@ -79,7 +78,6 @@ try
             await next();
         }
     });
-
 
     // Ensure uploads directory exists for PhysicalFileProvider
     var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");

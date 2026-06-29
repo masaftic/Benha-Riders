@@ -14,7 +14,7 @@ using Thinktecture;
 
 namespace BenhaScooters.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options, PublishDomainEventsInterceptor publishDomainEventsInterceptor) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     // User & Auth
     public DbSet<User> Users => Set<User>();
@@ -65,17 +65,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, PublishDomainE
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
         base.OnModelCreating(modelBuilder);
-    }
-
-    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-    {
-        base.ConfigureConventions(configurationBuilder);
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.AddInterceptors(publishDomainEventsInterceptor);
-
-        base.OnConfiguring(optionsBuilder);
     }
 }
