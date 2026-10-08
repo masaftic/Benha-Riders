@@ -9,3 +9,5 @@ node_modules
 publish-output
 wwwroot
 src/BenhaScooters/uploads
+TASKS.md
+jwts.txt
