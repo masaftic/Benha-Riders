@@ -18,7 +18,8 @@ public sealed class RespawnResetter
             DbAdapter = DbAdapter.Postgres,
             TablesToIgnore =
             [
-                new Respawn.Graph.Table("__EFMigrationsHistory")
+                new Respawn.Graph.Table("__EFMigrationsHistory"),
+                new Respawn.Graph.Table("spatial_ref_sys")
             ]
         }).GetAwaiter().GetResult();
     }

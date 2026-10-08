@@ -1,4 +1,8 @@
 using BenhaScooters.Data;
+using BenhaScooters.Application.Abstractions;
+using BenhaScooters.Application.Workflows;
+using BenhaScooters.Infrastructure.S3;
+using BenhaScooters.IntegrationTests.Support;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +41,19 @@ public class TestApiFactory(string connectionString) : WebApplicationFactory<Pro
             {
                 options.UseNpgsql(_connectionString, o => o.UseNetTopologySuite());
             });
+
+            services.RemoveAll<IGoogleMapsService>();
+            services.RemoveAll<ILocalizedPushNotificationService>();
+            services.RemoveAll<IS3Service>();
+            services.RemoveAll<IMessageScheduler>();
+
+            services.AddSingleton<FakeGoogleMapsService>();
+            services.AddSingleton<IGoogleMapsService>(sp => sp.GetRequiredService<FakeGoogleMapsService>());
+            services.AddSingleton<ILocalizedPushNotificationService, NoOpLocalizedPushNotificationService>();
+            services.AddSingleton<IS3Service, TestS3Service>();
+            services.AddSingleton<RecordingMessageScheduler>();
+            services.AddSingleton<IMessageScheduler>(sp => sp.GetRequiredService<RecordingMessageScheduler>());
+            services.AddScoped<TestAccountSeeder>();
         });
     }
 }
