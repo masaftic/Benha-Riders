@@ -10,13 +10,13 @@ PROJECT_PATH="src/BenhaScooters/BenhaScooters.csproj"
 CONFIGURATION="Release"
 OUTPUT_DIR="./publish-output"
 
-# FTP/SFTP settings
-FTP_HOST="site53013.siteasp.net"
-FTP_PORT="21"  # Use 21 for FTP, 22 for SFTP
-FTP_USER="site53013"
-FTP_PASS="Wg9=8D-iC@d3"
-FTP_REMOTE_DIR="/wwwroot"  # Website root directory
-DESTINATION_URL="http://banha-riders.runasp.net/"
+# FTP/SFTP settings (read from environment or prompt)
+FTP_HOST="${FTP_HOST:-site53013.siteasp.net}"
+FTP_PORT="${FTP_PORT:-21}"  # Use 21 for FTP, 22 for SFTP
+FTP_USER="${FTP_USER:-}"
+FTP_PASS="${FTP_PASS:-}"
+FTP_REMOTE_DIR="${FTP_REMOTE_DIR:-/wwwroot}"  # Website root directory
+DESTINATION_URL="${DESTINATION_URL:-http://banha-riders.runasp.net/}"
 
 # Clean previous publish output
 if [ -d "$OUTPUT_DIR" ]; then
@@ -87,22 +87,33 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
             ;;
     esac
     
+    # Prompt for credentials if not supplied via env
+    if [ -z "$FTP_USER" ]; then
+        read -p "FTP Username: " FTP_USER
+    fi
+    if [ -z "$FTP_PASS" ]; then
+        read -s -p "FTP Password: " FTP_PASS
+        echo ""
+    fi
+
     # Upload using lftp
     echo "Connecting to $FTP_HOST:$FTP_PORT..."
     
+    # Increase parallelism and performance
     lftp -c "
     set ftp:ssl-allow no
     set ftp:passive-mode on
     set ftp:use-site-chmod no
     set mirror:set-permissions no
     set net:max-retries 3
-    set net:reconnect-interval-base 5
-    set net:timeout 30
+    set net:reconnect-interval-base 2
+    set net:timeout 20
+    set net:socket-buffer 65536
     set ftp:timezone \"\"
     open -u $FTP_USER,$FTP_PASS -p $FTP_PORT $FTP_HOST
     lcd $OUTPUT_DIR
     cd $FTP_REMOTE_DIR
-    mirror $MIRROR_OPTIONS
+    mirror $MIRROR_OPTIONS --parallel=10 
     bye
     "
     
