@@ -1,46 +1,63 @@
-``` json
+# Benha Coordinates & Sample Trip Requests
+
+Sample coordinate pairs for testing and demoing trip dispatch in Benha, Egypt.
+
+---
+
+### Route 1: Benha Train Station → Benha University
+```json
 {
-  "pickupLatitude": 40.7549,
-  "pickupLongitude": -73.9840,
-  "dropoffLatitude": 40.6413,
-  "dropoffLongitude": -73.7781,
-  "pickupAddress": "Times Square, Manhattan, NY",
-  "dropoffAddress": "JFK Airport, Terminal 4, Queens, NY"
-  // Approximate distance: 21 km
+  "pickupLatitude": 30.46629,
+  "pickupLongitude": 31.18463,
+  "dropoffLatitude": 30.46983,
+  "dropoffLongitude": 31.17891,
+  "pickupAddress": "Benha Train Station, Qalyubia",
+  "dropoffAddress": "Faculty of Engineering, Benha University",
+  "estimatedDistanceKm": 0.8
 }
 ```
 
+---
+
+### Route 2: Benha University Hospital → Al-Shohada Square
 ```json
 {
-  "pickupLatitude": 40.7102,
-  "pickupLongitude": -73.9571,
-  "dropoffLatitude": 40.7060,
-  "dropoffLongitude": -74.0086,
-  "pickupAddress": "Williamsburg, Brooklyn, NY",
-  "dropoffAddress": "Wall Street, Manhattan, NY"
-  // Approximate distance: 5 km
+  "pickupLatitude": 30.46255,
+  "pickupLongitude": 31.18742,
+  "dropoffLatitude": 30.46500,
+  "dropoffLongitude": 31.18200,
+  "pickupAddress": "Benha University Hospital, Farid Nada St",
+  "dropoffAddress": "Al-Shohada Square, Benha",
+  "estimatedDistanceKm": 0.6
 }
 ```
 
+---
+
+### Route 3: Kafr El-Gazzar → Al-Vilal District
 ```json
 {
-  "pickupLatitude": 40.8116,
-  "pickupLongitude": -73.9465,
-  "dropoffLatitude": 40.7829,
-  "dropoffLongitude": -73.9654,
-  "pickupAddress": "Harlem, Manhattan, NY",
-  "dropoffAddress": "Central Park West & 86th St, Manhattan, NY"
-  // Approximate distance: 3.5 km
+  "pickupLatitude": 30.47200,
+  "pickupLongitude": 31.17400,
+  "dropoffLatitude": 30.46800,
+  "dropoffLongitude": 31.19200,
+  "pickupAddress": "Kafr El-Gazzar Entrance, Benha",
+  "dropoffAddress": "Al-Vilal District, Corniche El-Nil",
+  "estimatedDistanceKm": 2.1
 }
 ```
+
+---
+
+### Route 4: Out-of-Service Area (Negative Geofence Test)
 ```json
 {
-  "pickupLatitude": 40.6782,
-  "pickupLongitude": -73.9442,
-  "dropoffLatitude": 40.7769,
-  "dropoffLongitude": -73.8740,
-  "pickupAddress": "Crown Heights, Brooklyn, NY",
-  "dropoffAddress": "LaGuardia Airport, Queens, NY"
-  // Approximate distance: 13 km
+  "pickupLatitude": 30.61000,
+  "pickupLongitude": 31.35000,
+  "dropoffLatitude": 30.46629,
+  "dropoffLongitude": 31.18463,
+  "pickupAddress": "Outside Service Area",
+  "dropoffAddress": "Benha Train Station",
+  "expectedOutcome": "Validation Error (Outside Service Area)"
 }
 ```
