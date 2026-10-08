@@ -29,7 +29,6 @@ Benha-Scooters/
 ├── tests/
 │   ├── BenhaScooters.UnitTests/        # Fast, isolated domain unit tests
 │   └── BenhaScooters.IntegrationTests/ # E2E tests powered by Testcontainers (PostGIS) & Respawn
-└── docs/                           # Domain event catalogs, lifecycle specifications, architecture guides
 ```
 
 ### Key Architectural Highlights
@@ -135,11 +134,3 @@ dotnet test
 
 - **Unit Tests**: `tests/BenhaScooters.UnitTests` validates domain rules, aggregates, and calculations in isolation.
 - **Integration Tests**: `tests/BenhaScooters.IntegrationTests` validates full API pipelines, database queries, and middleware using real disposable PostGIS Docker containers reset via Respawn between tests.
-
----
-
-## 📖 Additional Documentation
-
-- [Domain Event Catalog](docs/DomainEventCatalog.md) — Comprehensive reference of domain events, publishers, and handlers.
-- [Matching Workflow Guide](docs/MatchingMessageWorkflowGuide.md) — Multi-round matching state progression details.
-- [Launch & Scale Plan](docs/LAUNCH_PLAN.md) — Roadmap for production hardening and infrastructure scaling.
