@@ -220,7 +220,7 @@ public class GoogleMapsService : IGoogleMapsService
                       $"{FormatCoordinate(Math.Round(destinationLatitude, 5))}:{FormatCoordinate(Math.Round(destinationLongitude, 5))}:{language}:{mode}:{alternatives}";
 
         // Try to get from cache first
-        if (_cache.TryGetValue(cacheKey, out DirectionsResponse cachedResult))
+        if (_cache.TryGetValue(cacheKey, out DirectionsResponse? cachedResult))
         {
             _logger.LogDebug("Returning cached directions result for cache key: {CacheKey}", cacheKey);
             if (cachedResult is not null)

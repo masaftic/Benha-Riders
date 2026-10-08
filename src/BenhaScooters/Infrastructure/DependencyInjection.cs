@@ -14,7 +14,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using BenhaScooters.Data;
 using Microsoft.EntityFrameworkCore;
-using BenhaScooters.Services;
+using BenhaScooters.Infrastructure.BackgroundServices;
 using BenhaScooters.Infrastructure.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;

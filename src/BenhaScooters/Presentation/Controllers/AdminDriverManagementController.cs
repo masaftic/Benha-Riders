@@ -80,7 +80,7 @@ public class AdminDriverManagementController : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ApproveDriver([FromRoute] int driverId)
     {
-        var command = new ApproveDriverCommand(UserId.Create(driverId));
+        var command = new ApproveDriverCommand(UserId.Create(driverId), HttpContext.GetCurrentUserId());
         var result = await _sender.Send(command);
 
         return result.Match(_ => NoContent(), HandleErrors);

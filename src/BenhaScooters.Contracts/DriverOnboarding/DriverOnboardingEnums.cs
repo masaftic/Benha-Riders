@@ -5,7 +5,8 @@ public enum VehicleType
     Motorcycle,
     Scooter,
     Bicycle,
-    Car
+    Car,
+    Suzuki
 }
 
 public enum DriverOnboardingStatus

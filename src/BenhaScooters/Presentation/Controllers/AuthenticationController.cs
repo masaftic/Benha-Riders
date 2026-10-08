@@ -21,12 +21,6 @@ public class AuthenticationController : BaseApiController
         _sender = sender;
     }
 
-    [HttpGet("test")]
-    public async Task<IActionResult> Test()
-    {
-        return Ok();
-    }
-
 
     /// <summary>
     /// User login

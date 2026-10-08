@@ -13,7 +13,7 @@ using NetTopologySuite.Geometries;
 
 namespace BenhaScooters.Application.Features.DriverOnboarding.Commands;
 
-public record ApproveDriverCommand(UserId DriverId) : IRequest<ErrorOr<Success>>;
+public record ApproveDriverCommand(UserId DriverId, UserId? AdminId = null) : IRequest<ErrorOr<Success>>;
 
 public class ApproveDriverCommandValidator : AbstractValidator<ApproveDriverCommand>
 {
@@ -49,7 +49,7 @@ public class ApproveDriverCommandHandler : IRequestHandler<ApproveDriverCommand,
         }
 
         // Admin approves the driver profile
-        var adminUserId = UserId.Create(1); // TODO: Get from current user context
+        var adminUserId = request.AdminId ?? UserId.Create(1);
         var approveResult = driverProfile.Approve(adminUserId);
         if (approveResult.IsError)
         {
