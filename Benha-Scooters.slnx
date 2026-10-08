@@ -1,7 +1,6 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/BenhaScooters.Contracts/BenhaScooters.Contracts.csproj" />
-    <Project Path="src/BenhaScooters.Domain/BenhaScooters.Domain.csproj" />
     <Project Path="src/BenhaScooters.Shared/BenhaScooters.Shared.csproj" />
     <Project Path="src/BenhaScooters/BenhaScooters.csproj" />
   </Folder>

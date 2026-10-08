@@ -50,7 +50,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../BenhaScooters.Contracts/BenhaScooters.Contracts.csproj" />
-    <ProjectReference Include="../BenhaScooters.Domain/BenhaScooters.Domain.csproj" />
     <ProjectReference Include="../BenhaScooters.Shared/BenhaScooters.Shared.csproj" />
   </ItemGroup>
 

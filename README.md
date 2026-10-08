@@ -19,10 +19,10 @@ The solution strictly adheres to **Clean Architecture** and **DDD** principles, 
 ```
 Benha-Scooters/
 ├── src/
-│   ├── BenhaScooters.Domain/       # Core business logic: Entities, Value Objects, Domain Events, Aggregate Roots
 │   ├── BenhaScooters.Contracts/    # DTOs, API request/response contracts, client Enums
-│   ├── BenhaScooters.Shared/       # Cross-cutting primitives (Results, Security helpers, Localization)
-│   └── BenhaScooters/              # Host application:
+│   ├── BenhaScooters.Shared/       # Cross-cutting primitives (Security helpers, Localization, Regex)
+│   └── BenhaScooters/              # Main application project:
+│       ├── Domain/                 # Core business logic: Entities, Value Objects, Domain Events
 │       ├── Application/            # CQRS commands/queries (MediatR), FluentValidation rules, abstractions
 │       ├── Infrastructure/         # EF Core, PostGIS spatial services, Hangfire, S3, SignalR, Auth
 │       └── Presentation/           # REST Controllers, API Versioning middleware, Swagger filters
