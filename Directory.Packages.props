@@ -4,6 +4,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.9.0" />
     <PackageVersion Include="AWSSDK.S3" Version="4.0.100" />
     <PackageVersion Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
@@ -32,7 +33,7 @@
     <PackageVersion Include="Swashbuckle.AspNetCore.Swagger" Version="10.1.5" />
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.5" />
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.5" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.1.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.15.0" />
     <PackageVersion Include="Thinktecture.Runtime.Extensions" Version="10.4.0" />
     <PackageVersion Include="Thinktecture.Runtime.Extensions.AspNetCore" Version="10.1.2" />
     <PackageVersion Include="Thinktecture.Runtime.Extensions.EntityFrameworkCore10" Version="10.4.0" />
